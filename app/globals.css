@@ -1,26 +1,105 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ivory-white: #F9F7F1;
+  --graphite-black: #2B2B2B;
+  --sage-green: #9AA89C;
+  --sand-beige: #E9DCC9;
+  --chrome-silver: #B0B0B0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  body {
+    font-family: var(--font-inter), "ui-sans-serif", "system-ui", "apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif";
+    background-color: #F9F7F1;
+    color: #2B2B2B;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-syne), var(--font-playfair), ui-serif, Georgia, "Cambria", "Times New Roman", Times, serif;
+    letter-spacing: 0.025em;
+  }
+} /* <-- This closing curly brace was missing */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  /* Standard icon sizes */
+  .icon-xs {
+    height: 0.75rem;
+    width: 0.75rem;
+  }
+  
+  .icon-sm {
+    height: 1rem;
+    width: 1rem;
+  }
+  
+  .icon-base {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+  
+  .icon-md {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+  
+  .icon-lg {
+    height: 2rem;
+    width: 2rem;
+  }
+  
+  /* Override for social icons */
+  .social-icon {
+    height: 1rem;
+    width: 1rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Better container class with max-width constraints */
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Responsive container sizes */
+  @media (min-width: 640px) {
+    .container {
+      max-width: 640px;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .container {
+      max-width: 768px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container {
+      max-width: 1024px;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .container {
+      max-width: 1280px;
+    }
+  }
+  
+  @media (min-width: 1536px) {
+    .container {
+      max-width: 1536px;
+    }
+  }
 }
+/* Additional global styles... */
