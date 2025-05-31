@@ -1,9 +1,6 @@
 import './globals.css';
 import { Inter, Syne, Playfair_Display } from 'next/font/google';
 import localFont from 'next/font/local'; // Fixed import
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import BackToTop from '../components/BackToTop';
 
 const geist = localFont({
   src: [
@@ -96,14 +93,13 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+import { ReactNode } from 'react';
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${syne.variable} ${playfair.variable} ${geist.variable}`}>
       <body className="bg-[#F9F7F1] text-[#2B2B2B]">
-        <Header />
         {children}
-        <Footer />
-        <BackToTop />
       </body>
     </html>
   );
