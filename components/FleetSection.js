@@ -1,13 +1,30 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, useInView } from 'framer-motion';
 
 export default function FleetSection() {
   const [activeVespa, setActiveVespa] = useState(null);
+  const [isMobile, setIsMobile] = useState(true); // Default to true for server rendering
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
+  
+  // Initialize and update the window width
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth < 768);
+    }
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const fleetItems = [
     {
@@ -136,7 +153,7 @@ export default function FleetSection() {
                 
                 {/* Features list - visible when expanded on mobile or always on desktop */}
                 <motion.div 
-                  className={`space-y-2 mb-6 ${activeVespa === item.id || window.innerWidth >= 768 ? 'block' : 'hidden md:block'}`}
+                  className={`space-y-2 mb-6 ${activeVespa === item.id || !isMobile ? 'block' : 'hidden md:block'}`}
                   initial={{ opacity: 0, height: 0 }}
                   animate={activeVespa === item.id ? { opacity: 1, height: 'auto' } : {}}
                   transition={{ duration: 0.3 }}
