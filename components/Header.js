@@ -1,10 +1,11 @@
-// src/components/Header.jsx
+// src/components/Header.js
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage, languages } from './context/LanguageContext'; // Import language context
 
 export default function Header() {
   // State management
@@ -12,6 +13,20 @@ export default function Header() {
   const [activeSection, setActiveSection] = useState('home');
   const [scrolled, setScrolled] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+
+  // Use the language context (get t function as well)
+  const { currentLanguage, changeLanguage, t } = useLanguage();
+  
+  // Get the current language display name
+  const getCurrentLanguageDisplay = () => {
+    return currentLanguage.toUpperCase();
+  };
+
+  // Update the language selector buttons
+  const handleLanguageChange = (code) => {
+    changeLanguage(code);
+    setLanguageMenuOpen(false);
+  };
   
   // Header reference for calculations
   const headerRef = useRef(null);
@@ -66,20 +81,33 @@ export default function Header() {
     };
   }, [mobileMenuOpen]);
   
-  // Navigation items with icons
+  // Navigation items with icons - Now t function is defined
   const navItems = [
-    { name: 'About', href: '#about', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { name: 'Fleet', href: '#fleet', icon: 'M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0' },
-    { name: 'Explore', href: '#explore', icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { name: 'Shop', href: '#shop', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
-    { name: 'Contact', href: '#contact', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' }
-  ];
-  
-  // Language options
-  const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'lt', name: 'Lithuanian' },
-    { code: 'de', name: 'German' }
+    { 
+      name: t('nav.about'), 
+      href: '#about', 
+      icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' 
+    },
+    { 
+      name: t('nav.fleet'), 
+      href: '#fleet', 
+      icon: 'M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0' 
+    },
+    { 
+      name: t('nav.explore'), 
+      href: '#explore', 
+      icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z' 
+    },
+    { 
+      name: t('nav.shop'), 
+      href: '#shop', 
+      icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' 
+    },
+    { 
+      name: t('nav.contact'), 
+      href: '#contact', 
+      icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' 
+    }
   ];
   
   return (
@@ -147,42 +175,43 @@ export default function Header() {
               ))}
             </nav>
             
-            {/* Language Selector */}
-            <div className="relative mr-4">
-              <button 
-                onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
-                className="flex items-center text-sm text-graphite-black/70 hover:text-sage-green p-2 transition-colors"
-                aria-label="Select language"
-              >
-                <span className="mr-1">EN</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              <AnimatePresence>
-                {languageMenuOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg py-2 z-50"
-                  >
-                    {languages.map((lang) => (
-                      <button 
-                        key={lang.code}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-sage-green/10 transition-colors ${
-                          lang.code === 'en' ? 'text-sage-green font-medium' : 'text-graphite-black'
-                        }`}
-                      >
-                        {lang.name}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+             {/* Desktop Language Selector */}
+      <div className="relative mr-4">
+        <button 
+          onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
+          className="flex items-center text-sm text-graphite-black/70 hover:text-sage-green p-2 transition-colors"
+          aria-label="Select language"
+        >
+          <span className="mr-1">{getCurrentLanguageDisplay()}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        <AnimatePresence>
+          {languageMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg py-2 z-50"
+            >
+              {languages.map((lang) => (
+                <button 
+                  key={lang.code}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className={`w-full text-left px-4 py-2 text-sm hover:bg-sage-green/10 transition-colors ${
+                    lang.code === currentLanguage ? 'text-sage-green font-medium' : 'text-graphite-black'
+                  }`}
+                >
+                  {lang.name}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
             
             {/* Booking Button */}
             <Link 
@@ -191,7 +220,7 @@ export default function Header() {
                 scrolled ? 'px-4 py-2 text-sm' : 'px-5 py-2.5'
               }`}
             >
-              <span>Book Now</span>
+              <span>{t('buttons.bookNow')}</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -312,24 +341,29 @@ export default function Header() {
                     </a>
                   </div>
                   
-                  {/* Languages */}
-                  <div className="mt-6">
-                    <p className="text-xs text-graphite-black/50 mb-2">Choose language:</p>
-                    <div className="flex space-x-2">
-                      {languages.map(lang => (
-                        <button 
-                          key={lang.code} 
-                          className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                            lang.code === 'en' 
-                              ? 'bg-sage-green text-white'
-                              : 'bg-graphite-black/5 text-graphite-black hover:bg-graphite-black/10'
-                          }`}
-                        >
-                          {lang.code.toUpperCase()}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+           {/* Mobile Languages in menu */}
+<div className="mt-6">
+  <p className="text-xs text-graphite-black/50 mb-2">{t('footer.chooseLanguage')}</p>
+  <div className="flex space-x-2">
+    {languages.map(lang => (
+      <button 
+        key={lang.code} 
+        onClick={() => handleLanguageChange(lang.code)}
+        className={`
+          px-3 py-1.5 text-xs rounded-md transition-all duration-300
+          ${lang.code === currentLanguage 
+            ? 'bg-sage-green text-white font-medium shadow-sm' 
+            : 'bg-graphite-black/5 text-graphite-black hover:bg-graphite-black/10'}
+          focus:outline-none focus:ring-2 focus:ring-sage-green/40
+          transform hover:scale-105 active:scale-95
+        `}
+        aria-label={`Switch to ${lang.name} language`}
+      >
+        {lang.code.toUpperCase()}
+      </button>
+    ))}
+  </div>
+</div>
                   
                   {/* Book Now Button */}
                   <Link 
@@ -337,7 +371,7 @@ export default function Header() {
                     className="btn-primary w-full text-center mt-8 flex items-center justify-center"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <span>Book Your Ride</span>
+                    <span>{t('buttons.bookYourRide')}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
