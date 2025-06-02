@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useLanguage } from './context/LanguageContext';
+import ToggleButton from './ToggleButton';
+import ToggleFAQButton from './ToggleFAQButton';
 
 export default function HeroSection() {
   const { t } = useLanguage();
@@ -11,16 +13,18 @@ export default function HeroSection() {
 
   // Check for mobile and handle resize
   useEffect(() => {
-    const checkMobile = () => {
+    function handleResize() {
       setIsMobile(window.innerWidth < 768);
-    };
+    }
     
-    // Initial check
-    checkMobile();
+    // Set initial value
+    handleResize();
     
     // Add resize listener
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Parallax effect on scroll
@@ -32,6 +36,16 @@ export default function HeroSection() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const scrollToBookingForm = () => {
+    // This is only for desktop - for mobile we're using the scrollToId in ToggleButton
+    if (!isMobile) {
+      const element = document.getElementById('booking-form');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   // Slogan rotation
   const slogans = [
@@ -68,7 +82,6 @@ export default function HeroSection() {
 
   return (
     <section className="relative h-screen w-full flex items-center overflow-hidden">
-      {/* Mobile Version - Only Logo and Minimal Text */}
       {isMobile ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-ivory-white z-10 px-4">
           <motion.div 
@@ -103,21 +116,47 @@ export default function HeroSection() {
               ))}
             </div>
             
+            {/* Mobile buttons group with consistent spacing */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
+              className="flex flex-col space-y-4 w-full"
             >
+              {/* Explore Fleet Button (existing) */}
               <a 
                 href="#fleet" 
-                className="btn-primary text-sm px-6 py-3 inline-block"
+                className="px-6 py-3 bg-graphite-black text-white rounded-lg font-medium hover:bg-graphite-black/90 transition-colors text-center"
               >
                 {t('hero.exploreFleet')}
               </a>
+              
+              {/* New FAQ Button */}
+              <ToggleFAQButton 
+                text={t('hero.viewFAQ')}
+                scrollToId="faq"
+                delay={0.2}
+              />
+  
+              {/* Reservation Button (existing) */}
+              <ToggleButton 
+                isOpen={false} 
+                onClick={() => {
+                  const contactSection = document.getElementById('contact');
+                  if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                showText={t('booking.bookingShort')} 
+                hideText={t('booking.bookingShort')}
+                scrollToId="contact"
+                className="w-full"
+                delay={0.3}
+              />
             </motion.div>
           </motion.div>
           
-          {/* Simple decorative elements for mobile */}
+          {/* Decorative elements */}
           <div className="absolute bottom-10 w-16 h-16 rounded-full bg-sage-green/5"></div>
           <div className="absolute top-10 right-5 w-20 h-20 rounded-full bg-sand-beige/10"></div>
         </div>
@@ -194,11 +233,12 @@ export default function HeroSection() {
                 >
                   {t('hero.exploreFleet')}
                 </a>
-                <a 
-                  href="#contact" 
+                
+                <button 
+                  onClick={scrollToBookingForm}
                   className="text-white hover:text-sage-green transition-colors inline-flex items-center group"
                 >
-                  <span className="mr-2">{t('hero.contactUs')}</span>
+                  <span className="mr-2">{t('booking.startBooking')}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     className="h-5 w-5 transform transition-transform group-hover:translate-x-1" 
@@ -208,7 +248,7 @@ export default function HeroSection() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
-                </a>
+                </button>
               </motion.div>
             </motion.div>
           </div>

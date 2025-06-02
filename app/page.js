@@ -7,6 +7,7 @@ import TestimonialsSection from '../components/TestimonialsSection';
 import BookingForm from '../components/BookingForm';
 import { LanguageProvider } from '@/components/context/LanguageContext';
 import MobileLanguageSelector from '@/components/MobileLanguageSelector';
+import FAQSection from '@/components/FAQSection';
 
 export const metadata = {
   title: 'Vespa Nida | Luxury Vespa Rentals in Nida, Lithuania',
@@ -25,6 +26,7 @@ export default function Home() {
        <ExploreSection />
        <ShopSection />
        <TestimonialsSection />
+       <FAQSection />
        <BookingForm />
       </LanguageProvider>
     </main>
