@@ -1,8 +1,6 @@
 'use client';
 
 import { createContext, useState, useContext, useEffect } from 'react';
-// Remove the import since we're defining translations in this file
-// import translations from '../../translations';
 
 // Domain to language mapping
 const DOMAIN_LANGUAGE_MAP = {
@@ -28,7 +26,7 @@ export const languages = [
   { code: 'pl', name: 'Polish', domain: 'pl.vespanida.lt', flag: '🇵🇱' }
 ];
 
-// Your existing translations object stays exactly the same
+// Your translations object (keeping your existing translations)
 const translations = {
 
   en: {
@@ -547,7 +545,7 @@ const translations = {
     q8: "What happens if the Vespa gets damaged during my rental in Nida?"
   },
   answers: {
-    a1: "You can easily book a Vespa scooter rental in Nida, Lithuania through our online booking system on this website, by phone at +3706 795 6380, or by email at info@vespanida.com. Located in the heart of the Curonian Spit, we serve the entire Nida area and recommend booking in advance, especially during the Baltic summer season (June-August).",
+    a1: "You can easily book a Vespa scooter rental in Nida, Lithuania through our online booking system on this website, by phone at +3706 795 6380, or by email at info@vespanida.lt. Located in the heart of the Curonian Spit, we serve the entire Nida area and recommend booking in advance, especially during the Baltic summer season (June-August).",
     a2: "For Vespa rental cancellations in Nida made at least 48 hours before the scheduled pickup time, you'll receive a full refund. For cancellations made within 48 hours, a 25% cancellation fee applies. No-shows or cancellations on the rental day are non-refundable. This policy ensures fair availability for all visitors to Nida.",
     a3: "To rent a Vespa in Nida, Lithuania, you'll need: a valid driver's license (category AM, A1, A2, A, or B), a valid ID or passport, and a credit card for the security deposit. International visitors to Lithuania need an International Driving Permit along with their original license if it's not in Latin characters.",
     a4: "Yes, the minimum age to rent our Vespas in Nida is 21 years old, and you must have held a valid driver's license for at least 1 year. This age requirement ensures safe exploration of the Curonian Spit's scenic routes.",
@@ -1078,7 +1076,7 @@ const translations = {
     q8: "Kas nutiks, jei Vespa bus pažeista nuomos metu Nidoje?"
   },
   answers: {
-    a1: "Vespa motorolerio nuomą Nidoje, Lietuvoje galite lengvai užsisakyti per mūsų internetinę rezervacijos sistemą šioje svetainėje, telefonu +3706 795 6380 arba el. paštu info@vespanida.com. Esame Kuršių nerijos širdyje ir aptarnaujame visą Nidos rajoną. Rekomenduojame rezervuoti iš anksto, ypač Baltijos vasaros sezono metu (birželis-rugpjūtis).",
+    a1: "Vespa motorolerio nuomą Nidoje, Lietuvoje galite lengvai užsisakyti per mūsų internetinę rezervacijos sistemą šioje svetainėje, telefonu +3706 795 6380 arba el. paštu info@vespanida.lt. Esame Kuršių nerijos širdyje ir aptarnaujame visą Nidos rajoną. Rekomenduojame rezervuoti iš anksto, ypač Baltijos vasaros sezono metu (birželis-rugpjūtis).",
     a2: "Vespa nuomos atšaukimams Nidoje, atliekamiem likus mažiausiai 48 valandoms iki numatyto paėmimo laiko, gausite visą grąžinamą sumą. Atšaukimams per 48 valandas taikomas 25% atšaukimo mokestis. Neatvykusiems arba atšaukusiems nuomos dieną pinigai negrąžinami. Ši tvarka užtikrina sąžiningą prieinamumą visiems Nidos lankytojams.",
     a3: "Vespa nuomai Nidoje, Lietuvoje jums reikės: galiojančio vairuotojo pažymėjimo (AM, A1, A2, A arba B kategorijos), galiojančio asmens tapatybės dokumento ar paso ir kredito kortelės užstatui. Tarptautiniams Lietuvos lankytojams reikalingas tarptautinis vairuotojo pažymėjimas kartu su originaliu pažymėjimu, jei jis nėra lotyniškais rašmenimis.",
     a4: "Taip, minimali amžiaus riba mūsų Vespa nuomai Nidoje yra 21 metai, ir turite turėti galiojantį vairuotojo pažymėjimą bent 1 metus. Šis amžiaus reikalavimas užtikrina saugų Kuršių nerijos vaizdingų maršrutų tyrinėjimą.",
@@ -1607,7 +1605,7 @@ const translations = {
     q8: "Was passiert, wenn die Vespa während der Miete in Nida beschädigt wird?"
   },
   answers: {
-    a1: "Sie können ganz einfach eine Vespa-Roller-Miete in Nida, Litauen über unser Online-Buchungssystem auf dieser Website, telefonisch unter +3706 795 6380 oder per E-Mail an info@vespanida.com buchen. Wir befinden uns im Herzen der Kurischen Nehrung und bedienen das gesamte Nida-Gebiet. Wir empfehlen eine frühzeitige Buchung, besonders während der baltischen Sommersaison (Juni-August).",
+    a1: "Sie können ganz einfach eine Vespa-Roller-Miete in Nida, Litauen über unser Online-Buchungssystem auf dieser Website, telefonisch unter +3706 795 6380 oder per E-Mail an info@vespanida.lt buchen. Wir befinden uns im Herzen der Kurischen Nehrung und bedienen das gesamte Nida-Gebiet. Wir empfehlen eine frühzeitige Buchung, besonders während der baltischen Sommersaison (Juni-August).",
     a2: "Für Vespa-Miet-Stornierungen in Nida, die mindestens 48 Stunden vor der geplanten Abholzeit erfolgen, erhalten Sie eine vollständige Rückerstattung. Bei Stornierungen innerhalb von 48 Stunden fällt eine Stornogebühr von 25% an. Nichterscheinen oder Stornierungen am Miettag werden nicht erstattet. Diese Richtlinie gewährleistet faire Verfügbarkeit für alle Nida-Besucher.",
     a3: "Für die Vespa-Miete in Nida, Litauen benötigen Sie: einen gültigen Führerschein (Klasse AM, A1, A2, A oder B), einen gültigen Ausweis oder Reisepass und eine Kreditkarte für die Kaution. Internationale Besucher Litauens benötigen einen internationalen Führerschein zusammen mit ihrem Originalführerschein, wenn dieser nicht in lateinischen Buchstaben geschrieben ist.",
     a4: "Ja, das Mindestalter für die Vespa-Miete in Nida beträgt 21 Jahre, und Sie müssen seit mindestens 1 Jahr im Besitz eines gültigen Führerscheins sein. Diese Altersanforderung gewährleistet eine sichere Erkundung der malerischen Routen der Kurischen Nehrung.",
@@ -2138,7 +2136,7 @@ pl: {
     q8: "Co się dzieje, jeśli Vespa zostanie uszkodzona podczas wypożyczenia w Nidzie?"
   },
   answers: {
-    a1: "Możesz łatwo zarezerwować wypożyczenie skutera Vespa w Nidzie, Litwa przez nasz system rezerwacji online na tej stronie, telefonicznie pod +3706 795 6380, lub emailem pod info@vespanida.com. Znajdujemy się w sercu Mierzei Kurońskiej i obsługujemy cały obszar Nidy. Zalecamy rezerwację z wyprzedzeniem, szczególnie w sezonie letnim nad Bałtykiem (czerwiec-sierpień).",
+    a1: "Możesz łatwo zarezerwować wypożyczenie skutera Vespa w Nidzie, Litwa przez nasz system rezerwacji online na tej stronie, telefonicznie pod +3706 795 6380, lub emailem pod info@vespanida.lt. Znajdujemy się w sercu Mierzei Kurońskiej i obsługujemy cały obszar Nidy. Zalecamy rezerwację z wyprzedzeniem, szczególnie w sezonie letnim nad Bałtykiem (czerwiec-sierpień).",
     a2: "W przypadku anulacji wypożyczenia Vespa w Nidzie dokonanej co najmniej 48 godzin przed planowanym odbiorem, otrzymasz pełny zwrot. W przypadku anulacji w ciągu 48 godzin obowiązuje opłata anulacyjna w wysokości 25%. Niestawiennictwo lub anulacja w dniu wypożyczenia nie podlegają zwrotowi. Ta polityka zapewnia sprawiedliwą dostępność dla wszystkich odwiedzających Nidę.",
     a3: "Do wypożyczenia Vespa w Nidzie, Litwa będziesz potrzebować: ważnego prawa jazdy (kategoria AM, A1, A2, A lub B), ważnego dowodu osobistego lub paszportu oraz karty kredytowej na kaucję zabezpieczającą. Goście międzynarodowi odwiedzający Litwę potrzebują Międzynarodowego Prawa Jazdy wraz z oryginalnym prawem jazdy, jeśli nie jest w alfabecie łacińskim.",
     a4: "Tak, minimalny wiek do wypożyczenia naszych Vesp w Nidzie to 21 lat, a musisz mieć ważne prawo jazdy przez co najmniej 1 rok. Ten wymóg wiekowy zapewnia bezpieczne odkrywanie malowniczych tras Mierzei Kurońskiej.",
@@ -2153,104 +2151,86 @@ pl: {
   }
   }
 
-/// Create the context
+// Create the context
 const LanguageContext = createContext();
+
 
 // Provider component
 export function LanguageProvider({ children }) {
-  // Get language from domain (new function)
+  // Get language from domain (FIXED VERSION)
   const getLanguageFromDomain = () => {
-    if (typeof window === 'undefined') return 'lt'; // SSR fallback to Lithuanian
+    if (typeof window === 'undefined') return 'lt';
     
     const hostname = window.location.hostname;
-    return DOMAIN_LANGUAGE_MAP[hostname] || 'lt'; // Default to Lithuanian
+    console.log('Current hostname:', hostname); // Debug log
+    
+    // Exact match for domains
+    const language = DOMAIN_LANGUAGE_MAP[hostname];
+    console.log('Detected language from domain:', language); // Debug log
+    
+    return language || 'lt'; // Default to Lithuanian
   };
 
-  // Default to browser language or domain language if not available
-  const getBrowserLanguage = () => {
-    if (typeof window === 'undefined') return 'lt'; // Changed default to Lithuanian
-    
-    // First check domain
-    const domainLang = getLanguageFromDomain();
-    if (domainLang !== 'lt') return domainLang; // If on specific subdomain, use that
-    
-    // Otherwise check browser language
-    const browserLang = navigator.language.substring(0, 2);
-    return languages.some(lang => lang.code === browserLang) ? browserLang : 'lt'; // Default to Lithuanian
-  };
+  const [currentLanguage, setCurrentLanguage] = useState('lt');
+  const [isLoading, setIsLoading] = useState(true);
   
-  // State to hold the current language
-  const [currentLanguage, setCurrentLanguage] = useState('lt'); // Changed default to Lithuanian
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
-  
-  // Initialize language on client-side
+  // Initialize language on client-side (FIXED VERSION)
   useEffect(() => {
-    // Priority: Domain > Saved Language > Browser Language > Default (Lithuanian)
     const domainLanguage = getLanguageFromDomain();
+    console.log('Setting language to:', domainLanguage); // Debug log
     
-    if (domainLanguage !== 'lt') {
-      // If we're on a specific language subdomain, use that language
-      setCurrentLanguage(domainLanguage);
-    } else {
-      // If on main domain, check saved preference or browser language
-      const savedLanguage = localStorage.getItem('language');
-      if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
-        setCurrentLanguage(savedLanguage);
-      } else {
-        const browserLang = getBrowserLanguage();
-        setCurrentLanguage(browserLang);
-        localStorage.setItem('language', browserLang);
-      }
+    // Always use domain-based language detection first
+    setCurrentLanguage(domainLanguage);
+    
+    // Also save to localStorage for consistency
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', domainLanguage);
     }
     
     setIsLoading(false);
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
   
-  // Enhanced function to change language with domain redirect
+   // FIXED changeLanguage function
   const changeLanguage = (code) => {
+    console.log('Changing language to:', code); // Debug log
+    
     if (languages.some(lang => lang.code === code)) {
       const targetDomain = LANGUAGE_DOMAIN_MAP[code];
       const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
       
-      // If changing to a different language, redirect to appropriate domain
-      if (code !== currentLanguage && typeof window !== 'undefined') {
-        window.location.href = `${targetDomain}${currentPath}`;
-      } else {
-        // Fallback for same language or SSR
-        setCurrentLanguage(code);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('language', code);
-        }
+      console.log('Target domain:', targetDomain); // Debug log
+      console.log('Current path:', currentPath); // Debug log
+      
+      // Always redirect to the appropriate domain
+      if (typeof window !== 'undefined') {
+        const fullUrl = `${targetDomain}${currentPath}`;
+        console.log('Redirecting to:', fullUrl); // Debug log
+        window.location.href = fullUrl;
       }
     }
   };
   
-  // Translation function (enhanced fallback logic)
+ // Translation function (keeping your existing logic)
   const t = (key) => {
-    // Split the key by dots (e.g., "nav.home" => ["nav", "home"])
     const keys = key.split('.');
-    
-    // Start with current language's translations
     let value = translations[currentLanguage];
     
-    // Traverse the keys to get the nested value
     for (const k of keys) {
       if (value && value[k] !== undefined) {
         value = value[k];
       } else {
-        // Enhanced fallback: Lithuanian first (main language), then English
+        // Fallback to Lithuanian first, then English
         let fallback = translations['lt'];
         for (const k of keys) {
           if (fallback && fallback[k] !== undefined) {
             fallback = fallback[k];
           } else {
-            // If Lithuanian doesn't have it, try English
             fallback = translations['en'];
             for (const k of keys) {
               if (fallback && fallback[k] !== undefined) {
                 fallback = fallback[k];
               } else {
-                return key; // If even English doesn't have it, return the key itself
+                return key;
               }
             }
             break;
