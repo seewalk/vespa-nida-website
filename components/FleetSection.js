@@ -32,51 +32,55 @@ export default function FleetSection() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
+  // Updated fleet items to match BookingForm with detailed specifications
   const fleetItems = [
     {
       id: 1,
-      name: t('fleet.items.primavera.name'),
-      color: t('fleet.items.primavera.color'),
-      description: t('fleet.items.primavera.description'),
-      image: '/images/fleet-white-vespa.jpg',
-      specs: t('fleet.items.primavera.specs'),
+      name: t('booking.models.sprint.name'),
+      color: t('booking.models.sprint.color'),
+      power: t('booking.models.sprint.power'),
+      maxSpeed: t('booking.models.sprint.maxSpeed'),
+      range: t('booking.models.sprint.range'),
+      idealFor: t('booking.models.sprint.idealFor'),
+      description: t('fleet.items.sprint.description'),
+      image: '/images/fleet-vespa-1.png',
+      price: 59,
+      originalPrice: 69,
       comingSoon: false,
-      features: [
-        t('fleet.items.primavera.features.0'),
-        t('fleet.items.primavera.features.1'),
-        t('fleet.items.primavera.features.2'),
-        t('fleet.items.primavera.features.3')
-      ]
+      features: t('fleet.items.sprint.features'),
+      detailedSpecs: t('fleet.items.sprint.detailedSpecs')
     },
     {
       id: 2,
-      name: t('fleet.items.gts.name'),
-      color: t('fleet.items.gts.color'),
-      description: t('fleet.items.gts.description'),
-      image: '/images/fleet-green-vespa.jpg',
-      specs: t('fleet.items.gts.specs'),
-      comingSoon: true, // Mark as coming soon
-      features: [
-        t('fleet.items.gts.features.0'),
-        t('fleet.items.gts.features.1'),
-        t('fleet.items.gts.features.2'),
-        t('fleet.items.gts.features.3')
-      ]
+      name: t('booking.models.sprint2.name'),
+      color: t('booking.models.sprint2.color'),
+      power: t('booking.models.sprint2.power'),
+      maxSpeed: t('booking.models.sprint2.maxSpeed'),
+      range: t('booking.models.sprint2.range'),
+      idealFor: t('booking.models.sprint2.idealFor'),
+      description: t('fleet.items.sprint2.description'),
+      image: '/images/fleet-vespa-1.png',
+      price: 59,
+      originalPrice: 69,
+      comingSoon: true,
+      features: t('fleet.items.sprint2.features'),
+      detailedSpecs: t('fleet.items.sprint2.detailedSpecs')
     },
     {
       id: 3,
-      name: t('fleet.items.sprint.name'),
-      color: t('fleet.items.sprint.color'),
-      description: t('fleet.items.sprint.description'),
-      image: '/images/fleet-beige-vespa.jpg',
-      specs: t('fleet.items.sprint.specs'),
-      comingSoon: false,
-      features: [
-        t('fleet.items.sprint.features.0'),
-        t('fleet.items.sprint.features.1'),
-        t('fleet.items.sprint.features.2'),
-        t('fleet.items.sprint.features.3')
-      ]
+      name: t('booking.models.sprint3.name'),
+      color: t('booking.models.sprint3.color'),
+      power: t('booking.models.sprint3.power'),
+      maxSpeed: t('booking.models.sprint3.maxSpeed'),
+      range: t('booking.models.sprint3.range'),
+      idealFor: t('booking.models.sprint3.idealFor'),
+      description: t('fleet.items.sprint3.description'),
+      image: '/images/fleet-vespa-1.png',
+      price: 59,
+      originalPrice: 69,
+      comingSoon: true,
+      features: t('fleet.items.sprint3.features'),
+      detailedSpecs: t('fleet.items.sprint3.detailedSpecs')
     }
   ];
 
@@ -106,7 +110,7 @@ export default function FleetSection() {
     setActiveVespa(activeVespa === id ? null : id);
   };
 
-  // Carousel navigation
+  // Carousel navigation functions - moved outside of useEffect
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % fleetItems.length);
   };
@@ -115,50 +119,15 @@ export default function FleetSection() {
     setCurrentSlide((prev) => (prev - 1 + fleetItems.length) % fleetItems.length);
   };
 
-  // Auto-advance carousel on mobile with improved handling
+  // Auto-advance carousel on mobile - simplified
   useEffect(() => {
-    if (isMobile && carouselRef.current) {
+    if (isMobile) {
       const interval = setInterval(() => {
-        nextSlide();
+        setCurrentSlide((prev) => (prev + 1) % fleetItems.length);
       }, 5000);
       return () => clearInterval(interval);
     }
-  }, [isMobile, currentSlide]);
-
-  // Handle mobile swipe for carousel
-  useEffect(() => {
-    if (isMobile && carouselRef.current) {
-      let startX = 0;
-      
-      const handleTouchStart = (e) => {
-        startX = e.touches[0].clientX;
-      };
-      
-      const handleTouchEnd = (e) => {
-        const diffX = startX - e.changedTouches[0].clientX;
-        const threshold = 50; // minimum distance for swipe
-        
-        if (Math.abs(diffX) < threshold) return;
-        
-        if (diffX > 0) {
-          // Swipe left - next slide
-          nextSlide();
-        } else {
-          // Swipe right - previous slide
-          prevSlide();
-        }
-      };
-      
-      const element = carouselRef.current;
-      element.addEventListener('touchstart', handleTouchStart);
-      element.addEventListener('touchend', handleTouchEnd);
-      
-      return () => {
-        element.removeEventListener('touchstart', handleTouchStart);
-        element.removeEventListener('touchend', handleTouchEnd);
-      };
-    }
-  }, [isMobile]);
+  }, [isMobile, fleetItems.length]);
 
   // Function to handle "Notify When Available" button click
   const handleNotifyClick = (id) => {
@@ -180,15 +149,19 @@ export default function FleetSection() {
     }
   };
 
-  // Notification modal component
+  // Enhanced notification modal component with additional fields
   const NotifyModal = () => {
-    const [email, setEmail] = useState('');
+    const [notifyData, setNotifyData] = useState({
+      name: '',
+      phone: '',
+      email: ''
+    });
     const [submitted, setSubmitted] = useState(false);
     
     const handleSubmit = (e) => {
       e.preventDefault();
       // Here you would typically send this to your backend
-      console.log(`Notify for vespa ID ${notifyVespaId}: ${email}`);
+      console.log(`Notify for vespa ID ${notifyVespaId}:`, notifyData);
       // Simulate success
       setTimeout(() => {
         setSubmitted(true);
@@ -196,6 +169,7 @@ export default function FleetSection() {
         setTimeout(() => {
           setShowNotifyModal(false);
           setSubmitted(false);
+          setNotifyData({ name: '', phone: '', email: '' });
         }, 2000);
       }, 1000);
     };
@@ -208,14 +182,14 @@ export default function FleetSection() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
-            onClick={() => setShowNotifyModal(false)} // Close on background click
+            onClick={() => setShowNotifyModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white rounded-xl p-6 max-w-md w-full"
-              onClick={(e) => e.stopPropagation()} // Prevent clicks from bubbling to parent
+              onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-xl font-bold font-syne mb-4">
                 {t('fleet.buttons.notifyTitle')}
@@ -235,14 +209,44 @@ export default function FleetSection() {
                   </p>
                   
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-1">
-                      {t('fleet.buttons.emailLabel')}
+                    <label htmlFor="notify-name" className="block text-sm font-medium mb-1">
+                      {t('fleet.buttons.nameLabel')} *
+                    </label>
+                    <input
+                      type="text"
+                      id="notify-name"
+                      value={notifyData.name}
+                      onChange={(e) => setNotifyData({...notifyData, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
+                      placeholder={t('fleet.buttons.namePlaceholder')}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="notify-phone" className="block text-sm font-medium mb-1">
+                      {t('fleet.buttons.phoneLabel')} *
+                    </label>
+                    <input
+                      type="tel"
+                      id="notify-phone"
+                      value={notifyData.phone}
+                      onChange={(e) => setNotifyData({...notifyData, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
+                      placeholder={t('fleet.buttons.phonePlaceholder')}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="notify-email" className="block text-sm font-medium mb-1">
+                      {t('fleet.buttons.emailLabel')} *
                     </label>
                     <input
                       type="email"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      id="notify-email"
+                      value={notifyData.email}
+                      onChange={(e) => setNotifyData({...notifyData, email: e.target.value})}
                       className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
                       placeholder={t('fleet.buttons.emailPlaceholder')}
                       required
@@ -295,21 +299,17 @@ export default function FleetSection() {
         </motion.div>
         
         {isMobile ? (
-          // Mobile Carousel View with improved handling
-          <div className="relative px-4" ref={carouselRef}>
-            <div className="overflow-hidden">
+          // Mobile Carousel View
+          <div className="relative" ref={carouselRef}>
+            <div className="overflow-hidden mx-4">
               <motion.div 
-                className="flex"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, x: `-${currentSlide * 100}%` }}
-                transition={{ duration: 0.5 }}
-                style={{ width: `${fleetItems.length * 100}%` }}
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
               >
                 {fleetItems.map((item) => (
                   <div 
                     key={item.id} 
                     className="w-full flex-shrink-0 px-4"
-                    style={{ width: `${100 / fleetItems.length}%` }}
                   >
                     <div className="bg-ivory-white rounded-xl overflow-hidden shadow-md relative">
                       {/* Coming Soon Badge */}
@@ -333,13 +333,48 @@ export default function FleetSection() {
                         <div className="absolute bottom-0 left-0 p-4 w-full">
                           <h3 className="text-white text-xl font-bold font-syne">{item.name}</h3>
                           <p className="text-white/80 text-sm">{item.color}</p>
-                          <p className="text-white font-medium text-xs mt-2 inline-block bg-sage-green/90 px-3 py-1 rounded-full">
-                            {item.specs}
-                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-white font-medium text-xs inline-block bg-sage-green/90 px-3 py-1 rounded-full">
+                              {item.power}
+                            </p>
+                            <div className="text-white text-xs font-bold bg-white/20 px-2 py-0.5 rounded">
+                              <span className="line-through opacity-60">€{item.originalPrice}</span>
+                              <span className="ml-1">€{item.price}/day</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
                       <div className="p-4">
+                        <div className="mb-3">
+                          <div className="grid grid-cols-2 gap-2 text-xs text-graphite-black/70">
+                            <div className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              <span>{item.power}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 113 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                              </svg>
+                              <span>{item.range}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                              <span>{item.maxSpeed}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                              </svg>
+                              <span>{item.idealFor}</span>
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Conditional Button Based on Coming Soon Status */}
                         {item.comingSoon ? (
                           <button 
@@ -352,15 +387,20 @@ export default function FleetSection() {
                             <span>{t('fleet.buttons.notifyWhenAvailable')}</span>
                           </button>
                         ) : (
-                          <button 
-                            className="btn-primary w-full py-3 text-sm"
-                            onClick={() => {
-                              // For available scooters, view details and then scroll to booking
-                              setActiveVespa(item.id);
-                            }}
-                          >
-                            {t('fleet.buttons.reserveNow')}
-                          </button>
+                          <div className="space-y-2">
+                            <button 
+                              className="btn-primary w-full py-3 text-sm"
+                              onClick={scrollToBookingForm}
+                            >
+                              {t('fleet.buttons.reserveNow')}
+                            </button>
+                            <button 
+                              className="w-full py-2 text-sage-green border border-sage-green rounded-lg text-sm hover:bg-sage-green/5 transition-colors"
+                              onClick={() => setActiveVespa(item.id)}
+                            >
+                              {t('fleet.buttons.details')}
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -383,9 +423,9 @@ export default function FleetSection() {
               ))}
             </div>
             
-            {/* Left/Right Navigation for Mobile */}
+            {/* Left/Right Navigation for Mobile - Fixed positioning and z-index */}
             <button 
-              className="absolute top-1/2 left-0 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow-md"
+              className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg z-20 hover:bg-white transition-colors"
               onClick={prevSlide}
               aria-label="Previous slide"
             >
@@ -395,7 +435,7 @@ export default function FleetSection() {
             </button>
             
             <button 
-              className="absolute top-1/2 right-0 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow-md"
+              className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg z-20 hover:bg-white transition-colors"
               onClick={nextSlide}
               aria-label="Next slide"
             >
@@ -448,6 +488,11 @@ export default function FleetSection() {
                                 {t('fleet.buttons.comingSoon')}
                               </div>
                             )}
+
+                            <div className="absolute bottom-2 right-2 bg-white/90 px-2 py-0.5 rounded text-xs font-bold">
+                              <span className="line-through opacity-60">€{item.originalPrice}</span>
+                              <span className="ml-1 text-sage-green">€{item.price}/day</span>
+                            </div>
                           </div>
                           
                           <div className="p-6">
@@ -464,13 +509,41 @@ export default function FleetSection() {
                                 className="h-8 w-8 rounded-full" 
                                 style={{ 
                                   backgroundColor: 
-                                    item.color === t('fleet.items.primavera.color') ? '#F9F7F1' :
-                                    item.color === t('fleet.items.gts.color') ? '#9AA89C' : '#E9DCC9'
+                                    item.color === t('booking.models.sprint.color') ? '#F9F7F1' :
+                                    item.color === t('booking.models.sprint2.color') ? '#9AA89C' : '#E9DCC9'
                                 }}
                               ></div>
                             </div>
+
+                            {/* Key Specs Grid */}
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4 text-xs">
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span>{item.power}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 113 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                                <span>{item.range}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                                <span>{item.maxSpeed}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                <span>{item.idealFor}</span>
+                              </div>
+                            </div>
                             
-                            <p className="mb-6 text-graphite-black/80">
+                            <p className="mb-6 text-graphite-black/80 text-sm">
                               {item.description}
                             </p>
                             
@@ -479,7 +552,7 @@ export default function FleetSection() {
                                 {t('fleet.features')}
                               </h4>
                               <ul className="space-y-2">
-                                {item.features.map((feature, idx) => (
+                                {(Array.isArray(item.features) ? item.features : []).map((feature, idx) => (
                                   <li key={idx} className="flex items-center text-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -488,6 +561,23 @@ export default function FleetSection() {
                                   </li>
                                 ))}
                               </ul>
+                            </div>
+
+                            {/* Detailed Specifications */}
+                            <div className="space-y-3 mb-6">
+                              <h4 className="font-semibold text-sm text-graphite-black/70 uppercase tracking-wider">
+                                {t('fleet.detailedSpecs')}
+                              </h4>
+                              <div className="bg-sage-green/5 p-3 rounded-lg">
+                                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                                  {item.detailedSpecs.map((spec, idx) => (
+                                    <div key={idx} className="flex justify-between">
+                                      <span className="text-graphite-black/60">{spec.label}:</span>
+                                      <span className="font-medium">{spec.value}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                             
                             {/* Conditional Button In Modal */}
@@ -560,9 +650,15 @@ export default function FleetSection() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
                   <div className="absolute bottom-0 left-0 p-4 w-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <p className="text-white font-medium text-sm inline-block bg-sage-green/90 px-3 py-1 rounded-full">
-                      {item.specs}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-white font-medium text-sm inline-block bg-sage-green/90 px-3 py-1 rounded-full">
+                        {item.power}
+                      </p>
+                      <div className="text-white text-sm font-bold bg-white/20 px-2 py-0.5 rounded">
+                        <span className="line-through opacity-60">€{item.originalPrice}</span>
+                        <span className="ml-1">€{item.price}/day</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
@@ -573,10 +669,38 @@ export default function FleetSection() {
                       <p className="text-sage-green font-medium">{item.color}</p>
                     </div>
                     <div className="h-10 w-10 rounded-full" style={{ backgroundColor: 
-                      item.color === t('fleet.items.primavera.color') ? '#F9F7F1' :
-                      item.color === t('fleet.items.gts.color') ? '#9AA89C' :
-                      item.color === t('fleet.items.sprint.color') ? '#E9DCC9' : '#B0B0B0'
+                      item.color === t('booking.models.sprint.color') ? '#F9F7F1' :
+                      item.color === t('booking.models.sprint2.color') ? '#9AA89C' :
+                      item.color === t('booking.models.sprint3.color') ? '#E9DCC9' : '#B0B0B0'
                     }}></div>
+                  </div>
+
+                  {/* Key Specs Grid */}
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-graphite-black/70 mb-4">
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span>{item.power}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 113 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                      </svg>
+                      <span>{item.range}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span>{item.maxSpeed}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                      <span>{item.idealFor}</span>
+                    </div>
                   </div>
                   
                   <p className="mb-6 text-graphite-black/80">{item.description}</p>
@@ -585,7 +709,7 @@ export default function FleetSection() {
                   <div className="space-y-2 mb-6">
                     <h4 className="font-semibold text-sm text-graphite-black/70 uppercase tracking-wider">{t('fleet.features')}</h4>
                     <ul className="space-y-1">
-                      {item.features.map((feature, idx) => (
+                      {(Array.isArray(item.features) ? item.features : []).map((feature, idx) => (
                         <li key={idx} className="flex items-center text-sm">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

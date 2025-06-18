@@ -142,7 +142,7 @@ export default function Header() {
               </motion.div>
             </div>
             <span className="ml-3 text-xs text-sage-green font-medium hidden md:block opacity-70 group-hover:opacity-100 transition-opacity duration-300">
-              EST. 2023
+              EST. 2025
             </span>
           </Link>
 
@@ -175,43 +175,43 @@ export default function Header() {
               ))}
             </nav>
             
-             {/* Desktop Language Selector */}
-      <div className="relative mr-4">
-        <button 
-          onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
-          className="flex items-center text-sm text-graphite-black/70 hover:text-sage-green p-2 transition-colors"
-          aria-label="Select language"
-        >
-          <span className="mr-1">{getCurrentLanguageDisplay()}</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        
-        <AnimatePresence>
-          {languageMenuOpen && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.2 }}
-              className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg py-2 z-50"
-            >
-              {languages.map((lang) => (
-                <button 
-                  key={lang.code}
-                  onClick={() => handleLanguageChange(lang.code)}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-sage-green/10 transition-colors ${
-                    lang.code === currentLanguage ? 'text-sage-green font-medium' : 'text-graphite-black'
-                  }`}
-                >
-                  {lang.name}
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            {/* Desktop Language Selector - Now includes Polish */}
+            <div className="relative mr-4">
+              <button 
+                onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
+                className="flex items-center text-sm text-graphite-black/70 hover:text-sage-green p-2 transition-colors"
+                aria-label="Select language"
+              >
+                <span className="mr-1">{getCurrentLanguageDisplay()}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              <AnimatePresence>
+                {languageMenuOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg py-2 z-50"
+                  >
+                    {languages.map((lang) => (
+                      <button 
+                        key={lang.code}
+                        onClick={() => handleLanguageChange(lang.code)}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-sage-green/10 transition-colors ${
+                          lang.code === currentLanguage ? 'text-sage-green font-medium' : 'text-graphite-black'
+                        }`}
+                      >
+                        {lang.name}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             
             {/* Booking Button */}
             <Link 
@@ -230,13 +230,13 @@ export default function Header() {
           {/* Mobile Contact Info */}
           <div className="hidden md:flex lg:hidden items-center">
             <a 
-              href="tel:+37061234567" 
+              href="tel:+37067956380" 
               className="flex items-center text-sm text-graphite-black mr-6"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              <span>+370 612 34567</span>
+              <span>+3706 795 6380</span>
             </a>
           </div>
 
@@ -322,13 +322,13 @@ export default function Header() {
                 >
                   <div className="border-t border-graphite-black/10 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <a 
-                      href="tel:+37061234567" 
+                      href="tel:+37067956380" 
                       className="flex items-center text-graphite-black/70 hover:text-sage-green transition-colors"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
-                      <span>+370 612 34567</span>
+                      <span>+3706 795 6380</span>
                     </a>
                     <a 
                       href="mailto:info@vespanida.com" 
@@ -341,29 +341,29 @@ export default function Header() {
                     </a>
                   </div>
                   
-           {/* Mobile Languages in menu */}
-<div className="mt-6">
-  <p className="text-xs text-graphite-black/50 mb-2">{t('footer.chooseLanguage')}</p>
-  <div className="flex space-x-2">
-    {languages.map(lang => (
-      <button 
-        key={lang.code} 
-        onClick={() => handleLanguageChange(lang.code)}
-        className={`
-          px-3 py-1.5 text-xs rounded-md transition-all duration-300
-          ${lang.code === currentLanguage 
-            ? 'bg-sage-green text-white font-medium shadow-sm' 
-            : 'bg-graphite-black/5 text-graphite-black hover:bg-graphite-black/10'}
-          focus:outline-none focus:ring-2 focus:ring-sage-green/40
-          transform hover:scale-105 active:scale-95
-        `}
-        aria-label={`Switch to ${lang.name} language`}
-      >
-        {lang.code.toUpperCase()}
-      </button>
-    ))}
-  </div>
-</div>
+                  {/* Mobile Languages in menu - Now includes Polish */}
+                  <div className="mt-6">
+                    <p className="text-xs text-graphite-black/50 mb-2">{t('footer.chooseLanguage')}</p>
+                    <div className="flex space-x-2">
+                      {languages.map(lang => (
+                        <button 
+                          key={lang.code} 
+                          onClick={() => handleLanguageChange(lang.code)}
+                          className={`
+                            px-3 py-1.5 text-xs rounded-md transition-all duration-300
+                            ${lang.code === currentLanguage 
+                              ? 'bg-sage-green text-white font-medium shadow-sm' 
+                              : 'bg-graphite-black/5 text-graphite-black hover:bg-graphite-black/10'}
+                            focus:outline-none focus:ring-2 focus:ring-sage-green/40
+                            transform hover:scale-105 active:scale-95
+                          `}
+                          aria-label={`Switch to ${lang.name} language`}
+                        >
+                          {lang.code.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   
                   {/* Book Now Button */}
                   <Link 

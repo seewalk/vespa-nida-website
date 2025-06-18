@@ -1,3 +1,9 @@
+// app/page.js
+'use client';
+
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '../components/context/LanguageContext';
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
 import FleetSection from '../components/FleetSection';
@@ -5,30 +11,108 @@ import ExploreSection from '../components/ExploreSection';
 import ShopSection from '../components/ShopSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import BookingForm from '../components/BookingForm';
-import { LanguageProvider } from '@/components/context/LanguageContext';
-import MobileLanguageSelector from '@/components/MobileLanguageSelector';
-import FAQSection from '@/components/FAQSection';
+import FAQSection from '../components/FAQSection';
 
-export const metadata = {
-  title: 'Vespa Nida | Luxury Vespa Rentals in Nida, Lithuania',
-  description: 'Experience the beauty of Nida with our luxury Vespa scooter rentals. Explore the scenic coastline in style with Vespa Nida.',
+// Inline FAQ Component
+function InlineFAQPreview() {
+  const { t } = useLanguage();
+  const [expandedIndex, setExpandedIndex] = useState(null);
+
+  const quickFAQs = [
+    { q: t('faq.questions.q1'), a: t('faq.answers.a1') },
+    { q: t('faq.questions.q6'), a: t('faq.answers.a6') },
+    { q: t('faq.questions.q4'), a: t('faq.answers.a4') }
+  ];
+
+  return (
+    <section className="py-12 bg-ivory-white/50" itemScope itemType="https://schema.org/FAQPage">
+      <div className="container">
+        <h2 className="text-2xl md:text-3xl font-bold font-syne text-center mb-8">
+          Quick Questions & Answers
+        </h2>
+        
+        <div className="max-w-3xl mx-auto space-y-4">
+          {quickFAQs.map((item, index) => (
+            <div 
+              key={index}
+              className="bg-white rounded-lg shadow-sm"
+              itemScope
+              itemType="https://schema.org/Question"
+              itemProp="mainEntity"
+            >
+              <button
+                onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
+                className="w-full p-4 text-left hover:bg-sage-green/5 rounded-lg transition-colors"
+              >
+                <h3 className="font-medium" itemProp="name">{item.q}</h3>
+              </button>
+              
+              <AnimatePresence>
+                {expandedIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="px-4 pb-4"
+                    itemScope
+                    itemType="https://schema.org/Answer"
+                    itemProp="acceptedAnswer"
+                  >
+                    <p className="text-graphite-black/70 text-sm" itemProp="text">
+                      {item.a}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-6">
+          <a 
+            href="#faq"
+            className="text-sage-green hover:text-sage-green/80 font-medium"
+          >
+            View All Questions →
+          </a>
+        </div>
+      </div>
+
+      {/* Rich snippets structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": quickFAQs.map(item => ({
+              "@type": "Question",
+              "name": item.q,
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": item.a
+              }
+            }))
+          })
+        }}
+      />
+    </section>
+  );
 }
 
 export default function Home() {
   return (
     <main>
-      <LanguageProvider>
-       <MobileLanguageSelector />
-       <HeroSection />
-       <BookingForm />
-       <AboutSection />
-       <FleetSection />
-       <ExploreSection />
-       <ShopSection />
-       <TestimonialsSection />
-       <FAQSection />
-       <BookingForm />
-      </LanguageProvider>
+      <HeroSection />
+      <BookingForm />
+      <AboutSection />
+      <FleetSection />
+      <ExploreSection />
+      <InlineFAQPreview /> {/* Add inline FAQ preview */}
+      <ShopSection />
+      <TestimonialsSection />
+      <FAQSection />
+      <BookingForm />
     </main>
   );
 }

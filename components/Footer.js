@@ -78,7 +78,7 @@ export default function Footer() {
   };
 
   // Years in business calculation
-  const startYear = 2023;
+  const startYear = 2025;
   const currentYear = new Date().getFullYear();
   const yearsInBusiness = currentYear - startYear;
 
@@ -233,7 +233,7 @@ export default function Footer() {
                   </svg>
                 </a>
                 <a 
-                  href="tel:+37061234567" 
+                  href="tel:+37067956380" 
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-sage-green transition-colors duration-300"
                   aria-label="Call us"
                 >
@@ -456,7 +456,7 @@ export default function Footer() {
                     </div>
                     <div>
                       <h4 className="text-white font-medium mb-1">{t('footer.contact.phone')}</h4>
-                      <a href="tel:+37061234567" className="text-white/60 text-sm hover:text-sage-green transition-colors">+370 612 34567</a>
+                      <a href="tel+37067956380" className="text-white/60 text-sm hover:text-sage-green transition-colors">+3706 795 6380</a>
                     </div>
                   </li>
                   <li className="flex">

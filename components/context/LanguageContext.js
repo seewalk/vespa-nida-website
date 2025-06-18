@@ -4,15 +4,33 @@ import { createContext, useState, useContext, useEffect } from 'react';
 // Remove the import since we're defining translations in this file
 // import translations from '../../translations';
 
+// Domain to language mapping
+const DOMAIN_LANGUAGE_MAP = {
+  'vespanida.lt': 'lt',          // Main domain - Lithuanian
+  'en.vespanida.lt': 'en',       // English subdomain
+  'de.vespanida.lt': 'de',       // German subdomain  
+  'pl.vespanida.lt': 'pl'        // Polish subdomain
+};
+
+// Language to domain mapping
+const LANGUAGE_DOMAIN_MAP = {
+  'lt': 'https://vespanida.lt',
+  'en': 'https://en.vespanida.lt',
+  'de': 'https://de.vespanida.lt',
+  'pl': 'https://pl.vespanida.lt'
+};
+
 // Define available languages
 export const languages = [
-  { code: 'en', name: 'English' },
-  { code: 'lt', name: 'Lithuanian' },
-  { code: 'de', name: 'German' }
+  { code: 'en', name: 'English', domain: 'en.vespanida.lt', flag: '🇬🇧' },
+  { code: 'lt', name: 'Lithuanian', domain: 'vespanida.lt', flag: '🇱🇹' },
+  { code: 'de', name: 'German', domain: 'de.vespanida.lt', flag: '🇩🇪' },
+  { code: 'pl', name: 'Polish', domain: 'pl.vespanida.lt', flag: '🇵🇱' }
 ];
 
-// Define translations
+// Your existing translations object stays exactly the same
 const translations = {
+
   en: {
     nav: {
       home: 'Home',
@@ -69,7 +87,7 @@ const translations = {
       hideContent: "Hide Details"
     },
 
-    fleet: {
+   fleet: {
   title: "Our Vespa Fleet",
   subtitle: "Explore Our Collection",
   description: "Choose from our carefully selected premium Vespa scooters, maintained to the highest standards and ready for your adventures in Nida.",
@@ -84,6 +102,10 @@ const translations = {
     notifyTitle: "Get Notified When Available",
     notifyDescription: "We'll let you know as soon as our new Vespa GTS scooters are available for rental.",
     emailLabel: "Email Address",
+    nameLabel: "Name",
+    namePlaceholder: "Your full name",
+    phoneLabel: "Phone Number",
+    phonePlaceholder: "+370 XXX XXXXX",
     emailPlaceholder: "your@email.com",
     cancel: "Cancel",
     notifySubmit: "Notify Me",
@@ -91,43 +113,43 @@ const translations = {
     moreInfo: "More Information"
   },
   items: {
-    primavera: {
-      name: "Vespa Primavera",
-      color: "Ivory White",
-      description: "Classic Italian style with modern comfort. Perfect for coastal journeys.",
-      specs: "150cc | Automatic | 2 passengers",
-      features: [
-        "Fuel-efficient engine", 
-        "Front disc brakes", 
-        "USB charging port", 
-        "Under-seat storage"
-      ]
-    },
-    gts: {
-      name: "Vespa GTS",
-      color: "Sage Green",
-      description: "Powerful performance with timeless elegance. Ideal for longer trips.",
-      specs: "300cc | Automatic | 2 passengers",
-      features: [
-        "Powerful engine", 
-        "ABS braking system", 
-        "Digital instrument panel", 
-        "Spacious storage compartment"
-      ]
-    },
-    sprint: {
-      name: "Vespa Sprint",
-      color: "Sand Beige",
-      description: "Nimble handling with refined aesthetics. Great for exploring narrow streets.",
-      specs: "125cc | Automatic | 2 passengers",
-      features: [
-        "Easy maneuverability", 
-        "LED lighting", 
-        "Anti-theft system", 
-        "Comfortable seating"
-      ]
-    }
+  sprint: {
+    name: "Vespa Elettrica 45",
+    color: "Ivory White",
+    description: "Classic Italian style with modern comfort. Perfect choice for coastal journeys.",
+    specs: "3.1 kW | Electric | 2 passengers",
+    features: [
+      "Economical motor", 
+      "Front disc brakes", 
+      "Anti-theft system", 
+      "Under-seat storage compartment"
+    ]
+  },
+  sprint2: {
+    name: "Vespa Elettrica 45",
+    color: "Sage Green",
+    description: "Powerful performance with timeless elegance. Ideal for longer journeys.",
+    specs: "3.1 kW | Electric | 2 passengers",
+    features: [
+      "Anti-theft system", 
+      "ABS braking system", 
+      "Digital instrument panel", 
+      "Spacious storage compartment"
+    ]
+  },
+  sprint3: {
+    name: "Vespa Elettrica 45",
+    color: "Sand Beige",
+    description: "Agile handling with refined aesthetics. Perfect for exploring narrow streets.",
+    specs: "3.1 kW | Electric | 2 passengers",
+    features: [
+      "Easy maneuverability", 
+      "LED lighting", 
+      "Anti-theft system", 
+      "Comfortable seat"
+    ]
   }
+}
     },
 
     explore: {
@@ -299,7 +321,7 @@ const translations = {
       ]
     },
 
-    booking: {
+   booking: {
   startBooking: "Start Your Reservation",
   showForm: "Start Reservation",
   hideForm: "Hide Form",
@@ -315,6 +337,10 @@ const translations = {
     description: "We'll let you know as soon as our new Vespa GTS scooters are available for rental.",
     emailLabel: "Email Address",
     emailPlaceholder: "your@email.com",
+    nameLabel: "Name",
+    namePlaceholder: "Your full name",
+    phoneLabel: "Phone Number",
+    phonePlaceholder: "+370 XXX XXXXX",
     cancel: "Cancel",
     submit: "Notify Me",
     success: "Thanks! We'll notify you when this model becomes available.",
@@ -327,27 +353,50 @@ const translations = {
     },
     details: {
       title: "Rental Details",
-      startDate: "Start Date",
-      endDate: "End Date",
-      startTime: "Rentals start at 9:00 AM",
-      endTime: "Rentals end at 6:00 PM",
-      riders: "Number of Riders",
-      onePerson: "1 Person",
-      twoPeople: "2 People",
-      additionalRider: "Additional rider: €15/day",
+      rentalDate: "Rental Date",
+      maxOneDayNote: "Maximum 1 day rental",
+      dateWarningTitle: "Maximum 1 Day Rental",
+      dateWarningText: "Unfortunately, we rent scooters for a maximum of 1 day to ensure availability for all our customers and maintain our quality service.",
+      rentalDuration: "Rental Duration",
+      fullDay: "Full Day",
+      fullDayTime: "9:00 - 23:00",
+      morningHalf: "Morning Half Day",
+      morningTime: "9:00 - 15:30",
+      eveningHalf: "Evening Half Day",
+      eveningTime: "16:30 - 23:00",
+      helmetOptions: "Helmet Options",
+      helmetIncluded: "1 Helmet included",
+      helmetFree: "FREE",
+      secondHelmet: "2nd Helmet",
+      helmetPrice: "+€10",
       route: "Preferred Route",
       selectRoute: "Select a route",
       gpsGuides: "GPS route guides available for all options",
       rentalSummary: "Rental Summary",
-      riderFee: "Additional rider fee",
+      additionalHelmet: "Additional Helmet",
       total: "Total",
-      deposit: "A 25% deposit will be required to confirm your booking. The remaining balance is due upon pickup."
+      subtotal: "Subtotal",
+      securityDeposit: "Security Deposit",
+      totalPayment: "Total Payment",
+      paymentDetails: "Payment Details",
+      fullPaymentRequired: "• Full payment required upfront",
+      depositIncluded: "• €500 security deposit included",
+      depositReturned: "• Deposit returned after scooter inspection",
+      paymentMethods: "• Payment methods: Card, Cash, Bank Transfer",
+      depositNote: "Full payment (€{price}) + €500 deposit required. Deposit returned after scooter inspection."
     },
     personal: {
       title: "Personal Information",
       name: "Full Name",
       email: "Email Address",
       phone: "Phone Number",
+      age: "Age",
+      selectAge: "Select your age",
+      drivingLicense: "Driving License Category",
+      selectLicense: "Select your license category",
+      licenseRequirements: "License Requirements",
+      licenseNote: "To drive the Vespa Sprint S Elettrica 45, you need at least AM category license.",
+      licenseAlternatives: "You can also drive with: A1, A2, A or B category licenses (all higher categories automatically include AM category).",
       message: "Special Requests",
       namePlaceholder: "Enter your full name",
       emailPlaceholder: "Enter your email address",
@@ -357,17 +406,22 @@ const translations = {
       summary: "Booking Summary",
       model: "Vespa Model",
       duration: "Duration",
-      pickup: "Pick-up",
-      dropoff: "Drop-off",
-      day: "day",
-      days: "days",
+      date: "Date",
+      age: "Age",
+      license: "License",
       notSelected: "Not selected",
-      totalPrice: "Total Price",
+      subtotal: "Subtotal",
+      securityDeposit: "Security Deposit",
+      totalPayment: "Total Payment",
+      importantNotes: "Important Notes",
+      helmetNote: "1 helmet included, 2nd helmet +€10",
+      paymentNote: "Full payment required upfront",
+      depositNote: "€500 deposit returned after inspection",
+      maxDayNote: "Maximum 1 day rental policy",
       termsAgreement: "I agree to the",
       termsLink: "Terms of Service",
       and: "and acknowledge the",
-      privacyLink: "Privacy Policy",
-      driverLicense: "I confirm that I am at least 18 years old and possess a valid driver's license."
+      privacyLink: "Privacy Policy"
     },
     continue: "Continue",
     continueDates: "Continue to Dates",
@@ -385,41 +439,41 @@ const translations = {
   info: {
     hours: {
       title: "Rental Hours",
-      text: "Our rental hours are from 9:00 AM to 6:00 PM daily. Extended hours available upon request."
+      text: "Full Day: 9:00-23:00\nHalf Day: 9:00-15:30 or 16:30-23:00\nMaximum 1 day rental policy"
     },
     payment: {
       title: "Payment Policy",
-      text: "A 25% deposit is required to confirm your booking. The remaining balance is due upon pickup."
+      text: "Full payment upfront + €500 deposit (returned after inspection)."
     },
-    cancellation: {
-      title: "Cancellation Policy",
-      text: "Free cancellation up to 48 hours before your rental. After that, the deposit becomes non-refundable."
+    license: {
+      title: "License Requirements",
+      text: "Minimum age 21. Valid driving license required (AM, A1, A2, A, or B category)."
     }
   },
   models: {
-    primavera: {
-      name: "Vespa Primavera",
-      color: "Ivory White",
-      cc: "150cc",
-      topSpeed: "95 km/h",
-      range: "180 km",
-      idealFor: "Coastal cruising"
-    },
-    gts: {
-      name: "Vespa GTS",
-      color: "Sage Green",
-      cc: "300cc",
-      topSpeed: "120 km/h",
-      range: "220 km",
-      idealFor: "Longer journeys"
-    },
     sprint: {
-      name: "Vespa Sprint",
+      name: "Vespa Elettrica 45",
+      color: "Pearl White",
+      power: "3.1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Eco-friendly city rides"
+    },
+    sprint2: {
+      name: "Vespa Elettrica 45",
+      color: "Sage Green",
+      power: "3.1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Sustainable touring"
+    },
+    sprint3: {
+      name: "Vespa Elettrica 45",
       color: "Sand Beige",
-      cc: "125cc",
-      topSpeed: "90 km/h",
-      range: "160 km",
-      idealFor: "Exploring narrow streets"
+      power: "3.1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Silent exploration"
     }
   },
   routes: {
@@ -445,7 +499,7 @@ const translations = {
     contactUs: "Contact Us",
     chooseLanguage: "Languages",
     yearsInBusiness: "Years in Business",
-    established: "Established 2023",
+    established: "Established 2025",
     backToTop: "Back to top",
     rights: "All rights reserved.",
     slogan: "\"Crafted with elegance for authentic rides.\"",
@@ -474,7 +528,7 @@ const translations = {
   faq: {
   title: "Frequently Asked Questions",
   subtitle: "FAQ",
-  description: "Find answers to the most common questions about our Vespa rentals in Nida.",
+  description: "Find answers to the most common questions about our Vespa rentals in Nida, Lithuania.",
   categories: {
     all: "All Questions",
     booking: "Booking",
@@ -483,24 +537,24 @@ const translations = {
     safety: "Safety"
   },
   questions: {
-    q1: "How do I book a Vespa scooter?",
-    q2: "What happens if I need to cancel my booking?",
-    q3: "What documents do I need to rent a Vespa?",
-    q4: "Is there an age requirement for renting?",
-    q5: "Do you provide helmets and other safety equipment?",
-    q6: "How much is the security deposit?",
-    q7: "Do I need prior experience to ride a Vespa?",
-    q8: "What happens if the Vespa gets damaged during my rental?"
+    q1: "How do I book a Vespa scooter in Nida?",
+    q2: "What happens if I need to cancel my Vespa rental booking?",
+    q3: "What documents do I need to rent a Vespa in Lithuania?",
+    q4: "Is there an age requirement for renting a Vespa in Nida?",
+    q5: "Do you provide helmets and safety equipment in Nida?",
+    q6: "How much is the security deposit for Vespa rental?",
+    q7: "Do I need prior experience to ride a Vespa in Nida?",
+    q8: "What happens if the Vespa gets damaged during my rental in Nida?"
   },
   answers: {
-    a1: "You can easily book a Vespa through our online booking system on this website, by phone at +370 612 34567, or by email at info@vespanida.com. We recommend booking in advance, especially during the high season (June-August).",
-    a2: "For cancellations made at least 48 hours before the scheduled pickup time, you'll receive a full refund. For cancellations made within 48 hours, a 25% cancellation fee applies. No-shows or cancellations on the rental day are non-refundable.",
-    a3: "You'll need a valid driver's license (category B or AM), a valid ID or passport, and a credit card for the security deposit. International visitors need an International Driving Permit along with their original license if it's not in Latin characters.",
-    a4: "Yes, the minimum age to rent our Vespas is 21 years old, and you must have had a valid driver's license for at least 1 year.",
-    a5: "Yes, we provide DOT-certified helmets for the driver and passenger at no extra charge. We also offer optional reflective vests and gloves for rent.",
-    a6: "The security deposit is €300 and will be pre-authorized on your credit card at pickup. This amount is fully refunded upon return of the Vespa in its original condition.",
-    a7: "No prior experience is necessary, but we do offer a brief orientation and handling tips before you ride. If you've never operated a scooter before, we recommend taking a few minutes to practice in our designated area before heading out.",
-    a8: "Any damage beyond normal wear and tear will be assessed and may be covered by the security deposit. We recommend taking photos of the scooter before departure. For your peace of mind, we offer optional damage insurance for €15/day that reduces your liability."
+    a1: "You can easily book a Vespa scooter rental in Nida, Lithuania through our online booking system on this website, by phone at +3706 795 6380, or by email at info@vespanida.com. Located in the heart of the Curonian Spit, we serve the entire Nida area and recommend booking in advance, especially during the Baltic summer season (June-August).",
+    a2: "For Vespa rental cancellations in Nida made at least 48 hours before the scheduled pickup time, you'll receive a full refund. For cancellations made within 48 hours, a 25% cancellation fee applies. No-shows or cancellations on the rental day are non-refundable. This policy ensures fair availability for all visitors to Nida.",
+    a3: "To rent a Vespa in Nida, Lithuania, you'll need: a valid driver's license (category AM, A1, A2, A, or B), a valid ID or passport, and a credit card for the security deposit. International visitors to Lithuania need an International Driving Permit along with their original license if it's not in Latin characters.",
+    a4: "Yes, the minimum age to rent our Vespas in Nida is 21 years old, and you must have held a valid driver's license for at least 1 year. This age requirement ensures safe exploration of the Curonian Spit's scenic routes.",
+    a5: "Yes, we provide DOT-certified helmets for the driver and passenger at no extra charge for all Vespa rentals in Nida. We also offer optional reflective vests and gloves for rent, ensuring your safety while exploring Lithuania's beautiful coastline.",
+    a6: "The security deposit for Vespa rental in Nida is €500 and will be pre-authorized on your credit card at pickup. This amount is fully refunded upon return of the Vespa in its original condition. This is standard practice for premium scooter rentals in Lithuania.",
+    a7: "No prior experience is necessary to rent a Vespa in Nida, but we offer a brief orientation and handling tips before you explore the Curonian Spit. If you've never operated a scooter before, we recommend taking a few minutes to practice in our designated area before heading out to discover Nida's attractions.",
+    a8: "Any damage to your Vespa rental in Nida beyond normal wear and tear will be assessed and may be covered by the security deposit. We recommend taking photos of the scooter before departure. For your peace of mind, we offer optional damage insurance for €15/day that reduces your liability while exploring the scenic routes around Nida and the Curonian Spit."
   },
   stillHaveQuestions: "Still Have Questions?",
   contactPrompt: "If you didn't find the answer you were looking for, please don't hesitate to contact our team directly."
@@ -564,7 +618,7 @@ const translations = {
       hideContent: "Slėpti detales"
     },
 
-    fleet: {
+     fleet: {
   title: "Mūsų Vespa parkas",
   subtitle: "Susipažinkite su mūsų kolekcija",
   description: "Rinkitės iš mūsų kruopščiai atrinktų aukščiausios klasės Vespa motorolerių, kurie prižiūrimi pagal aukščiausius standartus ir paruošti jūsų nuotykiams Nidoje.",
@@ -574,47 +628,51 @@ const translations = {
   buttons: {
     reserveNow: "Rezervuoti dabar",
     details: "Detalės",
+    nameLabel: "Jūsų vardas pavardė",
+    namePlaceholder: "Vardenis Pavardenis",
     comingSoon: "Netrukus",
     notifyWhenAvailable: "Pranešti Man",
     notifyTitle: "Gaukite pranešimą kai bus prieinama",
     notifyDescription: "Mes jums pranešime kai tik naujieji Vespa GTS motoroleriai bus prieinami nuomai.",
     emailLabel: "El. pašto adresas",
-    emailPlaceholder: "jusu@pastas.lt",
+    emailPlaceholder: "jūsų@paštas.lt",
+    phoneLabel: "Telefono numeris",
+    phonePlaceholder: "+370 XXX XXXXX",
     cancel: "Atšaukti",
     notifySubmit: "Pranešti Man",
     notifySuccess: "Ačiū! Mes jums pranešime, kai šis modelis taps prieinamas.",
     moreInfo: "Daugiau Informacijos"
   },
   items: {
-    primavera: {
-      name: "Vespa Primavera",
+    sprint: {
+      name: "Vespa Elettrica 45",
       color: "Dramblio kaulo",
       description: "Klasikinis itališkas stilius su šiuolaikiniu komfortu. Tobulas pasirinkimas pakrantės kelionėms.",
-      specs: "150cc | Automatinė | 2 keleiviai",
+      specs: "3.1 kW | Elektrinė | 2 keleiviai",
       features: [
         "Ekonomiškas variklis", 
         "Priekiniai diskiniai stabdžiai", 
-        "USB įkrovimo prievadas", 
+        "Apsaugos nuo vagystės sistema", 
         "Daiktadėžė po sėdyne"
       ]
     },
-    gts: {
-      name: "Vespa GTS",
+    sprint2: {
+      name: "Vespa Elettrica 45",
       color: "Šalavijo žalia",
       description: "Galingas našumas su amžinu elegantišumu. Idealus ilgesnėms kelionėms.",
-      specs: "300cc | Automatinė | 2 keleiviai",
+      specs: "3.1 kW | Elektrinė | 2 keleiviai",
       features: [
-        "Galingas variklis", 
+        "Apsaugos nuo vagystės sistema", 
         "ABS stabdžių sistema", 
         "Skaitmeninis prietaisų skydelis", 
         "Talpi daiktadėžė"
       ]
     },
-    sprint: {
-      name: "Vespa Sprint",
+    sprint3: {
+      name: "Vespa Elettrica 45",
       color: "Smėlio",
       description: "Vikrus valdymas su rafinuota estetika. Puikiai tinka siaurų gatvelių tyrinėjimui.",
-      specs: "125cc | Automatinė | 2 keleiviai",
+      specs: "3.1 kW | Elektrinė | 2 keleiviai",
       features: [
         "Lengvas manevringumas", 
         "LED apšvietimas", 
@@ -803,7 +861,11 @@ const translations = {
     title: "Gaukite pranešimą kai bus prieinama",
     description: "Mes jums pranešime kai tik naujieji Vespa GTS motoroleriai bus prieinami nuomai.",
     emailLabel: "El. pašto adresas",
-    emailPlaceholder: "jusu@pastas.lt",
+    emailPlaceholder: "jūsų@paštas.lt",
+    nameLabel: "Vardas",
+    namePlaceholder: "Jūsų pilnas vardas",
+    phoneLabel: "Telefono numeris",
+    phonePlaceholder: "+370 XXX XXXXX",
     cancel: "Atšaukti",
     submit: "Pranešti Man",
     success: "Ačiū! Mes jums pranešime, kai šis modelis taps prieinamas.",
@@ -816,27 +878,50 @@ const translations = {
     },
     details: {
       title: "Nuomos detalės",
-      startDate: "Pradžios data",
-      endDate: "Pabaigos data",
-      startTime: "Nuoma prasideda 9:00",
-      endTime: "Nuoma baigiasi 18:00",
-      riders: "Vairuotojų skaičius",
-      onePerson: "1 asmuo",
-      twoPeople: "2 asmenys",
-      additionalRider: "Papildomas vairuotojas: 15€/dienai",
+      rentalDate: "Nuomos data",
+      maxOneDayNote: "Maksimaliai 1 dienos nuoma",
+      dateWarningTitle: "Maksimaliai 1 Dienos Nuoma",
+      dateWarningText: "Deja, mes nuomojame motorolerius maksimaliai 1 dienai, kad užtikrintume prieinamumą visiems klientams ir išlaikytume aukštą paslaugų kokybę.",
+      rentalDuration: "Nuomos trukmė",
+      fullDay: "Visa diena",
+      fullDayTime: "9:00 - 23:00",
+      morningHalf: "Rytinė pusė dienos",
+      morningTime: "9:00 - 15:30",
+      eveningHalf: "Vakarinė pusė dienos",
+      eveningTime: "16:30 - 23:00",
+      helmetOptions: "Šalmų variantai",
+      helmetIncluded: "1 šalmas įskaičiuotas",
+      helmetFree: "NEMOKAMAS",
+      secondHelmet: "2-as šalmas",
+      helmetPrice: "+10€",
       route: "Pageidaujamas maršrutas",
       selectRoute: "Pasirinkite maršrutą",
       gpsGuides: "GPS maršrutų gidai galimi visiems variantams",
       rentalSummary: "Nuomos suvestinė",
-      riderFee: "Papildomo vairuotojo mokestis",
+      additionalHelmet: "Papildomas šalmas",
       total: "Iš viso",
-      deposit: "Rezervacijai patvirtinti reikalingas 25% depozitas. Likusi suma mokama atsiimant."
+      subtotal: "Tarpinė suma",
+      securityDeposit: "Užstatas",
+      totalPayment: "Bendras mokėjimas",
+      paymentDetails: "Mokėjimo detalės",
+      fullPaymentRequired: "• Reikalingas pilnas mokėjimas iš anksto",
+      depositIncluded: "• 500€ užstatas įtrauktas",
+      depositReturned: "• Užstatas grąžinamas po skūterio patikros",
+      paymentMethods: "• Mokėjimo būdai: Kortelė, Grynieji, Banko pavedimas",
+      depositNote: "Pilnas mokėjimas ({price}€) + 500€ užstatas reikalingas. Užstatas grąžinamas po skūterio patikros."
     },
     personal: {
       title: "Asmeninė informacija",
       name: "Pilnas vardas",
       email: "El. pašto adresas",
       phone: "Telefono numeris",
+      age: "Amžius",
+      selectAge: "Pasirinkite savo amžių",
+      drivingLicense: "Vairuotojo pažymėjimo kategorija",
+      selectLicense: "Pasirinkite savo pažymėjimo kategoriją",
+      licenseRequirements: "Pažymėjimo reikalavimai",
+      licenseNote: "Norint vairuoti Vespa Sprint S Elettrica 45, pakanka turėti AM kategorijos teises.",
+      licenseAlternatives: "Taip pat galima vairuoti su: A1, A2, A arba B kategorijos teisėmis (visos aukštesnės kategorijos automatiškai apima ir AM kategoriją).",
       message: "Specialūs pageidavimai",
       namePlaceholder: "Įveskite savo pilną vardą",
       emailPlaceholder: "Įveskite savo el. pašto adresą",
@@ -846,17 +931,22 @@ const translations = {
       summary: "Rezervacijos santrauka",
       model: "Vespa modelis",
       duration: "Trukmė",
-      pickup: "Paėmimas",
-      dropoff: "Grąžinimas",
-      day: "diena",
-      days: "dienos",
+      date: "Data",
+      age: "Amžius",
+      license: "Pažymėjimas",
       notSelected: "Nepasirinkta",
-      totalPrice: "Bendra kaina",
+      subtotal: "Tarpinė suma",
+      securityDeposit: "Užstatas",
+      totalPayment: "Bendras mokėjimas",
+      importantNotes: "Svarbūs pastebėjimai",
+      helmetNote: "1 šalmas įskaičiuotas, 2-as šalmas +10€",
+      paymentNote: "Reikalingas pilnas mokėjimas iš anksto",
+      depositNote: "500€ užstatas grąžinamas po patikros",
+      maxDayNote: "Maksimaliai 1 dienos nuomos politika",
       termsAgreement: "Sutinku su",
       termsLink: "Paslaugų teikimo sąlygomis",
       and: "ir pripažįstu",
-      privacyLink: "Privatumo politiką",
-      driverLicense: "Patvirtinu, kad esu ne jaunesnis nei 18 metų ir turiu galiojantį vairuotojo pažymėjimą."
+      privacyLink: "Privatumo politiką"
     },
     continue: "Tęsti",
     continueDates: "Tęsti prie datų",
@@ -874,41 +964,41 @@ const translations = {
   info: {
     hours: {
       title: "Nuomos valandos",
-      text: "Mūsų nuomos valandos yra nuo 9:00 iki 18:00 kasdien. Pratęstos valandos galimos pagal pageidavimą."
+      text: "Visa diena: 9:00-23:00\nPusė dienos: 9:00-15:30 arba 16:30-23:00\nMaksimaliai 1 dienos nuomos politika"
     },
     payment: {
       title: "Mokėjimo politika",
-      text: "Rezervacijai patvirtinti reikalingas 25% depozitas. Likusi suma mokama atsiimant."
+      text: "Pilnas mokėjimas iš anksto + 500€ užstatas (grąžinamas po patikros)."
     },
-    cancellation: {
-      title: "Atšaukimo politika",
-      text: "Nemokamas atšaukimas iki 48 valandų prieš jūsų nuomą. Po to depozitas tampa negrąžinamas."
+    license: {
+      title: "Pažymėjimo reikalavimai",
+      text: "Minimalus amžius 21 metai. Reikalingas galiojantis vairuotojo pažymėjimas (AM, A1, A2, A arba B kategorija)."
     }
   },
   models: {
-    primavera: {
-      name: "Vespa Primavera",
-      color: "Dramblio kaulo",
-      cc: "150cc",
-      topSpeed: "95 km/h",
-      range: "180 km",
-      idealFor: "Pakrantės kelionėms"
-    },
-    gts: {
-      name: "Vespa GTS",
-      color: "Šalavijo žalia",
-      cc: "300cc",
-      topSpeed: "120 km/h",
-      range: "220 km",
-      idealFor: "Ilgesnėms kelionėms"
-    },
     sprint: {
-      name: "Vespa Sprint",
-      color: "Smėlio",
-      cc: "125cc",
-      topSpeed: "90 km/h",
-      range: "160 km",
-      idealFor: "Siaurų gatvelių tyrinėjimui"
+      name: "Vespa Elettrica 45",
+      color: "Perlo baltumo",
+      power: "3,1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Ekologiškiems miesto važinėjimams"
+    },
+    sprint2: {
+      name: "Vespa Elettrica 45",
+      color: "Šalavijo žalia",
+      power: "3,1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Tvariam turizmui"
+    },
+    sprint3: {
+      name: "Vespa Elettrica 45",
+      color: "Smėlio spalvos",
+      power: "3,1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Tyliam tyrinėjimui"
     }
   },
   routes: {
@@ -934,7 +1024,7 @@ const translations = {
     contactUs: "Susisiekite su mumis",
     chooseLanguage: "Kalbos",
     yearsInBusiness: "Metai versle",
-    established: "Įkurta 2023",
+    established: "Įkurta 2025",
     backToTop: "Grįžti į viršų",
     rights: "Visos teisės saugomos.",
     slogan: "\"Sukurta elegantiškai autentiškoms kelionėms.\"",
@@ -969,7 +1059,7 @@ const translations = {
   faq: {
   title: "Dažniausiai Užduodami Klausimai",
   subtitle: "DUK",
-  description: "Raskite atsakymus į dažniausiai užduodamus klausimus apie mūsų Vespa nuomą Nidoje.",
+  description: "Raskite atsakymus į dažniausiai užduodamus klausimus apie mūsų Vespa nuomą Nidoje, Lietuvoje.",
   categories: {
     all: "Visi Klausimai",
     booking: "Rezervacija",
@@ -978,24 +1068,24 @@ const translations = {
     safety: "Saugumas"
   },
   questions: {
-    q1: "Kaip užsisakyti Vespa motorolerį?",
-    q2: "Kas nutiks, jei man reikės atšaukti rezervaciją?",
-    q3: "Kokie dokumentai reikalingi nuomai?",
-    q4: "Ar yra amžiaus reikalavimas norint išsinuomoti?",
-    q5: "Ar teikiate šalmus ir kitą saugos įrangą?",
-    q6: "Koks yra užstato dydis?",
-    q7: "Ar man reikia ankstesnės patirties, kad galėčiau vairuoti Vespa?",
-    q8: "Kas nutiks, jei nuomos metu Vespa bus pažeistas?"
+    q1: "Kaip užsisakyti Vespa motorolerį Nidoje?",
+    q2: "Kas nutiks, jei man reikės atšaukti Vespa nuomos rezervaciją?",
+    q3: "Kokie dokumentai reikalingi Vespa nuomai Lietuvoje?",
+    q4: "Ar yra amžiaus reikalavimas Vespa nuomai Nidoje?",
+    q5: "Ar teikiate šalmus ir saugos įrangą Nidoje?",
+    q6: "Koks yra Vespa nuomos užstato dydis?",
+    q7: "Ar man reikia ankstesnės patirties vairuoti Vespa Nidoje?",
+    q8: "Kas nutiks, jei Vespa bus pažeista nuomos metu Nidoje?"
   },
   answers: {
-    a1: "Vespa galite lengvai užsisakyti per mūsų internetinę rezervacijos sistemą šioje svetainėje, telefonu +370 612 34567 arba el. paštu info@vespanida.com. Rekomenduojame rezervuoti iš anksto, ypač sezono metu (birželis-rugpjūtis).",
-    a2: "Jei atšauksite likus mažiausiai 48 valandoms iki numatyto paėmimo laiko, gausite visą grąžinamą sumą. Atšaukimams per 48 valandas taikomas 25% atšaukimo mokestis. Neatvykusiems arba atšaukusiems nuomos dieną pinigai negrąžinami.",
-    a3: "Jums reikės galiojančio vairuotojo pažymėjimo (B arba AM kategorijos), galiojančio asmens tapatybės dokumento ar paso ir kredito kortelės užstatui. Tarptautiniams lankytojams reikalingas tarptautinis vairuotojo pažymėjimas kartu su originaliu pažymėjimu, jei jis nėra lotyniškais rašmenimis.",
-    a4: "Taip, minimali amžiaus riba mūsų Vespa nuomai yra 21 metai, ir turite turėti galiojantį vairuotojo pažymėjimą bent 1 metus.",
-    a5: "Taip, vairuotojui ir keleiviui nemokamai suteikiame DOT sertifikuotus šalmus. Taip pat siūlome papildomai išsinuomoti atšvaitines liemenes ir pirštines.",
-    a6: "Užstatas yra 300 € ir bus iš anksto patvirtintas jūsų kreditinėje kortelėje paėmimo metu. Ši suma visiškai grąžinama grąžinus Vespa pradinės būklės.",
-    a7: "Ankstesnė patirtis nebūtina, bet prieš važiuojant mes siūlome trumpą orientaciją ir valdymo patarimus. Jei anksčiau niekada nevairavote motorolerio, rekomenduojame keletą minučių pasitreniruoti mūsų numatytoje vietoje prieš išvykstant.",
-    a8: "Bet kokie pažeidimai, viršijantys įprastą nusidėvėjimą, bus įvertinti ir gali būti padengti užstatu. Rekomenduojame prieš išvykstant nufotografuoti motorolerį. Jūsų ramybei siūlome papildomą pažeidimų draudimą už 15 €/dieną, kuris sumažina jūsų atsakomybę."
+    a1: "Vespa motorolerio nuomą Nidoje, Lietuvoje galite lengvai užsisakyti per mūsų internetinę rezervacijos sistemą šioje svetainėje, telefonu +3706 795 6380 arba el. paštu info@vespanida.com. Esame Kuršių nerijos širdyje ir aptarnaujame visą Nidos rajoną. Rekomenduojame rezervuoti iš anksto, ypač Baltijos vasaros sezono metu (birželis-rugpjūtis).",
+    a2: "Vespa nuomos atšaukimams Nidoje, atliekamiem likus mažiausiai 48 valandoms iki numatyto paėmimo laiko, gausite visą grąžinamą sumą. Atšaukimams per 48 valandas taikomas 25% atšaukimo mokestis. Neatvykusiems arba atšaukusiems nuomos dieną pinigai negrąžinami. Ši tvarka užtikrina sąžiningą prieinamumą visiems Nidos lankytojams.",
+    a3: "Vespa nuomai Nidoje, Lietuvoje jums reikės: galiojančio vairuotojo pažymėjimo (AM, A1, A2, A arba B kategorijos), galiojančio asmens tapatybės dokumento ar paso ir kredito kortelės užstatui. Tarptautiniams Lietuvos lankytojams reikalingas tarptautinis vairuotojo pažymėjimas kartu su originaliu pažymėjimu, jei jis nėra lotyniškais rašmenimis.",
+    a4: "Taip, minimali amžiaus riba mūsų Vespa nuomai Nidoje yra 21 metai, ir turite turėti galiojantį vairuotojo pažymėjimą bent 1 metus. Šis amžiaus reikalavimas užtikrina saugų Kuršių nerijos vaizdingų maršrutų tyrinėjimą.",
+    a5: "Taip, visoms Vespa nuomoms Nidoje nemokamai suteikiame DOT sertifikuotus šalmus vairuotojui ir keleiviui. Taip pat siūlome papildomai išsinuomoti atšvaitines liemenes ir pirštines, užtikrindami jūsų saugumą tyrinėjant gražų Lietuvos pajūrį.",
+    a6: "Vespa nuomos užstatas Nidoje yra 500 € ir bus iš anksto patvirtintas jūsų kreditinėje kortelėje paėmimo metu. Ši suma visiškai grąžinama grąžinus Vespa pradinės būklės. Tai įprasta praktika aukščiausios klasės motorolerių nuomai Lietuvoje.",
+    a7: "Ankstesnė patirtis Vespa nuomai Nidoje nebūtina, bet mes siūlome trumpą orientaciją ir valdymo patarimus prieš tyrinėjant Kuršių neriją. Jei anksčiau niekada nevairavote motorolerio, rekomenduojame keletą minučių pasitreniruoti mūsų numatytoje vietoje prieš išvykstant atrasti Nidos patrauklumą.",
+    a8: "Bet kokie jūsų Vespa nuomos Nidoje pažeidimai, viršijantys įprastą nusidėvėjimą, bus įvertinti ir gali būti padengti užstatu. Rekomenduojame prieš išvykstant nufotografuoti motorolerį. Jūsų ramybei siūlome papildomą pažeidimų draudimą už 15 €/dieną, kuris sumažina jūsų atsakomybę tyrinėjant vaizdingas trasas aplink Nidą ir Kuršių neriją."
   },
   stillHaveQuestions: "Dar turite klausimų?",
   contactPrompt: "Jei neradote ieškomo atsakymo, nedvejodami kreipkitės tiesiogiai į mūsų komandą."
@@ -1074,48 +1164,52 @@ const translations = {
     emailLabel: "E-Mail-Adresse",
     emailPlaceholder: "ihre@email.de",
     cancel: "Abbrechen",
+    nameLabel: "Ihr Name",
+    namePlaceholder: "Max Mustermann",
+    phoneLabel: "Telefonnummer",
+    phonePlaceholder: "+49 XXX XXXXXXX",
     notifySubmit: "Benachrichtigen",
     notifySuccess: "Vielen Dank! Wir werden Sie benachrichtigen, sobald dieses Modell verfügbar ist.",
     moreInfo: "Weitere Informationen"
   },
   items: {
-    primavera: {
-      name: "Vespa Primavera",
-      color: "Elfenbeinweiß",
-      description: "Klassischer italienischer Stil mit modernem Komfort. Perfekt für Küstenfahrten.",
-      specs: "150cc | Automatik | 2 Passagiere",
-      features: [
-        "Kraftstoffsparender Motor", 
-        "Vordere Scheibenbremsen", 
-        "USB-Ladeanschluss", 
-        "Stauraum unter dem Sitz"
-      ]
-    },
-    gts: {
-      name: "Vespa GTS",
-      color: "Salbeigrün",
-      description: "Leistungsstarke Performance mit zeitloser Eleganz. Ideal für längere Fahrten.",
-      specs: "300cc | Automatik | 2 Passagiere",
-      features: [
-        "Leistungsstarker Motor", 
-        "ABS-Bremssystem", 
-        "Digitales Armaturenbrett", 
-        "Geräumiges Staufach"
-      ]
-    },
-    sprint: {
-      name: "Vespa Sprint",
-      color: "Sandbeige",
-      description: "Wendige Handhabung mit raffinierter Ästhetik. Großartig zum Erkunden enger Straßen.",
-      specs: "125cc | Automatik | 2 Passagiere",
-      features: [
-        "Leichte Manövrierbarkeit", 
-        "LED-Beleuchtung", 
-        "Diebstahlsicherung", 
-        "Komfortable Sitzposition"
-      ]
-    }
+  sprint: {
+    name: "Vespa Elettrica 45",
+    color: "Elfenbeinweiß",
+    description: "Klassischer italienischer Stil mit modernem Komfort. Perfekte Wahl für Küstenfahrten.",
+    specs: "3,1 kW | Elektrisch | 2 Passagiere",
+    features: [
+      "Sparsamer Motor", 
+      "Vordere Scheibenbremsen", 
+      "Diebstahlsicherung", 
+      "Stauraum unter dem Sitz"
+    ]
+  },
+  sprint2: {
+    name: "Vespa Elettrica 45",
+    color: "Salbeigrün",
+    description: "Leistungsstarke Performance mit zeitloser Eleganz. Ideal für längere Fahrten.",
+    specs: "3,1 kW | Elektrisch | 2 Passagiere",
+    features: [
+      "Diebstahlsicherung", 
+      "ABS-Bremssystem", 
+      "Digitales Armaturenbrett", 
+      "Geräumiges Staufach"
+    ]
+  },
+  sprint3: {
+    name: "Vespa Elettrica 45",
+    color: "Sandbeige",
+    description: "Wendige Handhabung mit raffinierter Ästhetik. Perfekt zum Erkunden enger Straßen.",
+    specs: "3,1 kW | Elektrisch | 2 Passagiere",
+    features: [
+      "Leichte Manövrierbarkeit", 
+      "LED-Beleuchtung", 
+      "Diebstahlsicherung", 
+      "Komfortable Sitzposition"
+    ]
   }
+}
     },
 
     explore: {
@@ -1282,7 +1376,7 @@ const translations = {
       ]
     },
 
-    booking: {
+   booking: {
   startBooking: "Reservierung Starten",
   showForm: "Reservierung Starten",
   hideForm: "Formular Ausblenden",
@@ -1298,6 +1392,10 @@ const translations = {
     description: "Wir informieren Sie, sobald unsere neuen Vespa GTS Roller zur Miete verfügbar sind.",
     emailLabel: "E-Mail-Adresse",
     emailPlaceholder: "ihre@email.de",
+    nameLabel: "Name",
+    namePlaceholder: "Ihr vollständiger Name",
+    phoneLabel: "Telefonnummer",
+    phonePlaceholder: "+370 XXX XXXXX",
     cancel: "Abbrechen",
     submit: "Benachrichtigen",
     success: "Vielen Dank! Wir werden Sie benachrichtigen, sobald dieses Modell verfügbar ist.",
@@ -1310,27 +1408,50 @@ const translations = {
     },
     details: {
       title: "Mietdetails",
-      startDate: "Startdatum",
-      endDate: "Enddatum",
-      startTime: "Vermietung beginnt um 9:00 Uhr",
-      endTime: "Vermietung endet um 18:00 Uhr",
-      riders: "Anzahl der Fahrer",
-      onePerson: "1 Person",
-      twoPeople: "2 Personen",
-      additionalRider: "Zusätzlicher Fahrer: 15€/Tag",
+      rentalDate: "Mietdatum",
+      maxOneDayNote: "Maximal 1 Tag Miete",
+      dateWarningTitle: "Maximal 1 Tag Miete",
+      dateWarningText: "Leider vermieten wir Roller für maximal 1 Tag, um die Verfügbarkeit für alle unsere Kunden zu gewährleisten und unseren Qualitätsservice aufrechtzuerhalten.",
+      rentalDuration: "Mietdauer",
+      fullDay: "Ganzer Tag",
+      fullDayTime: "9:00 - 23:00",
+      morningHalf: "Vormittag Halbtag",
+      morningTime: "9:00 - 15:30",
+      eveningHalf: "Nachmittag Halbtag",
+      eveningTime: "16:30 - 23:00",
+      helmetOptions: "Helm-Optionen",
+      helmetIncluded: "1 Helm inklusive",
+      helmetFree: "KOSTENLOS",
+      secondHelmet: "2. Helm",
+      helmetPrice: "+10€",
       route: "Bevorzugte Route",
       selectRoute: "Route auswählen",
       gpsGuides: "GPS-Routenführungen für alle Optionen verfügbar",
       rentalSummary: "Mietzusammenfassung",
-      riderFee: "Gebühr für zusätzlichen Fahrer",
+      additionalHelmet: "Zusätzlicher Helm",
       total: "Gesamt",
-      deposit: "Zur Bestätigung Ihrer Buchung ist eine Anzahlung von 25% erforderlich. Der Restbetrag ist bei der Abholung zu zahlen."
+      subtotal: "Zwischensumme",
+      securityDeposit: "Kaution",
+      totalPayment: "Gesamtzahlung",
+      paymentDetails: "Zahlungsdetails",
+      fullPaymentRequired: "• Vollzahlung im Voraus erforderlich",
+      depositIncluded: "• 500€ Kaution inbegriffen",
+      depositReturned: "• Kaution nach Rollerinspektion zurückerstattet",
+      paymentMethods: "• Zahlungsmethoden: Karte, Bar, Banküberweisung",
+      depositNote: "Vollzahlung ({price}€) + 500€ Kaution erforderlich. Kaution nach Rollerinspektion zurückerstattet."
     },
     personal: {
       title: "Persönliche Informationen",
       name: "Vollständiger Name",
       email: "E-Mail-Adresse",
       phone: "Telefonnummer",
+      age: "Alter",
+      selectAge: "Wählen Sie Ihr Alter",
+      drivingLicense: "Führerscheinkategorie",
+      selectLicense: "Wählen Sie Ihre Führerscheinkategorie",
+      licenseRequirements: "Führerscheinanforderungen",
+      licenseNote: "Um die Vespa Sprint S Elettrica 45 zu fahren, benötigen Sie mindestens einen Führerschein der Kategorie AM.",
+      licenseAlternatives: "Sie können auch mit den Kategorien A1, A2, A oder B fahren (alle höheren Kategorien schließen automatisch die Kategorie AM ein).",
       message: "Besondere Wünsche",
       namePlaceholder: "Geben Sie Ihren vollständigen Namen ein",
       emailPlaceholder: "Geben Sie Ihre E-Mail-Adresse ein",
@@ -1340,17 +1461,22 @@ const translations = {
       summary: "Buchungsübersicht",
       model: "Vespa-Modell",
       duration: "Dauer",
-      pickup: "Abholung",
-      dropoff: "Rückgabe",
-      day: "Tag",
-      days: "Tage",
+      date: "Datum",
+      age: "Alter",
+      license: "Führerschein",
       notSelected: "Nicht ausgewählt",
-      totalPrice: "Gesamtpreis",
+      subtotal: "Zwischensumme",
+      securityDeposit: "Kaution",
+      totalPayment: "Gesamtzahlung",
+      importantNotes: "Wichtige Hinweise",
+      helmetNote: "1 Helm inklusive, 2. Helm +10€",
+      paymentNote: "Vollzahlung im Voraus erforderlich",
+      depositNote: "500€ Kaution nach Inspektion zurückerstattet",
+      maxDayNote: "Maximal 1 Tag Mietrichtlinie",
       termsAgreement: "Ich stimme den",
       termsLink: "Nutzungsbedingungen",
       and: "zu und erkenne die",
-      privacyLink: "Datenschutzrichtlinie",
-      driverLicense: "Ich bestätige, dass ich mindestens 18 Jahre alt bin und im Besitz eines gültigen Führerscheins bin."
+      privacyLink: "Datenschutzrichtlinie"
     },
     continue: "Fortfahren",
     continueDates: "Weiter zu Terminen",
@@ -1368,47 +1494,47 @@ const translations = {
   info: {
     hours: {
       title: "Vermietungszeiten",
-      text: "Unsere Vermietungszeiten sind täglich von 9:00 bis 18:00 Uhr. Verlängerte Zeiten sind auf Anfrage verfügbar."
+      text: "Ganzer Tag: 9:00-23:00\nHalber Tag: 9:00-15:30 oder 16:30-23:00\nMaximal 1 Tag Mietrichtlinie"
     },
     payment: {
       title: "Zahlungsrichtlinie",
-      text: "Zur Bestätigung Ihrer Buchung ist eine Anzahlung von 25% erforderlich. Der Restbetrag ist bei der Abholung zu zahlen."
+      text: "Vollzahlung im Voraus + 500€ Kaution (nach Inspektion zurückerstattet)."
     },
-    cancellation: {
-      title: "Stornierungsrichtlinie",
-      text: "Kostenlose Stornierung bis zu 48 Stunden vor Ihrer Miete. Danach wird die Anzahlung nicht erstattet."
+    license: {
+      title: "Führerscheinanforderungen",
+      text: "Mindestalter 21 Jahre. Gültiger Führerschein erforderlich (AM, A1, A2, A oder B Kategorie)."
     }
   },
   models: {
-    primavera: {
-      name: "Vespa Primavera",
-      color: "Elfenbeinweiß",
-      cc: "150cc",
-      topSpeed: "95 km/h",
-      range: "180 km",
-      idealFor: "Küstenfahrten"
-    },
-    gts: {
-      name: "Vespa GTS",
-      color: "Salbeigrün",
-      cc: "300cc",
-      topSpeed: "120 km/h",
-      range: "220 km",
-      idealFor: "Längere Fahrten"
-    },
     sprint: {
-      name: "Vespa Sprint",
+      name: "Vespa Elettrica 45",
+      color: "Perlweiß",
+      power: "3,1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Umweltfreundliche Stadtfahrten"
+    },
+    sprint2: {
+      name: "Vespa Elettrica 45",
+      color: "Salbeigrün",
+      power: "3,1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Nachhaltiges Touring"
+    },
+    sprint3: {
+      name: "Vespa Elettrica 45",
       color: "Sandbeige",
-      cc: "125cc",
-      topSpeed: "90 km/h",
-      range: "160 km",
-      idealFor: "Erkunden enger Straßen"
+      power: "3,1 kW",
+      maxSpeed: "45 km/h",
+      range: "68 km",
+      idealFor: "Geräuschlose Erkundung"
     }
   },
   routes: {
     none: "Keine spezifische Route (selbstgeführt)",
     coastal: "Küstenleuchtturm-Route (12 km)",
-    dunes: "Sandabenteuer-Route (18 km)",
+    dunes: "Sanddünen-Abenteuer-Route (18 km)",
     village: "Fischerdorf-Tour (8 km)",
     custom: "Individuelle Route (in der Nachricht beschreiben)"
   }
@@ -1428,7 +1554,7 @@ const translations = {
     contactUs: "Kontakt",
     chooseLanguage: "Sprachen",
     yearsInBusiness: "Jahre im Geschäft",
-    established: "Gegründet 2023",
+    established: "Gegründet 2025",
     backToTop: "Nach oben",
     rights: "Alle Rechte vorbehalten.",
     slogan: "\"Mit Eleganz gefertigt für authentische Fahrten.\"",
@@ -1462,7 +1588,7 @@ const translations = {
   faq: {
   title: "Häufig gestellte Fragen",
   subtitle: "FAQ",
-  description: "Finden Sie Antworten auf die häufigsten Fragen zu unserer Vespa-Vermietung in Nida.",
+  description: "Finden Sie Antworten auf die häufigsten Fragen zu unserer Vespa-Vermietung in Nida, Litauen.",
   categories: {
     all: "Alle Fragen",
     booking: "Buchung",
@@ -1471,70 +1597,635 @@ const translations = {
     safety: "Sicherheit"
   },
   questions: {
-    q1: "Wie buche ich einen Vespa-Roller?",
-    q2: "Was passiert, wenn ich meine Buchung stornieren muss?",
-    q3: "Welche Dokumente benötige ich für die Miete einer Vespa?",
-    q4: "Gibt es eine Altersvoraussetzung für die Anmietung?",
-    q5: "Stellen Sie Helme und andere Sicherheitsausrüstung bereit?",
-    q6: "Wie hoch ist die Kaution?",
-    q7: "Benötige ich Vorkenntnisse, um eine Vespa zu fahren?",
-    q8: "Was passiert, wenn die Vespa während der Mietzeit beschädigt wird?"
+    q1: "Wie buche ich einen Vespa-Roller in Nida?",
+    q2: "Was passiert, wenn ich meine Vespa-Mietbuchung stornieren muss?",
+    q3: "Welche Dokumente benötige ich für die Vespa-Miete in Litauen?",
+    q4: "Gibt es eine Altersvoraussetzung für die Vespa-Miete in Nida?",
+    q5: "Stellen Sie Helme und Sicherheitsausrüstung in Nida bereit?",
+    q6: "Wie hoch ist die Kaution für die Vespa-Miete?",
+    q7: "Benötige ich Vorkenntnisse, um eine Vespa in Nida zu fahren?",
+    q8: "Was passiert, wenn die Vespa während der Miete in Nida beschädigt wird?"
   },
   answers: {
-    a1: "Sie können ganz einfach eine Vespa über unser Online-Buchungssystem auf dieser Website, telefonisch unter +370 612 34567 oder per E-Mail an info@vespanida.com buchen. Wir empfehlen eine frühzeitige Buchung, besonders während der Hochsaison (Juni-August).",
-    a2: "Bei Stornierungen, die mindestens 48 Stunden vor der geplanten Abholzeit erfolgen, erhalten Sie eine vollständige Rückerstattung. Bei Stornierungen innerhalb von 48 Stunden fällt eine Stornogebühr von 25% an. Nichterscheinen oder Stornierungen am Tag der Anmietung werden nicht erstattet.",
-    a3: "Sie benötigen einen gültigen Führerschein (Klasse B oder AM), einen gültigen Ausweis oder Reisepass und eine Kreditkarte für die Kaution. Internationale Besucher benötigen einen internationalen Führerschein zusammen mit ihrem Originalführerschein, wenn dieser nicht in lateinischen Buchstaben geschrieben ist.",
-    a4: "Ja, das Mindestalter für die Anmietung unserer Vespas beträgt 21 Jahre, und Sie müssen seit mindestens 1 Jahr im Besitz eines gültigen Führerscheins sein.",
-    a5: "Ja, wir stellen DOT-zertifizierte Helme für Fahrer und Beifahrer kostenlos zur Verfügung. Wir bieten auch optionale Warnwesten und Handschuhe zur Miete an.",
-    a6: "Die Kaution beträgt 300 € und wird bei der Abholung auf Ihrer Kreditkarte vorautorisiert. Dieser Betrag wird bei Rückgabe der Vespa in ihrem ursprünglichen Zustand vollständig zurückerstattet.",
-    a7: "Keine Vorkenntnisse erforderlich, aber wir bieten vor der Fahrt eine kurze Einweisung und Tipps zur Handhabung an. Wenn Sie noch nie einen Roller gefahren sind, empfehlen wir Ihnen, einige Minuten in unserem dafür vorgesehenen Bereich zu üben, bevor Sie losfahren.",
-    a8: "Jeder Schaden, der über normale Abnutzung hinausgeht, wird bewertet und kann durch die Kaution abgedeckt werden. Wir empfehlen, vor der Abfahrt Fotos des Rollers zu machen. Für Ihre Sicherheit bieten wir eine optionale Schadensversicherung für 15 €/Tag an, die Ihre Haftung reduziert."
+    a1: "Sie können ganz einfach eine Vespa-Roller-Miete in Nida, Litauen über unser Online-Buchungssystem auf dieser Website, telefonisch unter +3706 795 6380 oder per E-Mail an info@vespanida.com buchen. Wir befinden uns im Herzen der Kurischen Nehrung und bedienen das gesamte Nida-Gebiet. Wir empfehlen eine frühzeitige Buchung, besonders während der baltischen Sommersaison (Juni-August).",
+    a2: "Für Vespa-Miet-Stornierungen in Nida, die mindestens 48 Stunden vor der geplanten Abholzeit erfolgen, erhalten Sie eine vollständige Rückerstattung. Bei Stornierungen innerhalb von 48 Stunden fällt eine Stornogebühr von 25% an. Nichterscheinen oder Stornierungen am Miettag werden nicht erstattet. Diese Richtlinie gewährleistet faire Verfügbarkeit für alle Nida-Besucher.",
+    a3: "Für die Vespa-Miete in Nida, Litauen benötigen Sie: einen gültigen Führerschein (Klasse AM, A1, A2, A oder B), einen gültigen Ausweis oder Reisepass und eine Kreditkarte für die Kaution. Internationale Besucher Litauens benötigen einen internationalen Führerschein zusammen mit ihrem Originalführerschein, wenn dieser nicht in lateinischen Buchstaben geschrieben ist.",
+    a4: "Ja, das Mindestalter für die Vespa-Miete in Nida beträgt 21 Jahre, und Sie müssen seit mindestens 1 Jahr im Besitz eines gültigen Führerscheins sein. Diese Altersanforderung gewährleistet eine sichere Erkundung der malerischen Routen der Kurischen Nehrung.",
+    a5: "Ja, wir stellen für alle Vespa-Mieten in Nida DOT-zertifizierte Helme für Fahrer und Beifahrer kostenlos zur Verfügung. Wir bieten auch optionale Warnwesten und Handschuhe zur Miete an, um Ihre Sicherheit bei der Erkundung der schönen litauischen Küste zu gewährleisten.",
+    a6: "Die Kaution für die Vespa-Miete in Nida beträgt 500 € und wird bei der Abholung auf Ihrer Kreditkarte vorautorisiert. Dieser Betrag wird bei Rückgabe der Vespa in ihrem ursprünglichen Zustand vollständig zurückerstattet. Dies ist übliche Praxis für Premium-Roller-Vermietungen in Litauen.",
+    a7: "Keine Vorkenntnisse sind für die Vespa-Miete in Nida erforderlich, aber wir bieten eine kurze Einweisung und Fahrhinweise an, bevor Sie die Kurische Nehrung erkunden. Wenn Sie noch nie einen Roller gefahren sind, empfehlen wir Ihnen, einige Minuten in unserem dafür vorgesehenen Bereich zu üben, bevor Sie losfahren, um Nidas Attraktionen zu entdecken.",
+    a8: "Jeder Schaden an Ihrer Vespa-Miete in Nida, der über normale Abnutzung hinausgeht, wird bewertet und kann durch die Kaution abgedeckt werden. Wir empfehlen, vor der Abfahrt Fotos des Rollers zu machen. Für Ihre Sicherheit bieten wir eine optionale Schadensversicherung für 15 €/Tag an, die Ihre Haftung bei der Erkundung der malerischen Routen rund um Nida und die Kurische Nehrung reduziert."
   },
   stillHaveQuestions: "Noch Fragen?",
   contactPrompt: "Wenn Sie die gesuchte Antwort nicht gefunden haben, zögern Sie bitte nicht, unser Team direkt zu kontaktieren."
 }
-    // Add more translations
+  },
+
+
+pl: {
+    nav: {
+      home: 'Strona główna',
+      about: 'O nas',
+      fleet: 'Flota',
+      explore: 'Odkryj',
+      shop: 'Sklep',
+      contact: 'Kontakt'
+    },
+    buttons: {
+      bookNow: 'Zarezerwuj teraz',
+      reserveNow: 'Zarezerwuj teraz',
+      subscribe: 'Subskrybuj',
+      bookYourRide: 'Zarezerwuj jazdę'
+    },
+    hero: {
+      viewFAQ: "FAQ",
+      tagline: "Wypożyczalnia premium skuterów Vespa w Nidzie",
+      slogans: {
+        first: "Elegancja w ruchu",
+        second: "Autentyczne przejażdżki. Ponadczasowy styl.",
+        third: "Odkryj Nidę. Żyj Vespą."
+      },
+      description: "Odkryj malownicze piękno Nidy z naszymi luksusowymi skuterami Vespa. Przemierzaj wybrzeże Bałtyku ze stylem i swobodą.",
+      exploreFleet: "Poznaj naszą flotę",
+      contactUs: "Skontaktuj się z nami",
+      scrollToExplore: "Przewiń, aby odkryć",
+      imageAlt: "Skuter Vespa na malowniczej nadmorskiej drodze w Nidzie"
+    },
+    about: {
+      title: "O Vespa Nida",
+      subtitle: "Nasza historia",
+      paragraph1: "Vespa Nida oferuje premium doświadczenie wypożyczania skuterów w sercu najpiękniejszego nadmorskiego miasta Litwy. Naszą misją jest zapewnienie odwiedzającym stylowego, wygodnego i ekologicznego sposobu odkrywania cudów natury Mierzei Kurońskiej.",
+      paragraph2: "Założona przez lokalnych entuzjastów z pasją do włoskiego designu i bałtyckich krajobrazów, dbamy o flotę starannie utrzymanych skuterów Vespa, które łączą klasyczną estetykę z nowoczesną wydajnością.",
+      features: {
+        premium: {
+          title: "Flota Premium",
+          description: "Starannie utrzymane skutery Vespa w nieskazitelnym stanie"
+        },
+        expertise: {
+          title: "Lokalna ekspertyza",
+          description: "Wewnętrzna wiedza o ukrytych perełkach i malowniczych trasach Nidy"
+        },
+        service: {
+          title: "Bezproblemowa obsługa",
+          description: "Bezproblemowa rezerwacja, dostawa i wsparcie przez całą podróż"
+        }
+      },
+      quote: "\"To nie tylko skuter. To manifest.\"",
+      since: "Od",
+      imageAlt: "Zabytkowy skuter Vespa nad morzem",
+      showContent: "O nas",
+      hideContent: "Ukryj szczegóły"
+    },
+
+    fleet: {
+      title: "Nasza flota Vespa",
+      subtitle: "Poznaj naszą kolekcję",
+      description: "Wybierz spośród naszych starannie wyselekcjonowanych premium skuterów Vespa, utrzymanych w najwyższych standardach i gotowych na Twoje przygody w Nidzie.",
+      features: "Funkcje",
+      customRental: "Potrzebujesz niestandardowej wypożyczalni lub masz specjalne wymagania?",
+      contactTeam: "Skontaktuj się z naszym zespołem",
+      buttons: {
+        reserveNow: "Zarezerwuj teraz",
+        details: "Szczegóły",
+        comingSoon: "Wkrótce",
+        notifyWhenAvailable: "Powiadom mnie",
+        notifyTitle: "Otrzymaj powiadomienie, gdy będzie dostępne",
+        notifyDescription: "Damy Ci znać, gdy tylko nasze nowe skutery Vespa GTS będą dostępne do wypożyczenia.",
+        emailLabel: "Adres email",
+        nameLabel: "Imię",
+        namePlaceholder: "Twoje imię i nazwisko",
+        phoneLabel: "Numer telefonu",
+        phonePlaceholder: "+48 XXX XXX XXX",
+        emailPlaceholder: "twoj@email.com",
+        cancel: "Anuluj",
+        notifySubmit: "Powiadom mnie",
+        notifySuccess: "Dzięki! Powiadomimy Cię, gdy ten model będzie dostępny.",
+        moreInfo: "Więcej informacji"
+      },
+      items: {
+        sprint: {
+          name: "Vespa Elettrica 45",
+          color: "Biały kość słoniowa",
+          description: "Klasyczny włoski styl z nowoczesnym komfortem. Idealny wybór na nadmorskie podróże.",
+          specs: "3.1 kW | Elektryczny | 2 pasażerów",
+          features: [
+            "Ekonomiczny silnik",
+            "Przednie hamulce tarczowe",
+            "System antykradzieżowy",
+            "Schowek pod siedzeniem"
+          ]
+        },
+        sprint2: {
+          name: "Vespa Elettrica 45",
+          color: "Zielony szałwiowy",
+          description: "Potężna wydajność z ponadczasową elegancją. Idealny na dłuższe podróże.",
+          specs: "3.1 kW | Elektryczny | 2 pasażerów",
+          features: [
+            "System antykradzieżowy",
+            "System hamulcowy ABS",
+            "Cyfrowy panel instrumentów",
+            "Przestronny schowek"
+          ]
+        },
+        sprint3: {
+          name: "Vespa Elettrica 45",
+          color: "Beżowy piaskowy",
+          description: "Zwinne prowadzenie z wyrafinowaną estetyką. Idealny do odkrywania wąskich uliczek.",
+          specs: "3.1 kW | Elektryczny | 2 pasażerów",
+          features: [
+            "Łatwa manewrowość",
+            "Oświetlenie LED",
+            "System antykradzieżowy",
+            "Wygodne siedzenie"
+          ]
+        }
+      }
+    },
+
+    explore: {
+      title: "Odkryj Nidę",
+      subtitle: "Starannie dobrane podróże",
+      description: "Odkryj naturalne piękno i dziedzictwo kulturowe Mierzei Kurońskiej dzięki naszym ekspercko zaprojektowanym malowniczym trasom. Każda podróż oferuje unikatową perspektywę zapierających dech w piersiach krajobrazów i ukrytych perełek Nidy.",
+      viewRoutes: "Odkryj malownicze trasy",
+      hideRoutes: "Ukryj trasy",
+      showMore: "Pokaż więcej",
+      showLess: "Pokaż mniej",
+      routeHighlights: "Najważniejsze punkty trasy",
+      terrain: "Teren",
+      viewDetails: "Zobacz szczegóły",
+      viewAllRoutes: "Zobacz wszystkie trasy",
+      customRoutesAvailable: "Niestandardowe trasy dostępne na życzenie",
+      tipForExplorers: "Wskazówka dla odkrywców",
+      tipDescription: "Wszystkie trasy zaczynają się z naszej centralnej lokalizacji. Przewodniki GPS dostępne na życzenie dla samodzielnych wycieczek.",
+      mapAlt: "Mapa malowniczych tras w Nidzie",
+      difficultyLevel: "Poziom trudności",
+      difficulty: {
+        easy: "Łatwy",
+        moderate: "Średni",
+        hard: "Trudny"
+      },
+      routes: {
+        coastal: {
+          title: "Trasa nadmorska do latarni morskiej",
+          distance: "12 km",
+          duration: "45 min",
+          difficulty: "Łatwy",
+          description: "Podążaj malowniczą nadmorską drogą do kultowej latarni morskiej w Nidzie, oferującej panoramiczne widoki na Morze Bałtyckie i Zalew Kuroński.",
+          highlights: [
+            "Panoramiczne widoki na morze",
+            "Zabytkowa latarnia morska",
+            "Piaszczyste plaże",
+            "Przybrzeżna fauna"
+          ],
+          terrain: "Utwardzone drogi, płaski teren"
+        },
+        dunes: {
+          title: "Przygoda na wydmach",
+          distance: "18 km",
+          duration: "1 godzina",
+          difficulty: "Średni",
+          description: "Przemierzaj lasy sosnowe, aby dotrzeć do słynnej wydmy Parnidis, drugiej najwyższej ruchomej wydmy piaskowej w Europie. Idealny na widoki o zachodzie słońca.",
+          highlights: [
+            "Imponujące wydmy piaskowe",
+            "Leśne szlaki",
+            "Pomnik zegara słonecznego",
+            "Widoki o zachodzie słońca"
+          ],
+          terrain: "Teren mieszany, niektóre wzniesienia"
+        },
+        fisherman: {
+          title: "Wycieczka po wiosce rybackiej",
+          distance: "8 km",
+          duration: "30 min",
+          difficulty: "Łatwy",
+          description: "Odkryj autentyczny urok tradycyjnych litewskich wiosek rybackich z ich kolorowymi drewnianymi domami i bogatą historią morską.",
+          highlights: [
+            "Kolorowe domy",
+            "Lokalne rzemiosło",
+            "Port rybacki",
+            "Tradycyjna architektura"
+          ],
+          terrain: "Utwardzone drogi, płaski teren"
+        }
+      }
+    },
+
+    languageSelector: {
+      title: "Wybierz swój język",
+      subtitle: "Wybierz preferowany język, aby kontynuować"
+    },
+
+    shop: {
+      title: "Części i akcesoria Vespa",
+      subtitle: "Kolekcja sklepu",
+      description: "Odkryj nasz starannie dobrany wybór oryginalnych części Vespa, akcesoriów i artykułów lifestyle. Każdy element jest starannie wyselekcjonowany, aby wzbogacić Twoje doświadczenie z Vespą.",
+      viewProducts: "Zobacz produkty",
+      hideProducts: "Ukryj produkty",
+      visitOnlineShop: "Odwiedź sklep online",
+      categories: {
+        safety: "Bezpieczeństwo",
+        accessories: "Akcesoria",
+        parts: "Części",
+        lifestyle: "Lifestyle"
+      },
+      products: {
+        helmet: {
+          name: "Zabytkowy kask Vespa",
+          price: "€89"
+        },
+        seat: {
+          name: "Skórzany pokrowiec na siedzenie",
+          price: "€129"
+        },
+        mirrors: {
+          name: "Zestaw chromowanych lusterek",
+          price: "€75"
+        },
+        map: {
+          name: "Mapa i przewodnik po Nidzie",
+          price: "€19"
+        }
+      }
+    },
+
+    testimonials: {
+      title: "Co mówią nasi klienci",
+      subtitle: "Opinie",
+      description: "Posłuchaj podróżników, którzy doświadczyli radości odkrywania Nidy na naszych premium skuterach Vespa.",
+      viewReviews: "Zobacz opinie",
+      hideReviews: "Ukryj opinie",
+      showDetails: "Pokaż szczegóły",
+      showLess: "Pokaż mniej",
+      vespaModel: "Model Vespa",
+      routeTaken: "Wybrana trasa",
+      visitDate: "Data wizyty",
+      autoAdvancing: "Automatyczne przewijanie",
+      pauseAutoplay: "Zatrzymaj automatyczne odtwarzanie",
+      startAutoplay: "Uruchom automatyczne odtwarzanie",
+      prevButton: "Poprzednia opinia",
+      nextButton: "Następna opinia",
+      goToReview: "Przejdź do opinii",
+      enjoyed: "Podobało Ci się doświadczenie z Vespa Nida?",
+      shareYours: "Podziel się swoją opinią",
+      items: [
+        {
+          name: "Julia Kovalenko",
+          location: "Wilno, Litwa",
+          quote: "Odkrywanie Nidy na Vespie było główną atrakcją naszej letniej podróży. Zespół Vespa Nida zapewnił nienaganną obsługę od rezerwacji do zwrotu.",
+          vespaModel: "Vespa Primavera",
+          routeTaken: "Trasa nadmorska do latarni morskiej",
+          date: "Sierpień 2023"
+        },
+        {
+          name: "Thomas Müller",
+          location: "Berlin, Niemcy",
+          quote: "Swoboda przejażdżki wzdłuż wydm na tych stylowych Vespach sprawiła, że nasza podróż rocznicowa stała się niezapomniana. Odkryliśmy ukryte plaże, których nigdy byśmy nie znaleźli inaczej.",
+          vespaModel: "Vespa GTS",
+          routeTaken: "Przygoda na wydmach",
+          date: "Lipiec 2023"
+        },
+        {
+          name: "Sophie Laurent",
+          location: "Paryż, Francja",
+          quote: "Zabytkowy urok Nidy w połączeniu z klasyczną Vespą to czysta magia. Ich dbałość o szczegóły i nieskazitelny stan skuterów przekroczyły nasze oczekiwania.",
+          vespaModel: "Vespa Sprint",
+          routeTaken: "Wycieczka po wiosce rybackiej",
+          date: "Wrzesień 2023"
+        },
+        {
+          name: "Marco Rossi",
+          location: "Rzym, Włochy",
+          quote: "Jako Włoch, który ceni autentyczne doświadczenia z Vespą, byłem całkowicie pod wrażeniem. Skutery były w idealnym stanie, a polecane trasy pokazały najpiękniejsze strony naturalnego piękna Nidy.",
+          vespaModel: "Vespa Primavera",
+          routeTaken: "Trasa niestandardowa",
+          date: "Czerwiec 2023"
+        },
+        {
+          name: "Emma Johnson",
+          location: "Londyn, Wielka Brytania",
+          quote: "Idealny sposób na doświadczenie Mierzei Kurońskiej. Vespa była wygodna dla nas obojga i cieszyliśmy się swobodą zatrzymywania się, gdy tylko coś pięknego nas zainteresowało - co zdarzało się często!",
+          vespaModel: "Vespa GTS",
+          routeTaken: "Trasa nadmorska do latarni morskiej",
+          date: "Sierpień 2023"
+        }
+      ]
+    },
+
+    booking: {
+      startBooking: "Rozpocznij rezerwację",
+      showForm: "Rozpocznij rezerwację",
+      hideForm: "Ukryj formularz",
+      bookingShort: "Rezerwacja",
+      title: "Zarezerwuj swoją przygodę z Vespą",
+      subtitle: "Rezerwacja",
+      description: "Gotowy na odkrywanie Nidy w stylu? Wypełnij formularz rezerwacji poniżej, aby zarezerwować swoją Vespę na niezapomnianą podróż.",
+      errorMessage: "Wystąpił błąd podczas przesyłania rezerwacji. Spróbuj ponownie lub skontaktuj się z nami bezpośrednio.",
+      assistance: "Potrzebujesz pomocy z rezerwacją? Skontaktuj się z nami bezpośrednio pod",
+      comingSoon: "Wkrótce",
+      notify: {
+        title: "Otrzymaj powiadomienie, gdy będzie dostępne",
+        description: "Damy Ci znać, gdy tylko nasze nowe skutery Vespa GTS będą dostępne do wypożyczenia.",
+        emailLabel: "Adres email",
+        emailPlaceholder: "twoj@email.com",
+        nameLabel: "Imię",
+        namePlaceholder: "Twoje imię i nazwisko",
+        phoneLabel: "Numer telefonu",
+        phonePlaceholder: "+48 XXX XXX XXX",
+        cancel: "Anuluj",
+        submit: "Powiadom mnie",
+        success: "Dzięki! Powiadomimy Cię, gdy ten model będzie dostępny.",
+        notifyMe: "Powiadom mnie"
+      },
+      steps: {
+        vespa: {
+          title: "Wybierz swoją Vespę",
+          day: "dzień"
+        },
+        details: {
+          title: "Szczegóły wypożyczenia",
+          rentalDate: "Data wypożyczenia",
+          maxOneDayNote: "Maksymalnie 1 dzień wypożyczenia",
+          dateWarningTitle: "Maksymalnie 1 dzień wypożyczenia",
+          dateWarningText: "Niestety, wypożyczamy skutery maksymalnie na 1 dzień, aby zapewnić dostępność dla wszystkich naszych klientów i utrzymać jakość obsługi.",
+          rentalDuration: "Czas wypożyczenia",
+          fullDay: "Cały dzień",
+          fullDayTime: "9:00 - 23:00",
+          morningHalf: "Pół dnia rano",
+          morningTime: "9:00 - 15:30",
+          eveningHalf: "Pół dnia wieczorem",
+          eveningTime: "16:30 - 23:00",
+          helmetOptions: "Opcje kasku",
+          helmetIncluded: "1 kask w zestawie",
+          helmetFree: "GRATIS",
+          secondHelmet: "2. kask",
+          helmetPrice: "+€10",
+          route: "Preferowana trasa",
+          selectRoute: "Wybierz trasę",
+          gpsGuides: "Przewodniki GPS dostępne dla wszystkich opcji",
+          rentalSummary: "Podsumowanie wypożyczenia",
+          additionalHelmet: "Dodatkowy kask",
+          total: "Razem",
+          subtotal: "Suma częściowa",
+          securityDeposit: "Kaucja zabezpieczająca",
+          totalPayment: "Całkowita płatność",
+          paymentDetails: "Szczegóły płatności",
+          fullPaymentRequired: "• Wymagana pełna płatność z góry",
+          depositIncluded: "• Kaucja zabezpieczająca €500 włączona",
+          depositReturned: "• Kaucja zwrócona po kontroli skutera",
+          paymentMethods: "• Metody płatności: Karta, Gotówka, Przelew bankowy",
+          depositNote: "Wymagana pełna płatność (€{price}) + kaucja €500. Kaucja zwrócona po kontroli skutera."
+        },
+        personal: {
+          title: "Informacje osobiste",
+          name: "Imię i nazwisko",
+          email: "Adres email",
+          phone: "Numer telefonu",
+          age: "Wiek",
+          selectAge: "Wybierz swój wiek",
+          drivingLicense: "Kategoria prawa jazdy",
+          selectLicense: "Wybierz kategorię prawa jazdy",
+          licenseRequirements: "Wymagania dotyczące prawa jazdy",
+          licenseNote: "Aby prowadzić Vespa Sprint S Elettrica 45, potrzebujesz co najmniej prawa jazdy kategorii AM.",
+          licenseAlternatives: "Możesz również prowadzić z prawem jazdy kategorii: A1, A2, A lub B (wszystkie wyższe kategorie automatycznie zawierają kategorię AM).",
+          message: "Specjalne życzenia",
+          namePlaceholder: "Wprowadź swoje imię i nazwisko",
+          emailPlaceholder: "Wprowadź swój adres email",
+          phonePlaceholder: "Wprowadź swój numer telefonu",
+          messagePlaceholder: "Jakieś specjalne wymagania lub pytania?",
+          phoneNote: "Możemy skontaktować się z Tobą w sprawie rezerwacji",
+          summary: "Podsumowanie rezerwacji",
+          model: "Model Vespa",
+          duration: "Czas trwania",
+          date: "Data",
+          age: "Wiek",
+          license: "Prawo jazdy",
+          notSelected: "Nie wybrano",
+          subtotal: "Suma częściowa",
+          securityDeposit: "Kaucja zabezpieczająca",
+          totalPayment: "Całkowita płatność",
+          importantNotes: "Ważne uwagi",
+          helmetNote: "1 kask w zestawie, 2. kask +€10",
+          paymentNote: "Wymagana pełna płatność z góry",
+          depositNote: "Kaucja €500 zwrócona po kontroli",
+          maxDayNote: "Polityka maksymalnie 1 dzień wypożyczenia",
+          termsAgreement: "Zgadzam się z",
+          termsLink: "Warunkami świadczenia usług",
+          and: "i przyjmuję do wiadomości",
+          privacyLink: "Politykę prywatności"
+        },
+        continue: "Kontynuuj",
+        continueDates: "Kontynuuj do dat",
+        back: "Wstecz",
+        processing: "Przetwarzanie...",
+        complete: "Zakończ rezerwację"
+      },
+      success: {
+        title: "Prośba o rezerwację otrzymana!",
+        message: "Dziękujemy za prośbę o rezerwację. Skontaktujemy się z Tobą wkrótce, aby potwierdzić szczegóły rezerwacji i podać instrukcje płatności.",
+        emailSent: "Email potwierdzający został wysłany na Twój adres email. Jeśli nie otrzymasz go w ciągu kilku minut, sprawdź folder spam.",
+        newBooking: "Zrób kolejną rezerwację",
+        exploreRoutes: "Odkryj malownicze trasy"
+      },
+      info: {
+        hours: {
+          title: "Godziny wypożyczenia",
+          text: "Cały dzień: 9:00-23:00\nPół dnia: 9:00-15:30 lub 16:30-23:00\nPolityka maksymalnie 1 dzień wypożyczenia"
+        },
+        payment: {
+          title: "Polityka płatności",
+          text: "Pełna płatność z góry + kaucja €500 (zwrócona po kontroli)."
+        },
+        license: {
+          title: "Wymagania dotyczące prawa jazdy",
+          text: "Minimalny wiek 21 lat. Wymagane ważne prawo jazdy (kategoria AM, A1, A2, A lub B)."
+        }
+      },
+      models: {
+        sprint: {
+          name: "Vespa Elettrica 45",
+          color: "Perłowa biel",
+          power: "3.1 kW",
+          maxSpeed: "45 km/h",
+          range: "68 km",
+          idealFor: "Ekologiczne przejażdżki po mieście"
+        },
+        sprint2: {
+          name: "Vespa Elettrica 45",
+          color: "Zielony szałwiowy",
+          power: "3.1 kW",
+          maxSpeed: "45 km/h",
+          range: "68 km",
+          idealFor: "Zrównoważone wycieczki"
+        },
+        sprint3: {
+          name: "Vespa Elettrica 45",
+          color: "Beżowy piaskowy",
+          power: "3.1 kW",
+          maxSpeed: "45 km/h",
+          range: "68 km",
+          idealFor: "Cicha eksploracja"
+        }
+      },
+      routes: {
+        none: "Brak konkretnej trasy (samodzielna wycieczka)",
+        coastal: "Trasa nadmorska do latarni morskiej (12 km)",
+        dunes: "Przygoda na wydmach (18 km)",
+        village: "Wycieczka po wiosce rybackiej (8 km)",
+        custom: "Trasa niestandardowa (opisz w wiadomości)"
+      }
+    },
+
+    footer: {
+      newsletter: {
+        title: "Dołącz do naszego newslettera",
+        description: "Otrzymuj ekskluzywne oferty i aktualizacje o malowniczych trasach Nidy",
+        placeholder: "Twój adres email",
+        button: "Subskrybuj",
+        success: "Dziękujemy za subskrypcję!"
+      },
+      description: "Luksusowe wypożyczenie skuterów Vespa w Nidzie, Litwa. Doświadcz naturalnego piękna Mierzei Kurońskiej w stylu i wolności.",
+      quickLinks: "Szybkie linki",
+      information: "Informacje",
+      contactUs: "Skontaktuj się z nami",
+      chooseLanguage: "Języki",
+      yearsInBusiness: "Lat działalności",
+      established: "Założona 2025",
+      backToTop: "Powrót na górę",
+      rights: "Wszystkie prawa zastrzeżone.",
+      slogan: "\"Stworzone z elegancją dla autentycznych przejażdżek.\"",
+      links: {
+        faq: "FAQ",
+        terms: "Warunki świadczenia usług",
+        privacy: "Polityka prywatności",
+        rental: "Umowa wypożyczenia",
+        careers: "Kariera",
+        blog: "Blog"
+      },
+      badges: {
+        secure: "Bezpieczne płatności",
+        insured: "Ubezpieczone wypożyczenie"
+      },
+      contact: {
+        address: "Adres",
+        phone: "Telefon",
+        email: "Email",
+        hours: "Godziny",
+        weekdays: "Pon-Pt: 9:00 - 18:00",
+        weekends: "Sob-Ndz: 10:00 - 16:00"
+      },
+      viewOnMap: "Zobacz na Google Maps"
+    },
+
+    faq: {
+  title: "Najczęściej zadawane pytania",
+  subtitle: "FAQ",
+  description: "Znajdź odpowiedzi na najczęstsze pytania dotyczące naszego wypożyczenia skuterów Vespa w Nidzie, Litwa.",
+  categories: {
+    all: "Wszystkie pytania",
+    booking: "Rezerwacja",
+    requirements: "Wymagania",
+    rental: "Szczegóły wypożyczenia",
+    safety: "Bezpieczeństwo"
+  },
+  questions: {
+    q1: "Jak zarezerwować skuter Vespa w Nidzie?",
+    q2: "Co się dzieje, jeśli muszę anulować rezerwację wypożyczenia Vespa?",
+    q3: "Jakie dokumenty są potrzebne do wypożyczenia Vespa na Litwie?",
+    q4: "Czy istnieje wymóg wiekowy do wypożyczenia Vespa w Nidzie?",
+    q5: "Czy zapewniacie kaski i wyposażenie bezpieczeństwa w Nidzie?",
+    q6: "Ile wynosi kaucja za wypożyczenie Vespa?",
+    q7: "Czy potrzebuję wcześniejszego doświadczenia w jeździe Vespą w Nidzie?",
+    q8: "Co się dzieje, jeśli Vespa zostanie uszkodzona podczas wypożyczenia w Nidzie?"
+  },
+  answers: {
+    a1: "Możesz łatwo zarezerwować wypożyczenie skutera Vespa w Nidzie, Litwa przez nasz system rezerwacji online na tej stronie, telefonicznie pod +3706 795 6380, lub emailem pod info@vespanida.com. Znajdujemy się w sercu Mierzei Kurońskiej i obsługujemy cały obszar Nidy. Zalecamy rezerwację z wyprzedzeniem, szczególnie w sezonie letnim nad Bałtykiem (czerwiec-sierpień).",
+    a2: "W przypadku anulacji wypożyczenia Vespa w Nidzie dokonanej co najmniej 48 godzin przed planowanym odbiorem, otrzymasz pełny zwrot. W przypadku anulacji w ciągu 48 godzin obowiązuje opłata anulacyjna w wysokości 25%. Niestawiennictwo lub anulacja w dniu wypożyczenia nie podlegają zwrotowi. Ta polityka zapewnia sprawiedliwą dostępność dla wszystkich odwiedzających Nidę.",
+    a3: "Do wypożyczenia Vespa w Nidzie, Litwa będziesz potrzebować: ważnego prawa jazdy (kategoria AM, A1, A2, A lub B), ważnego dowodu osobistego lub paszportu oraz karty kredytowej na kaucję zabezpieczającą. Goście międzynarodowi odwiedzający Litwę potrzebują Międzynarodowego Prawa Jazdy wraz z oryginalnym prawem jazdy, jeśli nie jest w alfabecie łacińskim.",
+    a4: "Tak, minimalny wiek do wypożyczenia naszych Vesp w Nidzie to 21 lat, a musisz mieć ważne prawo jazdy przez co najmniej 1 rok. Ten wymóg wiekowy zapewnia bezpieczne odkrywanie malowniczych tras Mierzei Kurońskiej.",
+    a5: "Tak, dla wszystkich wypożyczeń Vespa w Nidzie zapewniamy kaski certyfikowane DOT dla kierowcy i pasażera bez dodatkowej opłaty. Oferujemy również opcjonalne kamizelki odblaskowe i rękawiczki do wypożyczenia, zapewniając bezpieczeństwo podczas odkrywania pięknego litewskiego wybrzeża.",
+    a6: "Kaucja za wypożyczenie Vespa w Nidzie wynosi €500 i zostanie pre-autoryzowana na Twojej karcie kredytowej przy odbiorze. Ta kwota jest w pełni zwracana po zwrocie Vespa w oryginalnym stanie. To standardowa praktyka dla wypożyczalni premium skuterów na Litwie.",
+    a7: "Wcześniejsze doświadczenie nie jest potrzebne do wypożyczenia Vespa w Nidzie, ale oferujemy krótkie wprowadzenie i wskazówki dotyczące prowadzenia przed odkrywaniem Mierzei Kurońskiej. Jeśli nigdy nie prowadziłeś skutera, zalecamy poświęcenie kilku minut na ćwiczenia w naszym wyznaczonym obszarze przed wyruszeniem na odkrywanie atrakcji Nidy.",
+    a8: "Wszelkie uszkodzenia Twojej wypożyczonej Vespa w Nidzie poza normalnym zużyciem zostaną ocenione i mogą być pokryte z kaucji zabezpieczającej. Zalecamy robienie zdjęć skutera przed wyjazdem. Dla Twojego spokoju oferujemy opcjonalne ubezpieczenie od szkód za €15/dzień, które zmniejsza Twoją odpowiedzialność podczas odkrywania malowniczych tras wokół Nidy i Mierzei Kurońskiej."
+  },
+  stillHaveQuestions: "Nadal masz pytania?",
+  contactPrompt: "Jeśli nie znalazłeś odpowiedzi, której szukałeś, nie wahaj się skontaktować bezpośrednio z naszym zespołem."
+}
   }
-};
+  }
 
 /// Create the context
 const LanguageContext = createContext();
 
 // Provider component
 export function LanguageProvider({ children }) {
-  // Default to browser language or 'en' if not available
-  const getBrowserLanguage = () => {
-    if (typeof window === 'undefined') return 'en'; // SSR fallback
+  // Get language from domain (new function)
+  const getLanguageFromDomain = () => {
+    if (typeof window === 'undefined') return 'lt'; // SSR fallback to Lithuanian
     
+    const hostname = window.location.hostname;
+    return DOMAIN_LANGUAGE_MAP[hostname] || 'lt'; // Default to Lithuanian
+  };
+
+  // Default to browser language or domain language if not available
+  const getBrowserLanguage = () => {
+    if (typeof window === 'undefined') return 'lt'; // Changed default to Lithuanian
+    
+    // First check domain
+    const domainLang = getLanguageFromDomain();
+    if (domainLang !== 'lt') return domainLang; // If on specific subdomain, use that
+    
+    // Otherwise check browser language
     const browserLang = navigator.language.substring(0, 2);
-    return languages.some(lang => lang.code === browserLang) ? browserLang : 'en';
+    return languages.some(lang => lang.code === browserLang) ? browserLang : 'lt'; // Default to Lithuanian
   };
   
   // State to hold the current language
-  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [currentLanguage, setCurrentLanguage] = useState('lt'); // Changed default to Lithuanian
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
   
   // Initialize language on client-side
   useEffect(() => {
-    // Try to get language from localStorage first
-    const savedLanguage = localStorage.getItem('language');
-    if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
-      setCurrentLanguage(savedLanguage);
+    // Priority: Domain > Saved Language > Browser Language > Default (Lithuanian)
+    const domainLanguage = getLanguageFromDomain();
+    
+    if (domainLanguage !== 'lt') {
+      // If we're on a specific language subdomain, use that language
+      setCurrentLanguage(domainLanguage);
     } else {
-      const browserLang = getBrowserLanguage();
-      setCurrentLanguage(browserLang);
-      localStorage.setItem('language', browserLang);
+      // If on main domain, check saved preference or browser language
+      const savedLanguage = localStorage.getItem('language');
+      if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
+        setCurrentLanguage(savedLanguage);
+      } else {
+        const browserLang = getBrowserLanguage();
+        setCurrentLanguage(browserLang);
+        localStorage.setItem('language', browserLang);
+      }
     }
+    
+    setIsLoading(false);
   }, []);
   
-  // Function to change language
+  // Enhanced function to change language with domain redirect
   const changeLanguage = (code) => {
     if (languages.some(lang => lang.code === code)) {
-      setCurrentLanguage(code);
-      localStorage.setItem('language', code);
+      const targetDomain = LANGUAGE_DOMAIN_MAP[code];
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+      
+      // If changing to a different language, redirect to appropriate domain
+      if (code !== currentLanguage && typeof window !== 'undefined') {
+        window.location.href = `${targetDomain}${currentPath}`;
+      } else {
+        // Fallback for same language or SSR
+        setCurrentLanguage(code);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('language', code);
+        }
+      }
     }
   };
   
-  // Translation function
+  // Translation function (enhanced fallback logic)
   const t = (key) => {
     // Split the key by dots (e.g., "nav.home" => ["nav", "home"])
     const keys = key.split('.');
@@ -1547,13 +2238,22 @@ export function LanguageProvider({ children }) {
       if (value && value[k] !== undefined) {
         value = value[k];
       } else {
-        // Fallback to English if translation is missing
-        let fallback = translations['en'];
+        // Enhanced fallback: Lithuanian first (main language), then English
+        let fallback = translations['lt'];
         for (const k of keys) {
           if (fallback && fallback[k] !== undefined) {
             fallback = fallback[k];
           } else {
-            return key; // If even English doesn't have it, return the key itself
+            // If Lithuanian doesn't have it, try English
+            fallback = translations['en'];
+            for (const k of keys) {
+              if (fallback && fallback[k] !== undefined) {
+                fallback = fallback[k];
+              } else {
+                return key; // If even English doesn't have it, return the key itself
+              }
+            }
+            break;
           }
         }
         return fallback;
@@ -1563,8 +2263,92 @@ export function LanguageProvider({ children }) {
     return value;
   };
 
+  // Show loading state during initialization
+  // Show loading state during initialization
+if (isLoading) {
   return (
-    <LanguageContext.Provider value={{ currentLanguage, changeLanguage, t }}>
+    <div className="min-h-screen bg-[#F9F7F1] flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-20 left-20 w-32 h-32 rounded-full bg-[#9AA89C]"></div>
+        <div className="absolute bottom-32 right-16 w-24 h-24 rounded-full bg-[#E9DCC9]"></div>
+        <div className="absolute top-1/2 left-16 w-16 h-16 rounded-full bg-[#B0B0B0]"></div>
+      </div>
+      
+      {/* Main loading content */}
+      <div className="relative z-10 flex flex-col items-center space-y-8">
+        
+        {/* Vespa Nida Logo Animation */}
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full bg-white/90 backdrop-blur-sm shadow-xl flex items-center justify-center p-2">
+            <img 
+              src="/images/logo.jpg" 
+              alt="Vespa Nida" 
+              className="w-14 h-14 object-contain animate-pulse"
+              style={{ filter: 'drop-shadow(0 2px 4px rgba(155, 168, 156, 0.3))' }}
+            />
+          </div>
+          
+          {/* Animated circles around logo */}
+          <div className="absolute inset-0 animate-spin duration-3000">
+            <div className="w-20 h-20 border-2 border-transparent border-t-[#9AA89C] rounded-full"></div>
+          </div>
+          <div className="absolute inset-1 animate-spin duration-2000 animation-delay-150">
+            <div className="w-18 h-18 border-2 border-transparent border-b-[#E9DCC9] rounded-full"></div>
+          </div>
+          <div className="absolute inset-2 animate-spin duration-4000 animation-delay-300">
+            <div className="w-16 h-16 border border-transparent border-r-[#B0B0B0] rounded-full"></div>
+          </div>
+        </div>
+        
+        {/* Brand Text */}
+        <div className="text-center space-y-3">
+          <h2 className="font-syne text-2xl font-bold text-[#2B2B2B] tracking-wide animate-fadeIn">
+            VESPA NIDA
+          </h2>
+          <div className="flex items-center space-x-2 text-[#9AA89C] animate-fadeIn animation-delay-200">
+            <div className="w-8 h-0.5 bg-[#9AA89C] animate-pulse"></div>
+            <span className="font-inter text-sm uppercase tracking-widest">
+              Kraunasi
+            </span>
+            <div className="w-8 h-0.5 bg-[#9AA89C] animate-pulse animation-delay-300"></div>
+          </div>
+        </div>
+        
+        {/* Elegant tagline */}
+        <p className="font-playfair text-[#B0B0B0] text-sm italic text-center max-w-xs animate-fadeIn animation-delay-400">
+          "Elegance in Motion"
+        </p>
+        
+        {/* Animated dots */}
+        <div className="flex space-x-2 animate-fadeIn animation-delay-600">
+          <div className="w-2 h-2 bg-[#9AA89C] rounded-full animate-bounce"></div>
+          <div className="w-2 h-2 bg-[#E9DCC9] rounded-full animate-bounce animation-delay-100"></div>
+          <div className="w-2 h-2 bg-[#B0B0B0] rounded-full animate-bounce animation-delay-200"></div>
+        </div>
+        
+        {/* Loading progress indicator */}
+        <div className="w-48 h-1 bg-white/30 rounded-full overflow-hidden animate-fadeIn animation-delay-800">
+          <div className="h-full bg-gradient-to-r from-[#9AA89C] to-[#E9DCC9] animate-shimmer"></div>
+        </div>
+      </div>
+      
+      {/* Bottom brand element */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-fadeIn animation-delay-1000">
+        <div className="w-20 h-0.5 bg-gradient-to-r from-[#9AA89C] via-[#E9DCC9] to-[#B0B0B0] animate-pulse"></div>
+      </div>
+    </div>
+  );
+}
+
+  return (
+    <LanguageContext.Provider value={{ 
+      currentLanguage, 
+      changeLanguage, 
+      t,
+      availableLanguages: languages,
+      currentDomain: typeof window !== 'undefined' ? window.location.hostname : 'vespanida.lt'
+    }}>
       {children}
     </LanguageContext.Provider>
   );
