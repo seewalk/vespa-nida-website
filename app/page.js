@@ -108,6 +108,7 @@ export default function Home() {
       <HeroSection />
       <BookingForm />
       <AboutSection />
+      
       <RightsInfoSection />
       <FleetSection />
       <ExploreSection />

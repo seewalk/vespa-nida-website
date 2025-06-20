@@ -95,7 +95,7 @@ export default function Footer() {
   const infoLinks = [
     { name: t('footer.links.faq'), href: '#' },
     { name: t('footer.links.terms'), href: '#' },
-    { name: t('footer.links.privacy'), href: '#' },
+    { name: t('footer.links.privacy'), href: '/privatumo-politika' },
     { name: t('footer.links.rental'), href: '#' },
     { name: t('footer.links.careers'), href: '#' },
     { name: t('footer.links.blog'), href: '#' }
