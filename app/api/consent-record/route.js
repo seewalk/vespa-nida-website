@@ -15,6 +15,9 @@ export async function POST(request) {
       'https://en.vespanida.lt',
       'https://de.vespanida.lt', 
       'https://pl.vespanida.lt',
+      'https://www.en.vespanida.lt',     // ← ADD THIS if you have it
+  'https://www.de.vespanida.lt',     // ← ADD THIS if you have it
+  'https://www.pl.vespanida.lt',  
       process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
       'http://localhost:3000',
       'http://localhost:3001',
