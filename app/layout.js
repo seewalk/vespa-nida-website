@@ -71,13 +71,13 @@ const getMetadataByLanguage = (lang) => {
 
   const metadata = {
     lt: {
-      title: 'Vespa Nida | Prabangūs Vespa nuomos Nidoje, Lietuvoje',
-      description: 'Patirkite Nidos grožį su mūsų prabangiais Vespa motorolerių nuomos paslaugomis. Tyrinėkite malowniczą pakrantę stilingai su Vespa Nida.',
+      title: 'Vespa Nida | Prabangūs Vespa motoroleriai nuomai Nidoje, Lietuvoje',
+      description: 'Patirkite Nidos grožį su mūsų prabangių Vespa motorolerių nuomos paslaugomis. Tyrinėkite kuršių nerijos pakrantę stilingai su Vespa Nida.',
       locale: 'lt_LT',
       lang: 'lt'
     },
     en: {
-      title: 'Vespa Nida | Luxury Vespa Rentals in Nida, Lithuania',
+      title: 'Vespa Nida | Luxury Vespa scooters Rental in Nida, Lithuania',
       description: 'Experience the beauty of Nida with our luxury Vespa scooter rentals. Explore the scenic coastline in style with Vespa Nida.',
       locale: 'en_GB',
       lang: 'en'

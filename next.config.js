@@ -2,14 +2,33 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  
+  experimental: {
+    esmExternals: 'loose',
+  },
+  
+  webpack: (config, { isServer }) => {
+    // Fix for undici private fields issue
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'undici': false,
+    };
+    
+    config.externals = config.externals || [];
+    config.externals.push('undici');
+    
+    return config;
+  },
+  
   images: {
     domains: [
       'vespanida.lt', 
       'en.vespanida.lt', 
       'de.vespanida.lt', 
       'pl.vespanida.lt'
-    ],  // Add any domains you're loading images from
+    ],
   },
+  
   async headers() {
     return [
       {
@@ -35,9 +54,9 @@ const nextConfig = {
       }
     ];
   },
+  
   async rewrites() {
     return [
-      // Handle subdomain routing for different languages
       {
         source: '/:path*',
         has: [

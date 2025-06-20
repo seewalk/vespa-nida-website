@@ -88,7 +88,6 @@ export default function Footer() {
     { name: t('nav.about'), href: '#about' },
     { name: t('nav.fleet'), href: '#fleet' },
     { name: t('nav.explore'), href: '#explore' },
-    { name: t('nav.shop'), href: '#shop' },
     { name: t('nav.contact'), href: '#contact' }
   ];
 
@@ -242,7 +241,7 @@ export default function Footer() {
                   </svg>
                 </a>
                 <a 
-                  href="mailto:info@vespanida.com" 
+                  href="mailto:info@vespanida.lt" 
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-sage-green transition-colors duration-300"
                   aria-label="Email us"
                 >
@@ -441,10 +440,6 @@ export default function Footer() {
                         </svg>
                       </div>
                     </div>
-                    <div>
-                      <h4 className="text-white font-medium mb-1">{t('footer.contact.address')}</h4>
-                      <p className="text-white/60 text-sm">Pamario g. 12, Nida, Lithuania 00321</p>
-                    </div>
                   </li>
                   <li className="flex">
                     <div className="mr-3 mt-1">
@@ -469,7 +464,7 @@ export default function Footer() {
                     </div>
                     <div>
                       <h4 className="text-white font-medium mb-1">{t('footer.contact.email')}</h4>
-                      <a href="mailto:info@vespanida.com" className="text-white/60 text-sm hover:text-sage-green transition-colors">info@vespanida.com</a>
+                      <a href="mailto:info@vespanida.lt" className="text-white/60 text-sm hover:text-sage-green transition-colors">info@vespanida.lt</a>
                     </div>
                   </li>
                   <li className="flex">
@@ -488,18 +483,6 @@ export default function Footer() {
                   </li>
                 </ul>
                 
-                {/* Google Maps Link */}
-                <a 
-                  href="https://maps.google.com/?q=Pamario+g.+12,+Nida,+Lithuania" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center mt-6 text-sage-green hover:underline"
-                >
-                  <span>{t('footer.viewOnMap')}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
               </motion.div>
             </motion.div>
             

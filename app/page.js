@@ -12,6 +12,7 @@ import ShopSection from '../components/ShopSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import BookingForm from '../components/BookingForm';
 import FAQSection from '../components/FAQSection';
+import RightsInfoSection from '../components/RightsInfoSection';
 
 // Inline FAQ Component
 function InlineFAQPreview() {
@@ -106,6 +107,7 @@ export default function Home() {
       <HeroSection />
       <BookingForm />
       <AboutSection />
+      <RightsInfoSection />
       <FleetSection />
       <ExploreSection />
       <InlineFAQPreview /> {/* Add inline FAQ preview */}

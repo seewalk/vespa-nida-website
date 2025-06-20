@@ -2,17 +2,18 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import Image from 'next/image';
 import { useLanguage } from './context/LanguageContext';
 import ToggleButton from './ToggleButton';
 import SEO from './SEO';
-
-// Note: Ensure db is properly imported from your firebase config
-// import { db } from '../lib/firebase';
+import BookingCalendar from './admin/BookingCalendar';
+import { validateBookingData, sanitizeString, sanitizeEmail, sanitizePhone, checkRateLimit } from '../lib/validation';
+import SignatureCanvas from 'react-signature-canvas';
 
 export default function BookingForm() {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
   
@@ -22,13 +23,8 @@ export default function BookingForm() {
       setIsMobile(window.innerWidth < 768);
     }
     
-    // Set initial value
     handleResize();
-    
-    // Add event listener
     window.addEventListener('resize', handleResize);
-    
-    // Clean up
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -41,11 +37,18 @@ export default function BookingForm() {
     endDate: '',
     model: t('booking.models.sprint.name'),
     route: '',
-    rentalType: 'full', // 'full', 'morning', 'evening'
+    rentalType: 'full',
     additionalHelmet: false,
     age: '',
     drivingLicense: '',
-    message: ''
+    message: '',
+    documentsAccepted: {
+    rental: false,
+    handover: false,
+    safety: false
+  },
+  digitalSignature: null,
+  documentsReadAt: null
   });
   
   // Calculate min date for the datepicker (tomorrow)
@@ -76,7 +79,7 @@ export default function BookingForm() {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
   
-  // Vespa models data with updated electric specifications
+  // Vespa models data
   const vespaModels = [
     {
       id: 'sprint-elettrica-1',
@@ -87,7 +90,7 @@ export default function BookingForm() {
       range: t('booking.models.sprint.range'),
       idealFor: t('booking.models.sprint.idealFor'),
       image: '/images/fleet-vespa-1.png',
-      price: 59, // Updated summer offer price
+      price: 59,
       originalPrice: 69,
       comingSoon: false
     },
@@ -102,7 +105,7 @@ export default function BookingForm() {
       image: '/images/fleet-vespa-1.png',
       price: 59,
       originalPrice: 69,
-      comingSoon: true // Coming Soon
+      comingSoon: false
     },
     {
       id: 'sprint-elettrica-3',
@@ -115,7 +118,7 @@ export default function BookingForm() {
       image: '/images/fleet-vespa-1.png',
       price: 59,
       originalPrice: 69,
-      comingSoon: true // Coming Soon
+      comingSoon: true
     }
   ];
   
@@ -151,7 +154,7 @@ export default function BookingForm() {
     { value: 'T', label: 'T' }
   ];
 
-  // Notification modal component with additional fields
+  // Notification modal component
   const NotifyModal = () => {
     const [notifyData, setNotifyData] = useState({
       name: '',
@@ -162,12 +165,9 @@ export default function BookingForm() {
     
     const handleSubmit = (e) => {
       e.preventDefault();
-      // Here you would typically send this to your backend
       console.log(`Notify for Vespa Elettrica:`, notifyData);
-      // Simulate success
       setTimeout(() => {
         setSubmitted(true);
-        // Close modal after showing success message
         setTimeout(() => {
           setShowNotifyModal(false);
           setSubmitted(false);
@@ -177,116 +177,126 @@ export default function BookingForm() {
     };
     
     return (
-   <>
-         <SEO 
-           title={t('booking.title')}
-           description={t('booking.description')}
-           keywords="vespa rental nida, explore nida, travel nida, travel to nida, nida scooter rental, nida vespa rental, nida electric scooter, nida vespa tours"
-           ogImage="/images/hero-vespa-nida.jpg"
-           section="home"
-         />
+      <>
+        <SEO 
+          title={t('booking.title')}
+          description={t('booking.description')}
+          keywords="vespa rental nida, explore nida, travel nida, travel to nida, nida scooter rental, nida vespa rental, nida electric scooter, nida vespa tours"
+          ogImage="/images/hero-vespa-nida.jpg"
+          section="home"
+        />
       
-      <AnimatePresence>
-        {showNotifyModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
-            onClick={() => setShowNotifyModal(false)}
-          >
+        <AnimatePresence>
+          {showNotifyModal && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl p-6 max-w-md w-full"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
+              onClick={() => setShowNotifyModal(false)}
             >
-              <h3 className="text-xl font-bold font-syne mb-4">
-                {t('booking.notify.title')}
-              </h3>
-              
-              {submitted ? (
-                <div className="text-center py-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-sage-green mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <p>{t('booking.notify.success')}</p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <p className="text-sm text-graphite-black/70 mb-4">
-                    {t('booking.notify.description')}
-                  </p>
-                  
-                  <div>
-                    <label htmlFor="notify-name" className="block text-sm font-medium mb-1">
-                      {t('booking.notify.nameLabel')} *
-                    </label>
-                    <input
-                      type="text"
-                      id="notify-name"
-                      value={notifyData.name}
-                      onChange={(e) => setNotifyData({...notifyData, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
-                      placeholder={t('booking.notify.namePlaceholder')}
-                      required
-                    />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-xl p-6 max-w-md w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-xl font-bold font-syne mb-4">
+                  {t('booking.notify.title')}
+                </h3>
+                
+                {submitted ? (
+                  <div className="text-center py-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-sage-green mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p>{t('booking.notify.success')}</p>
                   </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <p className="text-sm text-graphite-black/70 mb-4">
+                      {t('booking.notify.description')}
+                    </p>
+                    
+                    <div>
+                      <label htmlFor="notify-name" className="block text-sm font-medium mb-1">
+                        {t('booking.notify.nameLabel')} *
+                      </label>
+                      <input
+                        type="text"
+                        id="notify-name"
+                        value={notifyData.name}
+                        onChange={(e) => setNotifyData({...notifyData, name: e.target.value})}
+                        className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
+                        placeholder={t('booking.notify.namePlaceholder')}
+                        required
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="notify-phone" className="block text-sm font-medium mb-1">
-                      {t('booking.notify.phoneLabel')} *
-                    </label>
-                    <input
-                      type="tel"
-                      id="notify-phone"
-                      value={notifyData.phone}
-                      onChange={(e) => setNotifyData({...notifyData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
-                      placeholder={t('booking.notify.phonePlaceholder')}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="notify-email" className="block text-sm font-medium mb-1">
-                      {t('booking.notify.emailLabel')} *
-                    </label>
-                    <input
-                      type="email"
-                      id="notify-email"
-                      value={notifyData.email}
-                      onChange={(e) => setNotifyData({...notifyData, email: e.target.value})}
-                      className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
-                      placeholder={t('booking.notify.emailPlaceholder')}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end space-x-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowNotifyModal(false)}
-                      className="px-4 py-2 border border-graphite-black/20 text-graphite-black rounded-lg hover:bg-graphite-black/5"
-                    >
-                      {t('booking.notify.cancel')}
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-sage-green text-white rounded-lg hover:bg-sage-green/90"
-                    >
-                      {t('booking.notify.submit')}
-                    </button>
-                  </div>
-                </form>
-              )}
+                    <div>
+                      <label htmlFor="notify-phone" className="block text-sm font-medium mb-1">
+                        {t('booking.notify.phoneLabel')} *
+                      </label>
+                      <input
+                        type="tel"
+                        id="notify-phone"
+                        value={notifyData.phone}
+                        onChange={(e) => setNotifyData({...notifyData, phone: e.target.value})}
+                        className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
+                        placeholder={t('booking.notify.phonePlaceholder')}
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="notify-email" className="block text-sm font-medium mb-1">
+                        {t('booking.notify.emailLabel')} *
+                      </label>
+                      <input
+                        type="email"
+                        id="notify-email"
+                        value={notifyData.email}
+                        onChange={(e) => setNotifyData({...notifyData, email: e.target.value})}
+                        className="w-full px-3 py-2 border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green focus:border-sage-green"
+                        placeholder={t('booking.notify.emailPlaceholder')}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end space-x-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowNotifyModal(false)}
+                        className="px-4 py-2 border border-graphite-black/20 text-graphite-black rounded-lg hover:bg-graphite-black/5"
+                      >
+                        {t('booking.notify.cancel')}
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-sage-green text-white rounded-lg hover:bg-sage-green/90"
+                      >
+                        {t('booking.notify.submit')}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
       </>
     );
+  };
+
+  // Calendar date selection handler
+  const handleCalendarDateSelect = (date) => {
+    setFormData(prev => ({
+      ...prev,
+      startDate: date,
+      endDate: date
+    }));
+    setShowDateWarning(false);
   };
 
   // Update rental days and price when dates change
@@ -297,7 +307,6 @@ export default function BookingForm() {
       const diffTime = Math.abs(end - start);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      // Check if more than 1 day and show warning
       if (diffDays > 1) {
         setShowDateWarning(true);
         setRentalDays(0);
@@ -309,17 +318,8 @@ export default function BookingForm() {
       
       setRentalDays(diffDays);
       
-      // Calculate price based on rental type
-      let basePrice = 0;
-      if (formData.rentalType === 'full') {
-        basePrice = 59; // Summer offer price for full day
-      } else {
-        basePrice = 49; // Summer offer price for half day
-      }
-      
-      // Add helmet cost if selected
+      let basePrice = formData.rentalType === 'full' ? 59 : 49;
       const helmetCost = formData.additionalHelmet ? 10 : 0;
-      
       setRentalPrice(basePrice + helmetCost);
     } else {
       setRentalDays(0);
@@ -336,71 +336,173 @@ export default function BookingForm() {
       [name]: type === 'checkbox' ? checked : value 
     }));
     
-    // Handle date relationships - ensure same day for start and end when end date is selected
     if (name === 'startDate') {
       setFormData(prev => ({ ...prev, endDate: value }));
     }
     if (name === 'endDate' && formData.startDate && new Date(value) !== new Date(formData.startDate)) {
-      // If user tries to select different end date, show warning
       setShowDateWarning(true);
     }
   };
   
-  // Form submission handler
+  // Enhanced form submission handler with security
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
     try {
-      // Uncomment this when you have Firebase properly configured
-      // await addDoc(collection(db, "bookings"), {
-      //   ...formData,
-      //   rentalDays,
-      //   rentalPrice,
-      //   createdAt: new Date()
-      // });
+      // Sanitize all inputs
+      const sanitizedData = {
+        name: sanitizeString(formData.name),
+        email: sanitizeEmail(formData.email),
+        phone: sanitizePhone(formData.phone),
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        model: sanitizeString(formData.model),
+        route: sanitizeString(formData.route),
+        rentalType: formData.rentalType,
+        additionalHelmet: Boolean(formData.additionalHelmet),
+        age: parseInt(formData.age),
+        drivingLicense: sanitizeString(formData.drivingLicense),
+        message: sanitizeString(formData.message)
+      };
+
+      // Validate data
+      const validation = validateBookingData(sanitizedData);
+      if (!validation.isValid) {
+        setError('Formos tikrinimas nepavyko: ' + validation.errors.join(', '));
+        return;
+      }
+
+      // Rate limiting
+      const clientId = sanitizedData.email || 'anonymous';
+      const rateLimitCheck = checkRateLimit(clientId);
+      if (!rateLimitCheck.allowed) {
+        setError('Per daug užsakymo bandymų. Pabandykite vėliau.');
+        return;
+      }
+
+      // Generate secure booking reference
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const bookingReference = `VN${new Date().getFullYear()}-${timestamp.toString().slice(-6)}${randomString.toUpperCase()}`;
       
-      // For demo purposes, simulating a successful submission with a delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      // Prepare secure booking data
+      const bookingData = {
+        bookingReference,
+        status: 'pending_confirmation',
+        customer: {
+          name: sanitizedData.name,
+          email: sanitizedData.email,
+          phone: sanitizedData.phone,
+          age: sanitizedData.age,
+          drivingLicense: sanitizedData.drivingLicense,
+        },
+        booking: {
+          vespaModel: sanitizedData.model,
+          startDate: sanitizedData.startDate,
+          endDate: sanitizedData.endDate,
+          rentalType: sanitizedData.rentalType,
+          route: sanitizedData.route,
+          additionalHelmet: sanitizedData.additionalHelmet,
+          message: sanitizedData.message,
+        },
+        pricing: {
+          basePrice: sanitizedData.rentalType === 'full' ? 59 : 49,
+          helmetPrice: sanitizedData.additionalHelmet ? 10 : 0,
+          subtotal: rentalPrice,
+          securityDeposit: 500,
+          totalAmount: rentalPrice + 500,
+        },
+        metadata: {
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          language: currentLanguage || 'lt',
+          source: 'website_booking_form',
+          userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : '',
+          referrer: typeof window !== 'undefined' ? document.referrer : '',
+          sessionId: typeof window !== 'undefined' ? (sessionStorage.getItem('sessionId') || 'unknown') : 'unknown',
+        },
+        workflow: {
+          confirmationEmailSent: false,
+          contractEmailSent: false,
+          contractSigned: false,
+          thankYouEmailSent: false,
+          paymentProcessed: false,
+          completedAt: null,
+          documentsReviewed: true,
+    documentsSigned: !!formData.digitalSignature,
+    documentsAcceptedAt: serverTimestamp()
+  },
+        documents: {
+    rental: formData.documentsAccepted.rental,
+    handover: formData.documentsAccepted.handover,
+    safety: formData.documentsAccepted.safety,
+    acceptedAt: serverTimestamp(),
+    signature: formData.digitalSignature
+  },
+      };
+
+      // Save to Firebase Firestore
+      console.log('🔥 Saving booking to Firebase...', bookingData);
+      const docRef = await addDoc(collection(db, "bookings"), bookingData);
+      console.log("✅ Booking saved with ID: ", docRef.id);
+
       setSuccess(true);
+      
+      // Reset form
       setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        startDate: '',
-        endDate: '',
-        model: t('booking.models.sprint.name'),
-        route: '',
-        rentalType: 'full',
-        additionalHelmet: false,
-        age: '',
-        drivingLicense: '',
-        message: ''
-      });
+  name: '',
+  email: '',
+  phone: '',
+  startDate: '',
+  endDate: '',
+  model: t('booking.models.sprint.name'),
+  route: '',
+  rentalType: 'full',
+  additionalHelmet: false,
+  age: '',
+  drivingLicense: '',
+  message: '',
+  documentsAccepted: {
+    rental: false,
+    handover: false,
+    safety: false
+  },
+  digitalSignature: null,
+  documentsReadAt: null
+});
+
     } catch (err) {
-      console.error("Error submitting form:", err);
-      setError(t('booking.errorMessage'));
+      console.error("❌ Error submitting booking:", err);
+      
+      // Don't expose internal errors to users
+      if (err.code === 'permission-denied') {
+        setError('Leidimas atmestas. Patikrinkite užsakymo duomenis.');
+      } else if (err.code === 'invalid-argument') {
+        setError('Neteisingi užsakymo duomenys. Patikrinkite informaciją.');
+      } else {
+        setError('Užsakymo pateikimas nepavyko. Pabandykite dar kartą.');
+      }
     } finally {
       setLoading(false);
     }
   };
-  
+
   // Navigation between form steps
   const nextStep = (e) => {
-    e.preventDefault();
-    setCurrentStep(prev => Math.min(prev + 1, 3));
-    document.getElementById('booking-form-steps').scrollIntoView({ behavior: 'smooth' });
-  };
+  e.preventDefault();
+  setCurrentStep(prev => Math.min(prev + 1, 4)); // Changed from 3 to 4
+  document.getElementById('booking-form-steps')?.scrollIntoView({ behavior: 'smooth' });
+};
   
   const prevStep = (e) => {
     e.preventDefault();
     setCurrentStep(prev => Math.max(prev - 1, 1));
-    document.getElementById('booking-form-steps').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('booking-form-steps')?.scrollIntoView({ behavior: 'smooth' });
   };
   
-  // Variants for animations
+  // Animation variants
   const formVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -419,6 +521,326 @@ export default function BookingForm() {
       }
     }
   };
+
+  const DocumentReview = ({ 
+  documentsAccepted, 
+  onDocumentAccept, 
+  onContinue, 
+  onBack,
+  disabled = false 
+}) => {
+  const [expandedDoc, setExpandedDoc] = useState(null);
+  
+  const documents = [
+    {
+      id: 'rental',
+      title: t('documents.rental.title', 'Nuomos sutartis'),
+      required: true
+    },
+    {
+      id: 'handover',
+      title: t('documents.handover.title', 'Perdavimo sutartis'),
+      required: true
+    },
+    {
+      id: 'safety',
+      title: t('documents.safety.title', 'Saugumo ir atsakomybių taisyklės'),
+      required: true
+    }
+  ];
+
+  const allDocumentsAccepted = documents.every(doc => 
+    documentsAccepted[doc.id] === true
+  );
+
+  const handleDocumentToggle = (docId) => {
+    onDocumentAccept(docId, !documentsAccepted[docId]);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold mb-2 font-syne">
+          {t('documents.title', 'Dokumentų peržiūra')}
+        </h3>
+        <p className="text-sm text-graphite-black/70">
+          {t('documents.description', 'Prašome perskaityti ir patvirtinti šiuos dokumentus')}
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {documents.map((doc) => (
+          <div key={doc.id} className="border border-sand-beige rounded-lg">
+            <div className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm mb-2">
+                    {doc.title}
+                    {doc.required && <span className="text-red-500 ml-1">*</span>}
+                  </h4>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setExpandedDoc(expandedDoc === doc.id ? null : doc.id)}
+                    className="text-sage-green hover:underline text-sm flex items-center"
+                  >
+                    {t('documents.readDocument', 'Skaityti dokumentą')}
+                    <svg 
+                      className={`ml-1 h-4 w-4 transition-transform ${
+                        expandedDoc === doc.id ? 'rotate-180' : ''
+                      }`}
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="flex items-center ml-4">
+                  <input
+                    type="checkbox"
+                    id={`doc-${doc.id}`}
+                    checked={documentsAccepted[doc.id] || false}
+                    onChange={() => handleDocumentToggle(doc.id)}
+                    className="text-sage-green border-sand-beige focus:ring-sage-green rounded"
+                    disabled={disabled}
+                  />
+                  <label htmlFor={`doc-${doc.id}`} className="ml-2 text-sm">
+                    {t('documents.accept', 'Sutinku')}
+                  </label>
+                </div>
+              </div>
+              
+              {expandedDoc === doc.id && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="mt-4 pt-4 border-t border-sand-beige/50"
+                >
+                  <div className="bg-gray-50 p-4 rounded-lg max-h-60 overflow-y-auto">
+                    <div className="prose prose-sm">
+                      <DocumentContent docId={doc.id} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-between pt-6">
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
+        >
+          {t('back', 'Atgal')}
+        </button>
+        
+        <button
+          type="button"
+          onClick={onContinue}
+          disabled={!allDocumentsAccepted}
+          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+            allDocumentsAccepted
+              ? 'bg-sage-green text-white hover:bg-sage-green/90'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          {t('continue', 'Tęsti')}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Document Content Component (English content as requested)
+const DocumentContent = ({ docId }) => {
+  const content = {
+    rental: `
+      <h4>Rental Agreement</h4>
+      <p><strong>1. RENTAL TERMS AND CONDITIONS</strong></p>
+      <p>This rental agreement governs the terms and conditions for renting a Vespa electric scooter from our company located in Nida, Lithuania.</p>
+      
+      <p><strong>2. RENTAL PERIOD</strong></p>
+      <ul>
+        <li>Minimum rental period: 4 hours (half day) or 9 hours (full day)</li>
+        <li>Rental periods: Morning (9:00-13:00), Afternoon (13:00-18:00), Full day (9:00-18:00)</li>
+        <li>Late returns will incur additional charges</li>
+      </ul>
+      
+      <p><strong>3. PAYMENT AND DEPOSIT</strong></p>
+      <ul>
+        <li>Full payment required at time of rental</li>
+        <li>Security deposit: €500 (refundable upon return in good condition)</li>
+        <li>Payment methods: Cash, credit/debit cards</li>
+      </ul>
+      
+      <p><strong>4. INSURANCE AND LIABILITY</strong></p>
+      <ul>
+        <li>Basic insurance coverage included</li>
+        <li>Renter liable for damages not covered by insurance</li>
+        <li>Third-party liability insurance recommended</li>
+      </ul>
+    `,
+    handover: `
+      <h4>Vehicle Handover Agreement</h4>
+      <p><strong>1. VEHICLE INSPECTION</strong></p>
+      <p>Both parties must complete a thorough inspection of the Vespa before and after rental period.</p>
+      
+      <p><strong>2. PRE-RENTAL CHECKLIST</strong></p>
+      <ul>
+        <li>Battery level and charging status</li>
+        <li>Physical condition (scratches, dents, damage)</li>
+        <li>Tire condition and pressure</li>
+        <li>Lights and electrical systems functionality</li>
+        <li>Mirrors and safety equipment</li>
+      </ul>
+      
+      <p><strong>3. INCLUDED EQUIPMENT</strong></p>
+      <ul>
+        <li>Safety helmet (mandatory)</li>
+        <li>GPS navigation system</li>
+        <li>Basic toolkit</li>
+        <li>Charging cable</li>
+        <li>User manual and route maps</li>
+      </ul>
+      
+      <p><strong>4. RETURN CONDITION</strong></p>
+      <ul>
+        <li>Vehicle must be returned in same condition as received</li>
+        <li>Minimum 20% battery charge required</li>
+        <li>All equipment must be returned</li>
+        <li>Cleaning fee may apply for excessive dirt</li>
+      </ul>
+    `,
+    safety: `
+      <h4>Safety and Responsibility Rules</h4>
+      <p><strong>1. DRIVER REQUIREMENTS</strong></p>
+      <ul>
+        <li>Minimum age: 21 years</li>
+        <li>Valid driving license (AM, A1, A2, A, B or equivalent)</li>
+        <li>No alcohol or substance impairment</li>
+        <li>Must wear provided safety helmet at all times</li>
+      </ul>
+      
+      <p><strong>2. TRAFFIC REGULATIONS</strong></p>
+      <ul>
+        <li>Maximum speed: 45 km/h</li>
+        <li>Follow all local traffic laws and regulations</li>
+        <li>Use designated bike lanes where available</li>
+        <li>No riding on pedestrian areas or beaches</li>
+        <li>Respect protected nature areas and wildlife</li>
+      </ul>
+      
+      <p><strong>3. SAFETY RESPONSIBILITIES</strong></p>
+      <ul>
+        <li>Conduct pre-ride safety check</li>
+        <li>Maintain safe following distance</li>
+        <li>Use turn signals and follow traffic signs</li>
+        <li>Avoid riding in severe weather conditions</li>
+        <li>Report any mechanical issues immediately</li>
+      </ul>
+      
+      <p><strong>4. EMERGENCY PROCEDURES</strong></p>
+      <ul>
+        <li>Emergency contact: +370 679 56380</li>
+        <li>In case of accident: Contact emergency services (112)</li>
+        <li>Report all incidents to rental company immediately</li>
+        <li>Do not attempt repairs yourself</li>
+      </ul>
+      
+      <p><strong>5. PROHIBITED ACTIVITIES</strong></p>
+      <ul>
+        <li>Lending the vehicle to unauthorized persons</li>
+        <li>Using vehicle for commercial purposes</li>
+        <li>Exceeding maximum weight capacity (150kg)</li>
+        <li>Riding under influence of alcohol or drugs</li>
+        <li>Off-road riding or stunts</li>
+      </ul>
+    `
+  };
+
+  return <div dangerouslySetInnerHTML={{ __html: content[docId] || '' }} />;
+};
+
+// Digital Signature Component
+const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) => {
+  const sigCanvas = useRef(null);
+  const [hasSignature, setHasSignature] = useState(!!signature);
+
+  const clearSignature = () => {
+    sigCanvas.current?.clear();
+    setHasSignature(false);
+    onSignatureComplete(null);
+  };
+
+  const saveSignature = () => {
+    if (sigCanvas.current) {
+      const signatureData = sigCanvas.current.toDataURL();
+      setHasSignature(true);
+      onSignatureComplete(signatureData);
+    }
+  };
+
+  const handleEnd = () => {
+    if (!sigCanvas.current?.isEmpty()) {
+      saveSignature();
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h4 className="font-medium mb-2">
+          {t('signature.title', 'Skaitmeninis parašas')}
+        </h4>
+        <p className="text-sm text-graphite-black/70">
+          {t('signature.instruction', 'Prašome pasirašyti žemiau esančiame laukelyje')}
+        </p>
+      </div>
+
+      <div className="border-2 border-dashed border-sage-green/30 rounded-lg p-4 bg-gray-50">
+        <SignatureCanvas
+          ref={sigCanvas}
+          canvasProps={{
+            className: 'signature-canvas w-full h-32 bg-white rounded border',
+            width: isMobile ? 300 : 400,
+            height: 120
+          }}
+          onEnd={handleEnd}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="flex justify-center space-x-4">
+        <button
+          type="button"
+          onClick={clearSignature}
+          className="px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded hover:bg-gray-50 transition-colors"
+          disabled={disabled}
+        >
+          {t('signature.clear', 'Išvalyti')}
+        </button>
+      </div>
+
+      {hasSignature && (
+        <div className="text-center">
+          <div className="inline-flex items-center text-sage-green text-sm">
+            <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {t('signature.completed', 'Parašas pridėtas')}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
   return (
     <section id="contact" className="py-24 md:py-32 bg-ivory-white relative" ref={sectionRef}>
@@ -477,7 +899,7 @@ export default function BookingForm() {
                     <p className="opacity-80 text-sm">{vespaModels[0].color}</p>
                     <div className="text-sm font-bold bg-white/20 px-2 py-0.5 rounded">
                       <span className="line-through opacity-60">€{vespaModels[0].originalPrice}</span>
-                      <span className="ml-1">€{vespaModels[0].price}/{t('booking.steps.vespa.day')}</span>
+                      <span className="ml-1">€{vespaModels[0].price}/diena</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-white/80">
@@ -525,14 +947,14 @@ export default function BookingForm() {
                           </svg>
                         </div>
                         
-                        <h3 className="text-xl font-bold font-syne mb-3">{t('booking.success.title')}</h3>
+                        <h3 className="text-xl font-bold font-syne mb-3">Užsakymas pateiktas!</h3>
                         <p className="text-graphite-black/70 mb-6 text-sm">
-                          {t('booking.success.message')}
+                          Dėkojame už užsakymą. Netrukus susisieksime su jumis.
                         </p>
                         
                         <div className="p-4 bg-sage-green/5 rounded-lg mb-6 text-xs">
                           <p className="text-graphite-black/70">
-                            {t('booking.success.emailSent')}
+                            Patvirtinimo laiškas išsiųstas į jūsų el. pašto adresą.
                           </p>
                         </div>
                         
@@ -540,7 +962,7 @@ export default function BookingForm() {
                           onClick={() => setSuccess(false)} 
                           className="btn-primary text-sm py-3 px-6 w-full mb-3"
                         >
-                          {t('booking.success.newBooking')}
+                          Naujas užsakymas
                         </button>
                       </motion.div>
                     ) : (
@@ -565,7 +987,7 @@ export default function BookingForm() {
                         
                         {/* Mobile step indicators */}
                         <div className="flex justify-center mb-6">
-                          {[1, 2, 3].map((step) => (
+                          {[1, 2, 3, 4].map((step) => ( 
                             <div 
                               key={step} 
                               className={`w-3 h-3 mx-1 rounded-full ${
@@ -590,7 +1012,7 @@ export default function BookingForm() {
                               animate="visible"
                               exit="exit"
                             >
-                              <h3 className="text-lg font-bold mb-4 font-syne">{t('booking.steps.vespa.title')}</h3>
+                              <h3 className="text-lg font-bold mb-4 font-syne">Pasirinkite Vespa</h3>
                               
                               <div className="grid grid-cols-1 gap-4 mb-6">
                                 {vespaModels.map((model) => (
@@ -608,7 +1030,7 @@ export default function BookingForm() {
                                     {/* Coming Soon Badge */}
                                     {model.comingSoon && (
                                       <div className="absolute top-2 right-2 z-10 bg-graphite-black/80 text-white px-2 py-0.5 rounded-full text-xs font-bold">
-                                        {t('booking.comingSoon')}
+                                        Netrukus
                                       </div>
                                     )}
                                     
@@ -628,8 +1050,8 @@ export default function BookingForm() {
                                           <div 
                                             className="w-3 h-3 rounded-full mt-1" 
                                             style={{ 
-                                              backgroundColor: model.color === t('booking.models.sprint.color') ? '#F9F7F1' : 
-                                                            model.color === t('booking.models.sprint2.color') ? '#9AA89C' : '#E9DCC9' 
+                                              backgroundColor: model.color === 'Baltas' ? '#F9F7F1' : 
+                                                            model.color === 'Žalias' ? '#9AA89C' : '#E9DCC9' 
                                             }}
                                           ></div>
                                         </div>
@@ -638,7 +1060,7 @@ export default function BookingForm() {
                                           <span className="text-xs text-graphite-black/70">{model.power}</span>
                                           <div className="text-xs font-bold">
                                             <span className="line-through text-graphite-black/50">€{model.originalPrice}</span>
-                                            <span className="ml-1 text-sage-green">€{model.price}/{t('booking.steps.vespa.day')}</span>
+                                            <span className="ml-1 text-sage-green">€{model.price}/diena</span>
                                           </div>
                                         </div>
                                         
@@ -655,8 +1077,8 @@ export default function BookingForm() {
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                             </svg>
-                                            {t('booking.notify.notifyMe')}
-                                            </button>
+                                            Pranešti man
+                                          </button>
                                         )}
                                       </div>
                                     </div>
@@ -669,7 +1091,7 @@ export default function BookingForm() {
                                 onClick={nextStep}
                                 className="btn-primary w-full py-3 text-sm flex items-center justify-center"
                               >
-                                <span>{t('booking.steps.continue')}</span>
+                                <span>Tęsti</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
@@ -677,7 +1099,7 @@ export default function BookingForm() {
                             </motion.div>
                           )}
                           
-                          {/* Step 2: Rental Details */}
+                          {/* Step 2: Date Selection with Calendar */}
                           {currentStep === 2 && (
                             <motion.div
                               key="step2"
@@ -686,22 +1108,20 @@ export default function BookingForm() {
                               animate="visible"
                               exit="exit"
                             >
-                              <h3 className="text-lg font-bold mb-4 font-syne">{t('booking.steps.details.title')}</h3>
+                              <h3 className="text-lg font-bold mb-4 font-syne">Pasirinkite datą</h3>
                               
                               <div className="space-y-4 mb-6">
+                                {/* Calendar Component */}
                                 <div>
-                                  <label htmlFor="startDate" className="block mb-1 text-sm font-medium">{t('booking.steps.details.rentalDate')}</label>
-                                  <input
-                                    type="date"
-                                    id="startDate"
-                                    name="startDate"
-                                    value={formData.startDate}
-                                    onChange={handleChange}
-                                    required
-                                    min={minDate}
-                                    className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
+                                  <label className="block mb-2 text-sm font-medium">Nuomos data</label>
+                                  <BookingCalendar
+                                    selectedDate={formData.startDate}
+                                    onDateSelect={handleCalendarDateSelect}
+                                    adminMode={false}
                                   />
-                                  <p className="mt-1 text-xs text-graphite-black/50">{t('booking.steps.details.maxOneDayNote')}</p>
+                                  <p className="mt-2 text-xs text-graphite-black/50">
+                                    Nuomojame tik vienai dienai
+                                  </p>
                                 </div>
 
                                 {/* Date Warning */}
@@ -716,8 +1136,10 @@ export default function BookingForm() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                       </svg>
                                       <div>
-                                        <p className="text-sm text-amber-800 font-medium">{t('booking.steps.details.dateWarningTitle')}</p>
-                                        <p className="text-xs text-amber-700 mt-1">{t('booking.steps.details.dateWarningText')}</p>
+                                        <p className="text-sm text-amber-800 font-medium">Pastaba apie datas</p>
+                                        <p className="text-xs text-amber-700 mt-1">
+                                          Šiuo metu nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.
+                                        </p>
                                       </div>
                                     </div>
                                   </motion.div>
@@ -726,7 +1148,7 @@ export default function BookingForm() {
                                 {/* Rental Type Selection */}
                                 {formData.startDate && !showDateWarning && (
                                   <div>
-                                    <label className="block mb-2 text-sm font-medium">{t('booking.steps.details.rentalDuration')}</label>
+                                    <label className="block mb-2 text-sm font-medium">Nuomos trukmė</label>
                                     <div className="space-y-2">
                                       <div className="flex items-center p-3 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
                                         <input
@@ -741,8 +1163,8 @@ export default function BookingForm() {
                                         <label htmlFor="full-day" className="ml-3 flex-1 cursor-pointer">
                                           <div className="flex justify-between items-center">
                                             <div>
-                                              <p className="text-sm font-medium">{t('booking.steps.details.fullDay')}</p>
-                                              <p className="text-xs text-graphite-black/60">{t('booking.steps.details.fullDayTime')}</p>
+                                              <p className="text-sm font-medium">Visa diena</p>
+                                              <p className="text-xs text-graphite-black/60">9:00 - 18:00</p>
                                             </div>
                                             <div className="text-sm font-bold">
                                               <span className="line-through text-graphite-black/50">€69</span>
@@ -765,8 +1187,8 @@ export default function BookingForm() {
                                         <label htmlFor="morning" className="ml-3 flex-1 cursor-pointer">
                                           <div className="flex justify-between items-center">
                                             <div>
-                                              <p className="text-sm font-medium">{t('booking.steps.details.morningHalf')}</p>
-                                              <p className="text-xs text-graphite-black/60">{t('booking.steps.details.morningTime')}</p>
+                                              <p className="text-sm font-medium">Pirmoji dienos pusė</p>
+                                              <p className="text-xs text-graphite-black/60">9:00 - 13:00</p>
                                             </div>
                                             <div className="text-sm font-bold">
                                               <span className="line-through text-graphite-black/50">€59</span>
@@ -789,8 +1211,8 @@ export default function BookingForm() {
                                         <label htmlFor="evening" className="ml-3 flex-1 cursor-pointer">
                                           <div className="flex justify-between items-center">
                                             <div>
-                                              <p className="text-sm font-medium">{t('booking.steps.details.eveningHalf')}</p>
-                                              <p className="text-xs text-graphite-black/60">{t('booking.steps.details.eveningTime')}</p>
+                                              <p className="text-sm font-medium">Antroji dienos pusė</p>
+                                              <p className="text-xs text-graphite-black/60">13:00 - 18:00</p>
                                             </div>
                                             <div className="text-sm font-bold">
                                               <span className="line-through text-graphite-black/50">€59</span>
@@ -806,11 +1228,11 @@ export default function BookingForm() {
                                 {/* Helmet Selection */}
                                 {formData.startDate && !showDateWarning && (
                                   <div>
-                                    <label className="block mb-2 text-sm font-medium">{t('booking.steps.details.helmetOptions')}</label>
+                                    <label className="block mb-2 text-sm font-medium">Šalmų pasirinkimas</label>
                                     <div className="p-3 bg-sage-green/5 rounded-lg">
                                       <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm">{t('booking.steps.details.helmetIncluded')}</span>
-                                        <span className="text-sm font-medium text-sage-green">{t('booking.steps.details.helmetFree')}</span>
+                                        <span className="text-sm">Šalmas įskaičiuotas</span>
+                                        <span className="text-sm font-medium text-sage-green">Nemokamai</span>
                                       </div>
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center">
@@ -823,17 +1245,17 @@ export default function BookingForm() {
                                             className="text-sage-green border-sand-beige focus:ring-sage-green rounded"
                                           />
                                           <label htmlFor="additionalHelmet" className="ml-2 text-sm">
-                                            {t('booking.steps.details.secondHelmet')}
+                                            Papildomas šalmas
                                           </label>
                                         </div>
-                                        <span className="text-sm font-medium">{t('booking.steps.details.helmetPrice')}</span>
+                                        <span className="text-sm font-medium">€10</span>
                                       </div>
                                     </div>
                                   </div>
                                 )}
                                 
                                 <div>
-                                   <label htmlFor="route" className="block mb-1 text-sm font-medium">{t('booking.steps.details.route')}</label>
+                                  <label htmlFor="route" className="block mb-1 text-sm font-medium">Maršrutas</label>
                                   <select
                                     id="route"
                                     name="route"
@@ -841,12 +1263,12 @@ export default function BookingForm() {
                                     onChange={handleChange}
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                                   >
-                                    <option value="" disabled>{t('booking.steps.details.selectRoute')}</option>
+                                    <option value="" disabled>Pasirinkite maršrutą</option>
                                     {routeOptions.map(route => (
                                       <option key={route.id} value={route.id}>{route.name}</option>
                                     ))}
                                   </select>
-                                  <p className="mt-1 text-xs text-graphite-black/50">{t('booking.steps.details.gpsGuides')}</p>
+                                  <p className="mt-1 text-xs text-graphite-black/50">GPS navigacija įskaičiuota</p>
                                 </div>
                               </div>
                               
@@ -858,30 +1280,30 @@ export default function BookingForm() {
                                   animate={{ opacity: 1 }}
                                   transition={{ duration: 0.5 }}
                                 >
-                                  <h4 className="font-syne font-bold text-sm mb-2">{t('booking.steps.details.rentalSummary')}</h4>
+                                  <h4 className="font-syne font-bold text-sm mb-2">Nuomos suvestinė</h4>
                                   <div className="space-y-1 text-xs">
                                     <div className="flex justify-between">
                                       <span>
-                                        {formData.rentalType === 'full' ? t('booking.steps.details.fullDay') : 
-                                         formData.rentalType === 'morning' ? t('booking.steps.details.morningHalf') : t('booking.steps.details.eveningHalf')}
+                                        {formData.rentalType === 'full' ? 'Visa diena' : 
+                                         formData.rentalType === 'morning' ? 'Pirmoji dienos pusė' : 'Antroji dienos pusė'}
                                       </span>
                                       <span>€{formData.rentalType === 'full' ? '59' : '49'}</span>
                                     </div>
                                     
                                     {formData.additionalHelmet && (
                                       <div className="flex justify-between">
-                                        <span>{t('booking.steps.details.additionalHelmet')}</span>
+                                        <span>Papildomas šalmas</span>
                                         <span>€10</span>
                                       </div>
                                     )}
                                     
                                     <div className="flex justify-between font-bold pt-1 border-t border-sage-green/20 mt-1">
-                                      <span>{t('booking.steps.details.total')}</span>
+                                      <span>Iš viso</span>
                                       <span>€{rentalPrice}</span>
                                     </div>
                                   </div>
                                   <p className="mt-2 text-2xs text-graphite-black/60">
-                                    {t('booking.steps.details.depositNote').replace('{price}', rentalPrice)}
+                                    *Užstatas €500 bus grąžintas po nuomos
                                   </p>
                                 </motion.div>
                               )}
@@ -892,7 +1314,7 @@ export default function BookingForm() {
                                   onClick={prevStep}
                                   className="px-4 py-2.5 flex-1 border border-sage-green text-sage-green rounded text-sm font-medium"
                                 >
-                                  {t('booking.steps.back')}
+                                  Atgal
                                 </button>
                                 
                                 <button 
@@ -903,7 +1325,7 @@ export default function BookingForm() {
                                   }`}
                                   disabled={!formData.startDate || showDateWarning}
                                 >
-                                  {t('booking.steps.continue')}
+                                  Tęsti
                                 </button>
                               </div>
                             </motion.div>
@@ -918,11 +1340,11 @@ export default function BookingForm() {
                               animate="visible"
                               exit="exit"
                             >
-                              <h3 className="text-lg font-bold mb-4 font-syne">{t('booking.steps.personal.title')}</h3>
+                              <h3 className="text-lg font-bold mb-4 font-syne">Asmeninė informacija</h3>
                               
                               <div className="space-y-4 mb-6">
                                 <div>
-                                  <label htmlFor="name" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.name')}</label>
+                                  <label htmlFor="name" className="block mb-1 text-sm font-medium">Vardas ir pavardė</label>
                                   <input
                                     type="text"
                                     id="name"
@@ -931,12 +1353,12 @@ export default function BookingForm() {
                                     onChange={handleChange}
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                                    placeholder={t('booking.steps.personal.namePlaceholder')}
+                                    placeholder="Vardas Pavardė"
                                   />
                                 </div>
                                 
                                 <div>
-                                  <label htmlFor="email" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.email')}</label>
+                                  <label htmlFor="email" className="block mb-1 text-sm font-medium">El. paštas</label>
                                   <input
                                     type="email"
                                     id="email"
@@ -945,12 +1367,12 @@ export default function BookingForm() {
                                     onChange={handleChange}
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                                    placeholder={t('booking.steps.personal.emailPlaceholder')}
+                                    placeholder="vardas@pavyzdys.lt"
                                   />
                                 </div>
                                 
                                 <div>
-                                  <label htmlFor="phone" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.phone')}</label>
+                                  <label htmlFor="phone" className="block mb-1 text-sm font-medium">Telefonas</label>
                                   <input
                                     type="tel"
                                     id="phone"
@@ -959,14 +1381,13 @@ export default function BookingForm() {
                                     onChange={handleChange}
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                                    placeholder={t('booking.steps.personal.phonePlaceholder')}
+                                    placeholder="+370 6XX XXXXX"
                                   />
-                                  <p className="mt-1 text-xs text-graphite-black/50">{t('booking.steps.personal.phoneNote')}</p>
+                                  <p className="mt-1 text-xs text-graphite-black/50">SMS patvirtinimui</p>
                                 </div>
 
-                                {/* Age Selection */}
                                 <div>
-                                  <label htmlFor="age" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.age')}</label>
+                                  <label htmlFor="age" className="block mb-1 text-sm font-medium">Amžius</label>
                                   <select
                                     id="age"
                                     name="age"
@@ -975,16 +1396,15 @@ export default function BookingForm() {
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                                   >
-                                    <option value="">{t('booking.steps.personal.selectAge')}</option>
+                                    <option value="">Pasirinkite amžių</option>
                                     {ageOptions.map(age => (
                                       <option key={age} value={age}>{age}</option>
                                     ))}
                                   </select>
                                 </div>
 
-                                {/* Driving License Selection */}
                                 <div>
-                                  <label htmlFor="drivingLicense" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.drivingLicense')}</label>
+                                  <label htmlFor="drivingLicense" className="block mb-1 text-sm font-medium">Vairuotojo pažymėjimas</label>
                                   <select
                                     id="drivingLicense"
                                     name="drivingLicense"
@@ -993,13 +1413,12 @@ export default function BookingForm() {
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                                   >
-                                    <option value="">{t('booking.steps.personal.selectLicense')}</option>
+                                    <option value="">Pasirinkite kategoriją</option>
                                     {drivingLicenseOptions.map(license => (
                                       <option key={license.value} value={license.value}>{license.label}</option>
                                     ))}
                                   </select>
                                   
-                                  {/* Lithuanian License Information */}
                                   {formData.drivingLicense && (
                                     <motion.div 
                                       initial={{ opacity: 0, y: -10 }}
@@ -1011,12 +1430,12 @@ export default function BookingForm() {
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <div className="text-sm">
-                                          <p className="font-medium text-blue-800 mb-1">{t('booking.steps.personal.licenseRequirements')}</p>
+                                          <p className="font-medium text-blue-800 mb-1">Vairuotojo pažymėjimo reikalavimai</p>
                                           <p className="text-blue-700 text-xs">
-                                            {t('booking.steps.personal.licenseNote')}
+                                            Lietuvos vairuotojo pažymėjimas arba tarptautinis pažymėjimas.
                                           </p>
                                           <p className="text-blue-700 text-xs mt-1">
-                                            {t('booking.steps.personal.licenseAlternatives')}
+                                            Alternatyviai: ES šalių pažymėjimai.
                                           </p>
                                         </div>
                                       </div>
@@ -1025,7 +1444,7 @@ export default function BookingForm() {
                                 </div>
                                 
                                 <div>
-                                  <label htmlFor="message" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.message')}</label>
+                                  <label htmlFor="message" className="block mb-1 text-sm font-medium">Papildoma informacija</label>
                                   <textarea
                                     id="message"
                                     name="message"
@@ -1033,43 +1452,43 @@ export default function BookingForm() {
                                     onChange={handleChange}
                                     rows="3"
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                                    placeholder={t('booking.steps.personal.messagePlaceholder')}
+                                    placeholder="Ypatingi pageidavimai ar klausimai..."
                                   ></textarea>
                                 </div>
                               </div>
                               
                               {/* Booking summary */}
                               <div className="mb-6 p-4 bg-sage-green/5 rounded-lg">
-                                <h4 className="font-syne font-bold text-sm mb-3">{t('booking.steps.personal.summary')}</h4>
+                                <h4 className="font-syne font-bold text-sm mb-3">Užsakymo suvestinė</h4>
                                 <div className="space-y-2 text-xs">
                                   <div className="flex justify-between">
-                                    <span className="text-graphite-black/60">{t('booking.steps.personal.model')}:</span>
+                                    <span className="text-graphite-black/60">Modelis:</span>
                                     <span className="font-medium">{formData.model}</span>
                                   </div>
                                   
                                   <div className="flex justify-between">
-                                    <span className="text-graphite-black/60">{t('booking.steps.personal.duration')}:</span>
+                                    <span className="text-graphite-black/60">Trukmė:</span>
                                     <span className="font-medium">
-                                      {formData.rentalType === 'full' ? `${t('booking.steps.details.fullDay')} (${t('booking.steps.details.fullDayTime')})` : 
-                                       formData.rentalType === 'morning' ? `${t('booking.steps.details.morningHalf')} (${t('booking.steps.details.morningTime')})` : 
-                                       formData.rentalType === 'evening' ? `${t('booking.steps.details.eveningHalf')} (${t('booking.steps.details.eveningTime')})` : t('booking.steps.personal.notSelected')}
+                                      {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
+                                       formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 
+                                       formData.rentalType === 'evening' ? 'Antroji pusė (13:00-18:00)' : 'Nepasirinkta'}
                                     </span>
                                   </div>
                                   
                                   <div className="flex justify-between">
-                                    <span className="text-graphite-black/60">{t('booking.steps.personal.date')}:</span>
+                                    <span className="text-graphite-black/60">Data:</span>
                                     <span className="font-medium">
-                                      {formData.startDate ? new Date(formData.startDate).toLocaleDateString() : t('booking.steps.personal.notSelected')}
+                                      {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : 'Nepasirinkta'}
                                     </span>
                                   </div>
                                   
                                   <div className="flex justify-between pt-2 border-t border-sage-green/20 mt-1">
-                                    <span className="text-graphite-black/60">{t('booking.steps.personal.totalPayment')}:</span>
+                                    <span className="text-graphite-black/60">Iš viso mokėti:</span>
                                     <span className="font-bold">€{rentalPrice} + €500</span>
                                   </div>
                                   
                                   <p className="text-2xs text-graphite-black/60 mt-2">
-                                    *{t('booking.steps.personal.depositNote')}
+                                    *€500 užstatas grąžinamas po nuomos
                                   </p>
                                 </div>
                               </div>
@@ -1082,10 +1501,8 @@ export default function BookingForm() {
                                   required 
                                 />
                                 <label htmlFor="terms" className="ml-3 text-xs text-graphite-black/70">
-                                  {t('booking.steps.personal.termsAgreement')}{' '}
-                                  <a href="#" className="text-sage-green hover:underline">{t('booking.steps.personal.termsLink')}</a>{' '}
-                                  {t('booking.steps.personal.and')}{' '}
-                                  <a href="#" className="text-sage-green hover:underline">{t('booking.steps.personal.privacyLink')}</a>.
+                                  Sutinku su <a href="#" className="text-sage-green hover:underline">nuomos sąlygomis</a> ir{' '}
+                                  <a href="#" className="text-sage-green hover:underline">privatumo politika</a>.
                                 </label>
                               </div>
                               
@@ -1095,87 +1512,99 @@ export default function BookingForm() {
                                   onClick={prevStep}
                                   className="px-4 py-2.5 flex-1 border border-sage-green text-sage-green rounded text-sm font-medium"
                                 >
-                                  {t('booking.steps.back')}
+                                  Atgal
                                 </button>
                                 
                                 <button 
-                                  type="submit" 
-                                  className="btn-primary py-2.5 flex-1 text-sm"
-                                  disabled={loading}
-                                >
-                                  {loading ? (
-                                    <>
-                                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                      </svg>
-                                      <span>{t('booking.steps.processing')}</span>
-                                    </>
-                                  ) : (
-                                    <span>{t('booking.steps.complete')}</span>
-                                  )}
-                                </button>
+  type="button"  // Changed from "submit" to "button"
+  onClick={nextStep}  // Changed from handleSubmit to nextStep
+  className="btn-primary py-2.5 flex-1 text-sm"
+  disabled={loading}
+>
+  <span>Tęsti</span>
+</button>
                               </div>
                             </motion.div>
                           )}
+                          {currentStep === 4 && (
+  <motion.div
+    key="step4"
+    variants={formVariants}
+    initial="hidden"
+    animate="visible"
+    exit="exit"
+  >
+    <DocumentReview
+      documentsAccepted={formData.documentsAccepted}
+      onDocumentAccept={(docId, accepted) => {
+        setFormData(prev => ({
+          ...prev,
+          documentsAccepted: {
+            ...prev.documentsAccepted,
+            [docId]: accepted
+          },
+          documentsReadAt: accepted ? new Date().toISOString() : prev.documentsReadAt
+        }));
+      }}
+      onContinue={() => {
+        // Move to next step or submit form
+        setCurrentStep(prev => prev + 1);
+      }}
+      onBack={prevStep}
+    />
+    
+    <div className="mt-8">
+      <DigitalSignature
+        signature={formData.digitalSignature}
+        onSignatureComplete={(signature) => {
+          setFormData(prev => ({
+            ...prev,
+            digitalSignature: signature
+          }));
+        }}
+      />
+    </div>
+
+    {/* Submit button for Step 4 */}
+    <div className="flex space-x-3 mt-8">
+      <button 
+        type="button" 
+        onClick={prevStep}
+        className="px-4 py-2.5 flex-1 border border-sage-green text-sage-green rounded text-sm font-medium"
+      >
+        Atgal
+      </button>
+      
+      <button 
+        type="submit" 
+        className="btn-primary py-2.5 flex-1 text-sm"
+        disabled={loading || !Object.values(formData.documentsAccepted).every(Boolean)}
+      >
+        {loading ? (
+          <>
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Pateikiama...</span>
+          </>
+        ) : (
+          <span>Pateikti užsakymą</span>
+        )}
+      </button>
+    </div>
+  </motion.div>
+)}
                         </AnimatePresence>
                       </motion.form>
                     )}
                   </AnimatePresence>
-                  
-                  {/* Additional booking info */}
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="mt-6 space-y-4"
-                  >
-                    <div className="bg-white p-4 rounded-lg shadow-sm">
-                      <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 rounded-full bg-sage-green/20 flex items-center justify-center mr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <h4 className="font-syne font-bold text-sm">{t('booking.info.hours.title')}</h4>
-                      </div>
-                      <p className="text-xs text-graphite-black/70 pl-11">
-                        {t('booking.info.hours.text')}
-                      </p>
-                    </div>
-                    
-                    <div className="bg-white p-4 rounded-lg shadow-sm">
-                      <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 rounded-full bg-sage-green/20 flex items-center justify-center mr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </div>
-                        <h4 className="font-syne font-bold text-sm">{t('booking.info.payment.title')}</h4>
-                      </div>
-                      <p className="text-xs text-graphite-black/70 pl-11">
-                        {t('booking.info.payment.text')}
-                      </p>
-                    </div>
-                  </motion.div>
-                  
-                  <motion.div 
-                    className="mt-6 text-center text-xs text-graphite-black/60"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                  >
-                    {t('booking.assistance')}{' '}
-                    <a href="tel:+37067956380" className="text-sage-green hover:underline">
-                      +3706 795 6380
-                    </a>
-                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         ) : (
-          // Desktop version - full booking form
+          // Desktop version with integrated calendar
           <div className="max-w-5xl mx-auto" id="booking-form">
             {/* Form progress steps */}
             <motion.div 
@@ -1185,37 +1614,40 @@ export default function BookingForm() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <div className="flex justify-center items-center">
-                {[1, 2, 3].map((step) => (
-                  <div key={step} className="flex items-center">
-                    <div 
-                      className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
-                        currentStep === step 
-                          ? 'bg-sage-green text-white' 
-                          : currentStep > step ? 'bg-sage-green/20 text-sage-green' 
-                          : 'bg-graphite-black/10 text-graphite-black/40'
-                      } transition-colors duration-300`}
-                    >
-                      {currentStep > step ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        step
-                      )}
-                    </div>
-                    
-                    <div className={`text-sm mx-3 font-medium ${currentStep === step ? 'text-graphite-black' : 'text-graphite-black/50'}`}>
-                      {step === 1 ? t('booking.steps.vespa.title') : step === 2 ? t('booking.steps.details.title') : t('booking.steps.personal.title')}
-                    </div>
-                    
-                    {step < 3 && (
-                      <div className={`flex-1 h-0.5 w-12 ${
-                        currentStep > step ? 'bg-sage-green' : 'bg-graphite-black/10'
-                      }`}></div>
-                    )}
-                  </div>
-                ))}
-              </div>
+  {[1, 2, 3, 4].map((step) => (
+    <div key={step} className="flex items-center">
+      <div 
+        className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
+          currentStep === step 
+            ? 'bg-sage-green text-white' 
+            : currentStep > step ? 'bg-sage-green/20 text-sage-green' 
+            : 'bg-graphite-black/10 text-graphite-black/40'
+        } transition-colors duration-300`}
+      >
+        {currentStep > step ? (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        ) : (
+          step
+        )}
+      </div>
+      
+      <div className={`text-sm mx-3 font-medium ${currentStep === step ? 'text-graphite-black' : 'text-graphite-black/50'}`}>
+        {step === 1 ? 'Vespa pasirinkimas' : 
+         step === 2 ? 'Datos ir detalės' : 
+         step === 3 ? 'Asmeninė informacija' :
+         'Dokumentai ir parašas'}
+      </div>
+      
+     {step < 4 && (
+        <div className={`flex-1 h-0.5 w-12 ${
+          currentStep > step ? 'bg-sage-green' : 'bg-graphite-black/10'
+        }`}></div>
+      )}
+    </div>
+  ))}
+</div>
             </motion.div>
           
             {/* Success message */}
@@ -1234,14 +1666,14 @@ export default function BookingForm() {
                     </svg>
                   </div>
                   
-                  <h3 className="text-3xl font-bold font-syne mb-4">{t('booking.success.title')}</h3>
+                  <h3 className="text-3xl font-bold font-syne mb-4">Užsakymas pateiktas sėkmingai!</h3>
                   <p className="text-lg text-graphite-black/70 mb-8 max-w-md mx-auto">
-                    {t('booking.success.message')}
+                    Dėkojame už užsakymą. Netrukus susisieksime su jumis patvirtinti detales.
                   </p>
                   
                   <div className="p-6 bg-sage-green/5 rounded-lg mb-8">
                     <p className="text-sm text-graphite-black/70">
-                      {t('booking.success.emailSent')}
+                      Patvirtinimo laiškas išsiųstas į jūsų el. pašto adresą.
                     </p>
                   </div>
                   
@@ -1250,11 +1682,11 @@ export default function BookingForm() {
                       onClick={() => setSuccess(false)} 
                       className="btn-primary"
                     >
-                      {t('booking.success.newBooking')}
+                      Naujas užsakymas
                     </button>
                     
                     <a href="#explore" className="px-6 py-3 border border-sage-green text-sage-green rounded font-medium hover:bg-sage-green/5 transition-colors">
-                      {t('booking.success.exploreRoutes')}
+                      Tyrinėti maršrutus
                     </a>
                   </div>
                 </motion.div>
@@ -1289,7 +1721,7 @@ export default function BookingForm() {
                         animate="visible"
                         exit="exit"
                       >
-                        <h3 className="text-xl font-bold mb-6 font-syne">{t('booking.steps.vespa.title')}</h3>
+                        <h3 className="text-xl font-bold mb-6 font-syne">Pasirinkite Vespa modelį</h3>
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                           {vespaModels.map((model) => (
@@ -1309,7 +1741,7 @@ export default function BookingForm() {
                               {/* Coming Soon Badge */}
                               {model.comingSoon && (
                                 <div className="absolute top-2 right-2 z-10 bg-graphite-black/80 text-white px-3 py-1 rounded-full text-xs font-bold">
-                                  {t('booking.comingSoon')}
+                                  Netrukus
                                 </div>
                               )}
                               
@@ -1324,7 +1756,7 @@ export default function BookingForm() {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                                 <div className="absolute bottom-2 right-2 bg-white/90 px-2 py-0.5 rounded text-xs font-bold">
                                   <span className="line-through opacity-60">€{model.originalPrice}</span>
-                                  <span className="ml-1 text-sage-green">€{model.price}/{t('booking.steps.vespa.day')}</span>
+                                  <span className="ml-1 text-sage-green">€{model.price}/diena</span>
                                 </div>
                               </div>
                               
@@ -1334,8 +1766,8 @@ export default function BookingForm() {
                                   <div 
                                     className="w-3 h-3 rounded-full mt-1" 
                                     style={{ 
-                                      backgroundColor: model.color === t('booking.models.sprint.color') ? '#F9F7F1' : 
-                                                    model.color === t('booking.models.sprint2.color') ? '#9AA89C' : '#E9DCC9' 
+                                      backgroundColor: model.color === 'Baltas' ? '#F9F7F1' : 
+                                                    model.color === 'Žalias' ? '#9AA89C' : '#E9DCC9' 
                                     }}
                                   ></div>
                                 </div>
@@ -1381,7 +1813,7 @@ export default function BookingForm() {
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                     </svg>
-                                    {t('booking.notify.notifyMe')}
+                                    Pranešti man
                                   </button>
                                 )}
                               </div>
@@ -1395,7 +1827,8 @@ export default function BookingForm() {
                             type="button" 
                             onClick={nextStep}
                             className="btn-primary flex items-center"
-                          >  <span>{t('booking.steps.continueDates')}</span>
+                          >
+                            <span>Tęsti datos pasirinkimą</span>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
@@ -1404,7 +1837,7 @@ export default function BookingForm() {
                       </motion.div>
                     )}
                     
-                    {/* Step 2: Rental Details */}
+                    {/* Step 2: Date Selection with Calendar (Desktop) */}
                     {currentStep === 2 && (
                       <motion.div
                         key="step2"
@@ -1413,169 +1846,173 @@ export default function BookingForm() {
                         animate="visible"
                         exit="exit"
                       >
-                        <h3 className="text-xl font-bold mb-6 font-syne">{t('booking.steps.details.title')}</h3>
+                        <h3 className="text-xl font-bold mb-6 font-syne">Pasirinkite datą ir detales</h3>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
-                          <div className="md:col-span-2">
-                            <label htmlFor="startDate" className="block mb-2 text-sm font-medium">{t('booking.steps.details.rentalDate')}</label>
-                            <input
-                              type="date"
-                              id="startDate"
-                              name="startDate"
-                              value={formData.startDate}
-                              onChange={handleChange}
-                              required
-                              min={minDate}
-                              className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                          {/* Calendar Section */}
+                          <div>
+                            <label className="block mb-3 text-sm font-medium">Nuomos data</label>
+                            <BookingCalendar
+                              selectedDate={formData.startDate}
+                              onDateSelect={handleCalendarDateSelect}
+                              adminMode={false}
                             />
-                            <p className="mt-2 text-sm text-graphite-black/50">{t('booking.steps.details.maxOneDayNote')}</p>
+                            <p className="mt-3 text-sm text-graphite-black/50">
+                              Nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.
+                            </p>
                           </div>
 
-                          {/* Date Warning */}
-                          {showDateWarning && (
-                            <motion.div 
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="md:col-span-2 p-4 bg-amber-50 border border-amber-200 rounded-lg"
-                            >
-                              <div className="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-500 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                <div>
-                                  <p className="text-base text-amber-800 font-medium">{t('booking.steps.details.dateWarningTitle')}</p>
-                                  <p className="text-sm text-amber-700 mt-1">{t('booking.steps.details.dateWarningText')}</p>
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-
-                          {/* Rental Type Selection */}
-                          {formData.startDate && !showDateWarning && (
-                            <div className="md:col-span-2">
-                              <label className="block mb-3 text-sm font-medium">{t('booking.steps.details.rentalDuration')}</label>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="flex items-center p-4 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
-                                  <input
-                                    type="radio"
-                                    id="full-day"
-                                    name="rentalType"
-                                    value="full"
-                                    checked={formData.rentalType === 'full'}
-                                    onChange={handleChange}
-                                    className="text-sage-green border-sand-beige focus:ring-sage-green"
-                                  />
-                                  <label htmlFor="full-day" className="ml-3 flex-1 cursor-pointer">
-                                    <div className="flex justify-between items-center">
-                                      <div>
-                                        <p className="font-medium">{t('booking.steps.details.fullDay')}</p>
-                                        <p className="text-sm text-graphite-black/60">{t('booking.steps.details.fullDayTime')}</p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="line-through text-graphite-black/50 text-sm">€69</p>
-                                        <p className="font-bold text-sage-green">€59</p>
-                                      </div>
-                                    </div>
-                                  </label>
-                                </div>
-
-                                <div className="flex items-center p-4 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
-                                  <input
-                                    type="radio"
-                                    id="morning"
-                                    name="rentalType"
-                                    value="morning"
-                                    checked={formData.rentalType === 'morning'}
-                                    onChange={handleChange}
-                                    className="text-sage-green border-sand-beige focus:ring-sage-green"
-                                  />
-                                  <label htmlFor="morning" className="ml-3 flex-1 cursor-pointer">
-                                    <div className="flex justify-between items-center">
-                                      <div>
-                                        <p className="font-medium">{t('booking.steps.details.morningHalf')}</p>
-                                        <p className="text-sm text-graphite-black/60">{t('booking.steps.details.morningTime')}</p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="line-through text-graphite-black/50 text-sm">€59</p>
-                                        <p className="font-bold text-sage-green">€49</p>
-                                      </div>
-                                    </div>
-                                  </label>
-                                </div>
-
-                                <div className="flex items-center p-4 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
-                                  <input
-                                    type="radio"
-                                    id="evening"
-                                    name="rentalType"
-                                    value="evening"
-                                    checked={formData.rentalType === 'evening'}
-                                    onChange={handleChange}
-                                    className="text-sage-green border-sand-beige focus:ring-sage-green"
-                                  />
-                                  <label htmlFor="evening" className="ml-3 flex-1 cursor-pointer">
-                                    <div className="flex justify-between items-center">
-                                      <div>
-                                        <p className="font-medium">{t('booking.steps.details.eveningHalf')}</p>
-                                        <p className="text-sm text-graphite-black/60">{t('booking.steps.details.eveningTime')}</p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="line-through text-graphite-black/50 text-sm">€59</p>
-                                        <p className="font-bold text-sage-green">€49</p>
-                                      </div>
-                                    </div>
-                                  </label>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Helmet Selection */}
-                          {formData.startDate && !showDateWarning && (
-                            <div className="md:col-span-2">
-                              <label className="block mb-3 text-sm font-medium">{t('booking.steps.details.helmetOptions')}</label>
-                              <div className="p-4 bg-sage-green/5 rounded-lg">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-medium">{t('booking.steps.details.helmetIncluded')}</span>
-                                    <span className="font-bold text-sage-green">{t('booking.steps.details.helmetFree')}</span>
+                          {/* Details Section */}
+                          <div className="space-y-6">
+                            {/* Date Warning */}
+                            {showDateWarning && (
+                              <motion.div 
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="p-4 bg-amber-50 border border-amber-200 rounded-lg"
+                              >
+                                <div className="flex items-start">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-500 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                  <div>
+                                    <p className="text-base text-amber-800 font-medium">Pastaba apie datas</p>
+                                    <p className="text-sm text-amber-700 mt-1">
+                                      Šiuo metu nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.
+                                    </p>
                                   </div>
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center">
-                                      <input
-                                        type="checkbox"
-                                        id="additionalHelmet"
-                                        name="additionalHelmet"
-                                        checked={formData.additionalHelmet}
-                                        onChange={handleChange}
-                                        className="text-sage-green border-sand-beige focus:ring-sage-green rounded"
-                                      />
-                                      <label htmlFor="additionalHelmet" className="ml-2">
-                                        {t('booking.steps.details.secondHelmet')}
-                                      </label>
-                                    </div>
-                                    <span className="font-bold">{t('booking.steps.details.helmetPrice')}</span>
+                                </div>
+                              </motion.div>
+                            )}
+
+                            {/* Rental Type Selection */}
+                            {formData.startDate && !showDateWarning && (
+                              <div>
+                                <label className="block mb-3 text-sm font-medium">Nuomos trukmė</label>
+                                <div className="space-y-3">
+                                  <div className="flex items-center p-4 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
+                                    <input
+                                      type="radio"
+                                      id="full-day-desktop"
+                                      name="rentalType"
+                                      value="full"
+                                      checked={formData.rentalType === 'full'}
+                                      onChange={handleChange}
+                                      className="text-sage-green border-sand-beige focus:ring-sage-green"
+                                    />
+                                    <label htmlFor="full-day-desktop" className="ml-3 flex-1 cursor-pointer">
+                                      <div className="flex justify-between items-center">
+                                        <div>
+                                          <p className="font-medium">Visa diena</p>
+                                          <p className="text-sm text-graphite-black/60">9:00 - 18:00</p>
+                                        </div>
+                                        <div className="text-right">
+                                          <p className="line-through text-graphite-black/50 text-sm">€69</p>
+                                          <p className="font-bold text-sage-green">€59</p>
+                                        </div>
+                                      </div>
+                                    </label>
+                                  </div>
+
+                                  <div className="flex items-center p-4 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
+                                    <input
+                                      type="radio"
+                                      id="morning-desktop"
+                                      name="rentalType"
+                                      value="morning"
+                                      checked={formData.rentalType === 'morning'}
+                                      onChange={handleChange}
+                                      className="text-sage-green border-sand-beige focus:ring-sage-green"
+                                    />
+                                    <label htmlFor="morning-desktop" className="ml-3 flex-1 cursor-pointer">
+                                      <div className="flex justify-between items-center">
+                                        <div>
+                                          <p className="font-medium">Pirmoji dienos pusė</p>
+                                          <p className="text-sm text-graphite-black/60">9:00 - 13:00</p>
+                                        </div>
+                                        <div className="text-right">
+                                          <p className="line-through text-graphite-black/50 text-sm">€59</p>
+                                          <p className="font-bold text-sage-green">€49</p>
+                                        </div>
+                                      </div>
+                                    </label>
+                                  </div>
+
+                                  <div className="flex items-center p-4 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
+                                    <input
+                                      type="radio"
+                                      id="evening-desktop"
+                                      name="rentalType"
+                                      value="evening"
+                                      checked={formData.rentalType === 'evening'}
+                                      onChange={handleChange}
+                                      className="text-sage-green border-sand-beige focus:ring-sage-green"
+                                    />
+                                    <label htmlFor="evening-desktop" className="ml-3 flex-1 cursor-pointer">
+                                      <div className="flex justify-between items-center">
+                                        <div>
+                                          <p className="font-medium">Antroji dienos pusė</p>
+                                          <p className="text-sm text-graphite-black/60">13:00 - 18:00</p>
+                                        </div>
+                                        <div className="text-right">
+                                          <p className="line-through text-graphite-black/50 text-sm">€59</p>
+                                          <p className="font-bold text-sage-green">€49</p>
+                                        </div>
+                                      </div>
+                                    </label>
                                   </div>
                                 </div>
                               </div>
+                            )}
+
+                            {/* Helmet Selection */}
+                            {formData.startDate && !showDateWarning && (
+                              <div>
+                                <label className="block mb-3 text-sm font-medium">Šalmų pasirinkimas</label>
+                                <div className="p-4 bg-sage-green/5 rounded-lg">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-medium">Šalmas įskaičiuotas</span>
+                                      <span className="font-bold text-sage-green">Nemokamai</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center">
+                                        <input
+                                          type="checkbox"
+                                          id="additionalHelmet-desktop"
+                                          name="additionalHelmet"
+                                          checked={formData.additionalHelmet}
+                                          onChange={handleChange}
+                                          className="text-sage-green border-sand-beige focus:ring-sage-green rounded"
+                                        />
+                                        <label htmlFor="additionalHelmet-desktop" className="ml-2">
+                                          Papildomas šalmas
+                                        </label>
+                                      </div>
+                                      <span className="font-bold">€10</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Route Selection */}
+                            <div>
+                              <label htmlFor="route-desktop" className="block mb-2 text-sm font-medium">Maršrutas</label>
+                              <select
+                                id="route-desktop"
+                                name="route"
+                                value={formData.route}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
+                              >
+                                <option value="" disabled>Pasirinkite maršrutą</option>
+                                {routeOptions.map(route => (
+                                  <option key={route.id} value={route.id}>{route.name}</option>
+                                ))}
+                              </select>
+                              <p className="mt-2 text-sm text-graphite-black/50">GPS navigacija įskaičiuota</p>
                             </div>
-                          )}
-                          
-                          <div className="md:col-span-2">
-                            <label htmlFor="route" className="block mb-2 text-sm font-medium">{t('booking.steps.details.route')}</label>
-                            <select
-                              id="route"
-                              name="route"
-                              value={formData.route}
-                              onChange={handleChange}
-                              className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                            >
-                              <option value="" disabled>{t('booking.steps.details.selectRoute')}</option>
-                              {routeOptions.map(route => (
-                                <option key={route.id} value={route.id}>{route.name}</option>
-                              ))}
-                            </select>
-                            <p className="mt-2 text-sm text-graphite-black/50">{t('booking.steps.details.gpsGuides')}</p>
                           </div>
                         </div>
                         
@@ -1587,47 +2024,47 @@ export default function BookingForm() {
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.5 }}
                           >
-                            <h4 className="font-syne font-bold text-lg mb-4">{t('booking.steps.details.rentalSummary')}</h4>
+                            <h4 className="font-syne font-bold text-lg mb-4">Nuomos suvestinė</h4>
                             <div className="grid grid-cols-2 gap-8">
                               <div className="space-y-3">
                                 <div className="flex justify-between">
                                   <span>
-                                    {formData.rentalType === 'full' ? `${t('booking.steps.details.fullDay')} (${t('booking.steps.details.fullDayTime')})` : 
-                                     formData.rentalType === 'morning' ? `${t('booking.steps.details.morningHalf')} (${t('booking.steps.details.morningTime')})` : `${t('booking.steps.details.eveningHalf')} (${t('booking.steps.details.eveningTime')})`}
+                                    {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
+                                     formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 'Antroji pusė (13:00-18:00)'}
                                   </span>
                                   <span>€{formData.rentalType === 'full' ? '59' : '49'}</span>
                                 </div>
                                 
                                 {formData.additionalHelmet && (
                                   <div className="flex justify-between">
-                                    <span>{t('booking.steps.details.additionalHelmet')}</span>
+                                    <span>Papildomas šalmas</span>
                                     <span>€10</span>
                                   </div>
                                 )}
                                 
                                 <div className="flex justify-between font-bold pt-3 border-t border-sage-green/20 mt-2 text-lg">
-                                  <span>{t('booking.steps.details.subtotal')}</span>
+                                  <span>Tarpinė suma</span>
                                   <span>€{rentalPrice}</span>
                                 </div>
                                 
                                 <div className="flex justify-between text-sm text-graphite-black/70">
-                                  <span>{t('booking.steps.details.securityDeposit')}</span>
+                                  <span>Užstatas</span>
                                   <span>€500</span>
                                 </div>
                                 
                                 <div className="flex justify-between font-bold text-xl pt-2 border-t border-sage-green/30">
-                                  <span>{t('booking.steps.details.totalPayment')}</span>
+                                  <span>Iš viso mokėti</span>
                                   <span>€{rentalPrice + 500}</span>
                                 </div>
                               </div>
                               
                               <div className="bg-white/60 p-4 rounded">
-                                <h5 className="font-medium mb-3">{t('booking.steps.details.paymentDetails')}</h5>
+                                <h5 className="font-medium mb-3">Mokėjimo informacija</h5>
                                 <div className="space-y-2 text-sm text-graphite-black/70">
-                                  <p>{t('booking.steps.details.fullPaymentRequired')}</p>
-                                  <p>{t('booking.steps.details.depositIncluded')}</p>
-                                  <p>{t('booking.steps.details.depositReturned')}</p>
-                                  <p>{t('booking.steps.details.paymentMethods')}</p>
+                                  <p>Pilnas mokėjimas reikalingas iš anksto</p>
+                                  <p>Užstatas įskaičiuotas į bendrą sumą</p>
+                                  <p>Užstatas grąžinamas po nuomos</p>
+                                  <p>Priimame korteles ir grynuosius</p>
                                 </div>
                               </div>
                             </div>
@@ -1640,7 +2077,7 @@ export default function BookingForm() {
                             onClick={prevStep}
                             className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
                           >
-                            {t('booking.steps.back')}
+                            Atgal
                           </button>
                           
                           <button 
@@ -1651,13 +2088,13 @@ export default function BookingForm() {
                             }`}
                             disabled={!formData.startDate || showDateWarning}
                           >
-                            {t('booking.steps.continue')}
+                            Tęsti
                           </button>
                         </div>
                       </motion.div>
                     )}
 
-                    {/* Step 3: Personal Information */}
+                    {/* Step 3: Personal Information (Desktop) */}
                     {currentStep === 3 && (
                       <motion.div
                         key="step3"
@@ -1666,88 +2103,84 @@ export default function BookingForm() {
                         animate="visible"
                         exit="exit"
                       >
-                        <h3 className="text-xl font-bold mb-6 font-syne">{t('booking.steps.personal.title')}</h3>
+                        <h3 className="text-xl font-bold mb-6 font-syne">Asmeninė informacija</h3>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
                           <div>
-                            <label htmlFor="name" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.name')}</label>
+                            <label htmlFor="name-desktop" className="block mb-2 text-sm font-medium">Vardas ir pavardė</label>
                             <input
                               type="text"
-                              id="name"
+                              id="name-desktop"
                               name="name"
                               value={formData.name}
                               onChange={handleChange}
                               required
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                              placeholder={t('booking.steps.personal.namePlaceholder')}
+                              placeholder="Vardas Pavardė"
                             />
                           </div>
                           
                           <div>
-                            <label htmlFor="email" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.email')}</label>
+                            <label htmlFor="email-desktop" className="block mb-2 text-sm font-medium">El. paštas</label>
                             <input
                               type="email"
-                              id="email"
+                              id="email-desktop"
                               name="email"
                               value={formData.email}
                               onChange={handleChange}
                               required
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                              placeholder={t('booking.steps.personal.emailPlaceholder')}
+                              placeholder="vardas@pavyzdys.lt"
                             />
                           </div>
                           
                           <div>
-                            <label htmlFor="phone" className="block mb-2 text-sm font-medium ">{t('booking.steps.personal.phone')}</label>
+                            <label htmlFor="phone-desktop" className="block mb-2 text-sm font-medium">Telefonas</label>
                             <input
                               type="tel"
-                              id="phone"
+                              id="phone-desktop"
                               name="phone"
                               value={formData.phone}
                               onChange={handleChange}
                               required
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                              placeholder={t('booking.steps.personal.phonePlaceholder')}
+                              placeholder="+370 6XX XXXXX"
                             />
-                            <p className="mt-2 text-sm text-graphite-black/50">{t('booking.steps.personal.phoneNote')}</p>
+                            <p className="mt-2 text-sm text-graphite-black/50">SMS patvirtinimui</p>
                           </div>
 
-                          {/* Age Selection */}
                           <div>
-                            <label htmlFor="age" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.age')}</label>
+                            <label htmlFor="age-desktop" className="block mb-2 text-sm font-medium">Amžius</label>
                             <select
-                              id="age"
+                              id="age-desktop"
                               name="age"
                               value={formData.age}
                               onChange={handleChange}
                               required
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                             >
-                              <option value="">{t('booking.steps.personal.selectAge')}</option>
+                              <option value="">Pasirinkite amžių</option>
                               {ageOptions.map(age => (
                                 <option key={age} value={age}>{age}</option>
                               ))}
                             </select>
                           </div>
 
-                          {/* Driving License Selection */}
                           <div className="md:col-span-2">
-                            <label htmlFor="drivingLicense" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.drivingLicense')}</label>
+                            <label htmlFor="drivingLicense-desktop" className="block mb-2 text-sm font-medium">Vairuotojo pažymėjimas</label>
                             <select
-                              id="drivingLicense"
+                              id="drivingLicense-desktop"
                               name="drivingLicense"
                               value={formData.drivingLicense}
                               onChange={handleChange}
-                              required
-                              className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
+                              required                          className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                             >
-                              <option value="">{t('booking.steps.personal.selectLicense')}</option>
+                              <option value="">Pasirinkite kategoriją</option>
                               {drivingLicenseOptions.map(license => (
                                 <option key={license.value} value={license.value}>{license.label}</option>
                               ))}
                             </select>
                             
-                            {/* Lithuanian License Information */}
                             {formData.drivingLicense && (
                               <motion.div 
                                 initial={{ opacity: 0, y: -10 }}
@@ -1759,12 +2192,12 @@ export default function BookingForm() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
                                   <div>
-                                    <p className="font-medium text-blue-800 mb-2">{t('booking.steps.personal.licenseRequirements')}</p>
+                                    <p className="font-medium text-blue-800 mb-2">Vairuotojo pažymėjimo reikalavimai</p>
                                     <p className="text-blue-700 text-sm mb-2">
-                                      {t('booking.steps.personal.licenseNote')}
+                                      Lietuvos vairuotojo pažymėjimas arba tarptautinis pažymėjimas.
                                     </p>
                                     <p className="text-blue-700 text-sm">
-                                      {t('booking.steps.personal.licenseAlternatives')}
+                                      Alternatyviai: ES šalių pažymėjimai.
                                     </p>
                                   </div>
                                 </div>
@@ -1773,97 +2206,97 @@ export default function BookingForm() {
                           </div>
                           
                           <div className="md:col-span-2">
-                            <label htmlFor="message" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.message')}</label>
+                            <label htmlFor="message-desktop" className="block mb-2 text-sm font-medium">Papildoma informacija</label>
                             <textarea
-                              id="message"
+                              id="message-desktop"
                               name="message"
                               value={formData.message}
                               onChange={handleChange}
                               rows="4"
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                              placeholder={t('booking.steps.personal.messagePlaceholder')}
+                              placeholder="Ypatingi pageidavimai ar klausimai..."
                             ></textarea>
                           </div>
                         </div>
                         
                         {/* Booking summary */}
                         <div className="mb-8 p-6 bg-sage-green/5 rounded-lg">
-                          <h4 className="font-syne font-bold text-lg mb-4">{t('booking.steps.personal.summary')}</h4>
+                          <h4 className="font-syne font-bold text-lg mb-4">Užsakymo suvestinė</h4>
                           <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-3">
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">{t('booking.steps.personal.model')}:</span>
+                                <span className="text-graphite-black/60">Modelis:</span>
                                 <span className="font-medium">{formData.model}</span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">{t('booking.steps.personal.duration')}:</span>
+                                <span className="text-graphite-black/60">Trukmė:</span>
                                 <span className="font-medium">
-                                  {formData.rentalType === 'full' ? `${t('booking.steps.details.fullDay')} (${t('booking.steps.details.fullDayTime')})` : 
-                                   formData.rentalType === 'morning' ? `${t('booking.steps.details.morningHalf')} (${t('booking.steps.details.morningTime')})` : 
-                                   formData.rentalType === 'evening' ? `${t('booking.steps.details.eveningHalf')} (${t('booking.steps.details.eveningTime')})` : t('booking.steps.personal.notSelected')}
+                                  {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
+                                   formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 
+                                   formData.rentalType === 'evening' ? 'Antroji pusė (13:00-18:00)' : 'Nepasirinkta'}
                                 </span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">{t('booking.steps.personal.date')}:</span>
+                                <span className="text-graphite-black/60">Data:</span>
                                 <span className="font-medium">
-                                  {formData.startDate ? new Date(formData.startDate).toLocaleDateString() : t('booking.steps.personal.notSelected')}
+                                  {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : 'Nepasirinkta'}
                                 </span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">{t('booking.steps.personal.age')}:</span>
-                                <span className="font-medium">{formData.age || t('booking.steps.personal.notSelected')}</span>
+                                <span className="text-graphite-black/60">Amžius:</span>
+                                <span className="font-medium">{formData.age || 'Nepasirinkta'}</span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">{t('booking.steps.personal.license')}:</span>
-                                <span className="font-medium">{formData.drivingLicense || t('booking.steps.personal.notSelected')}</span>
+                                <span className="text-graphite-black/60">Pažymėjimas:</span>
+                                <span className="font-medium">{formData.drivingLicense || 'Nepasirinkta'}</span>
                               </div>
                               
                               <div className="flex justify-between pt-3 border-t border-sage-green/20 mt-2">
-                                <span className="text-graphite-black/60">{t('booking.steps.personal.subtotal')}:</span>
+                                <span className="text-graphite-black/60">Tarpinė suma:</span>
                                 <span className="font-bold">€{rentalPrice}</span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">{t('booking.steps.personal.securityDeposit')}:</span>
+                                <span className="text-graphite-black/60">Užstatas:</span>
                                 <span className="font-bold">€500</span>
                               </div>
                               
                               <div className="flex justify-between pt-2 border-t border-sage-green/30 text-lg">
-                                <span className="text-graphite-black/60">{t('booking.steps.personal.totalPayment')}:</span>
+                                <span className="text-graphite-black/60">Iš viso mokėti:</span>
                                 <span className="font-bold">€{rentalPrice + 500}</span>
                               </div>
                             </div>
                             
                             <div className="bg-white/60 p-4 rounded">
-                              <h5 className="font-medium mb-3">{t('booking.steps.personal.importantNotes')}</h5>
+                              <h5 className="font-medium mb-3">Svarbūs priminjimai</h5>
                               <div className="space-y-2 text-sm text-graphite-black/70">
                                 <div className="flex items-start">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  <span>{t('booking.steps.personal.helmetNote')}</span>
+                                  <span>Šalmas įskaičiuotas į kainą</span>
                                 </div>
                                 <div className="flex items-start">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  <span>{t('booking.steps.personal.paymentNote')}</span>
+                                  <span>Mokėjimas kartele arba grynaisiais</span>
                                 </div>
                                 <div className="flex items-start">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  <span>{t('booking.steps.personal.depositNote')}</span>
+                                  <span>Užstatas grąžinamas po nuomos</span>
                                 </div>
                                 <div className="flex items-start">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  <span>{t('booking.steps.personal.maxDayNote')}</span>
+                                  <span>Maksimaliai vienai dienai</span>
                                 </div>
                               </div>
                             </div>
@@ -1873,15 +2306,13 @@ export default function BookingForm() {
                         <div className="mb-8 flex items-start">
                           <input 
                             type="checkbox" 
-                            id="terms" 
+                            id="terms-desktop" 
                             className="mt-1 border-sand-beige text-sage-green focus:ring-sage-green rounded" 
                             required 
                           />
-                          <label htmlFor="terms" className="ml-3 text-sm text-graphite-black/70">
-                            {t('booking.steps.personal.termsAgreement')}{' '}
-                            <a href="#" className="text-sage-green hover:underline">{t('booking.steps.personal.termsLink')}</a>{' '}
-                            {t('booking.steps.personal.and')}{' '}
-                            <a href="#" className="text-sage-green hover:underline">{t('booking.steps.personal.privacyLink')}</a>.
+                          <label htmlFor="terms-desktop" className="ml-3 text-sm text-graphite-black/70">
+                            Sutinku su <a href="#" className="text-sage-green hover:underline">nuomos sąlygomis</a> ir{' '}
+                            <a href="#" className="text-sage-green hover:underline">privatumo politika</a>.
                           </label>
                         </div>
                         
@@ -1891,29 +2322,126 @@ export default function BookingForm() {
                             onClick={prevStep}
                             className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
                           >
-                            {t('booking.steps.back')}
+                            Atgal
                           </button>
                           
                           <button 
-                            type="submit" 
-                            className="btn-primary px-6 py-3"
-                            disabled={loading}
-                          >
-                            {loading ? (
-                              <>
-                                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>{t('booking.steps.processing')}</span>
-                              </>
-                            ) : (
-                              <span>{t('booking.steps.complete')}</span>
-                            )}
-                          </button>
+  type="button"  // Changed from "submit" to "button"
+  onClick={nextStep}  // This should go to step 4
+  className="btn-primary px-6 py-3"
+  disabled={loading}
+>
+  <span>Tęsti</span>
+</button>
                         </div>
                       </motion.div>
                     )}
+
+                  {currentStep === 4 && (
+  <motion.div
+    key="step4"
+    variants={formVariants}
+    initial="hidden"
+    animate="visible"
+    exit="exit"
+  >
+    <h3 className="text-xl font-bold mb-6 font-syne">Dokumentų peržiūra ir parašas</h3>
+    
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      {/* Document Review Section */}
+      <div>
+        <DocumentReview
+          documentsAccepted={formData.documentsAccepted}
+          onDocumentAccept={(docId, accepted) => {
+            setFormData(prev => ({
+              ...prev,
+              documentsAccepted: {
+                ...prev.documentsAccepted,
+                [docId]: accepted
+              },
+              documentsReadAt: accepted ? new Date().toISOString() : prev.documentsReadAt
+            }));
+          }}
+          onContinue={() => {}}
+          onBack={() => {}}
+        />
+      </div>
+      
+      {/* Digital Signature Section */}
+      <div>
+        <DigitalSignature
+          signature={formData.digitalSignature}
+          onSignatureComplete={(signature) => {
+            setFormData(prev => ({
+              ...prev,
+              digitalSignature: signature
+            }));
+          }}
+        />
+        
+        {/* Final booking summary for desktop */}
+        <div className="mt-8 p-6 bg-sage-green/5 rounded-lg">
+          <h4 className="font-syne font-bold text-lg mb-4">Galutinė užsakymo suvestinė</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-graphite-black/60">Modelis:</span>
+              <span className="font-medium">{formData.model}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-graphite-black/60">Data:</span>
+              <span className="font-medium">
+                {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : 'Nepasirinkta'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-graphite-black/60">Trukmė:</span>
+              <span className="font-medium">
+                {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
+                 formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 
+                 'Antroji pusė (13:00-18:00)'}
+              </span>
+            </div>
+            <div className="flex justify-between pt-3 border-t border-sage-green/20 text-lg font-bold">
+              <span>Iš viso mokėti:</span>
+              <span className="text-sage-green">€{rentalPrice + 500}</span>
+            </div>
+            <p className="text-xs text-graphite-black/60 mt-2">
+              *Įskaitant €500 užstatą
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div className="flex justify-between mt-8">
+      <button 
+        type="button" 
+        onClick={prevStep}
+        className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
+      >
+        Atgal
+      </button>
+      
+      <button 
+        type="submit" 
+        className="btn-primary px-6 py-3"
+        disabled={loading || !Object.values(formData.documentsAccepted).every(Boolean)}
+      >
+        {loading ? (
+          <>
+            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Pateikiama...</span>
+          </>
+        ) : (
+          <span>Pateikti užsakymą</span>
+        )}
+      </button>
+    </div>
+  </motion.div>
+)}
                   </AnimatePresence>
                 </motion.form>
               )}
@@ -1932,9 +2460,9 @@ export default function BookingForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h4 className="font-syne font-bold mb-2">{t('booking.info.hours.title')}</h4>
+                <h4 className="font-syne font-bold mb-2">Darbo laikas</h4>
                 <p className="text-sm text-graphite-black/70">
-                  {t('booking.info.hours.text')}
+                  Kasdien 9:00 - 18:00. Vespa paėmimas ir grąžinimas pagal susitarimą.
                 </p>
               </div>
               
@@ -1944,9 +2472,9 @@ export default function BookingForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h4 className="font-syne font-bold mb-2">{t('booking.info.payment.title')}</h4>
+                <h4 className="font-syne font-bold mb-2">Mokėjimas</h4>
                 <p className="text-sm text-graphite-black/70">
-                  {t('booking.info.payment.text')}
+                  Priimame korteles ir grynuosius pinigus. Užstatas grąžinamas po nuomos.
                 </p>
               </div>
               
@@ -1956,9 +2484,9 @@ export default function BookingForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
-                <h4 className="font-syne font-bold mb-2">{t('booking.info.license.title')}</h4>
+                <h4 className="font-syne font-bold mb-2">Reikalavimai</h4>
                 <p className="text-sm text-graphite-black/70">
-                  {t('booking.info.license.text')}
+                  Būtinas vairuotojo pažymėjimas ir 21+ metų amžius. Šalmas įskaičiuotas.
                 </p>
               </div>
             </motion.div>
@@ -1970,7 +2498,7 @@ export default function BookingForm() {
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               <p className="text-sm text-graphite-black/60">
-                {t('booking.assistance')} <a href="tel:+37067956380" className="text-sage-green hover:underline">+3706 795 6380</a>
+                Pagalba ar klausimai? <a href="tel:+37067956380" className="text-sage-green hover:underline">+370 679 56380</a>
               </p>
             </motion.div>
           </div>

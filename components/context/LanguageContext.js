@@ -85,6 +85,36 @@ const translations = {
       hideContent: "Hide Details"
     },
 
+    rights: {
+  title: "Your Rights (EU Laws)",
+  subtitle: "Consumer Protection",
+  description: "As a European Union consumer, you are protected by comprehensive laws that ensure fair and transparent rental services.",
+  cancellation: {
+    title: "14-Day Cancellation Right",
+    description: "You can cancel your booking within 14 days without additional charges",
+    badge: "EU Protected"
+  },
+  refund: {
+    title: "Fast Refund Guarantee",
+    description: "In case of cancellation, we will refund the full amount within 7 business days",
+    badge: "7 Days Max"
+  },
+  weather: {
+    title: "Weather Protection",
+    description: "We offer date changes or full refunds due to weather conditions",
+    badge: "Flexible"
+  },
+  privacy: {
+    title: "GDPR Data Protection",
+    description: "Your personal data is protected under GDPR regulations",
+    badge: "Secure"
+  },
+  footer: {
+    title: "Questions About Your Rights?",
+    description: "Our customer service team is here to help you understand and exercise your consumer rights."
+  }
+},
+
    fleet: {
   title: "Our Vespa Fleet",
   subtitle: "Explore Our Collection",
@@ -378,10 +408,10 @@ const translations = {
       totalPayment: "Total Payment",
       paymentDetails: "Payment Details",
       fullPaymentRequired: "• Full payment required upfront",
-      depositIncluded: "• €500 security deposit included",
+      depositIncluded: "• €300 security deposit included",
       depositReturned: "• Deposit returned after scooter inspection",
       paymentMethods: "• Payment methods: Card, Cash, Bank Transfer",
-      depositNote: "Full payment (€{price}) + €500 deposit required. Deposit returned after scooter inspection."
+      depositNote: "Full payment (€{price}) + €300 deposit required. Deposit returned after scooter inspection."
     },
     personal: {
       title: "Personal Information",
@@ -414,7 +444,7 @@ const translations = {
       importantNotes: "Important Notes",
       helmetNote: "1 helmet included, 2nd helmet +€10",
       paymentNote: "Full payment required upfront",
-      depositNote: "€500 deposit returned after inspection",
+      depositNote: "€300 deposit returned after inspection",
       maxDayNote: "Maximum 1 day rental policy",
       termsAgreement: "I agree to the",
       termsLink: "Terms of Service",
@@ -441,7 +471,7 @@ const translations = {
     },
     payment: {
       title: "Payment Policy",
-      text: "Full payment upfront + €500 deposit (returned after inspection)."
+      text: "Full payment upfront + €300 deposit (returned after inspection)."
     },
     license: {
       title: "License Requirements",
@@ -481,6 +511,27 @@ const translations = {
     village: "Fisherman's Village Tour (8 km)",
     custom: "Custom route (describe in message)"
   }
+},
+documents: {
+  title: "Document Review",
+  description: "Please read and confirm these documents",
+  readDocument: "Read Document", 
+  accept: "I Agree",
+  rental: {
+    title: "Rental Agreement"
+  },
+  handover: {
+    title: "Handover Agreement"
+  },
+  safety: {
+    title: "Safety and Responsibility Rules"
+  }
+},
+signature: {
+  title: "Digital Signature",
+  instruction: "Please sign in the field below",
+  clear: "Clear",
+  completed: "Signature Added"
 },
 
     footer: {
@@ -550,7 +601,7 @@ const translations = {
     a3: "To rent a Vespa in Nida, Lithuania, you'll need: a valid driver's license (category AM, A1, A2, A, or B), a valid ID or passport, and a credit card for the security deposit. International visitors to Lithuania need an International Driving Permit along with their original license if it's not in Latin characters.",
     a4: "Yes, the minimum age to rent our Vespas in Nida is 21 years old, and you must have held a valid driver's license for at least 1 year. This age requirement ensures safe exploration of the Curonian Spit's scenic routes.",
     a5: "Yes, we provide DOT-certified helmets for the driver and passenger at no extra charge for all Vespa rentals in Nida. We also offer optional reflective vests and gloves for rent, ensuring your safety while exploring Lithuania's beautiful coastline.",
-    a6: "The security deposit for Vespa rental in Nida is €500 and will be pre-authorized on your credit card at pickup. This amount is fully refunded upon return of the Vespa in its original condition. This is standard practice for premium scooter rentals in Lithuania.",
+    a6: "The security deposit for Vespa rental in Nida is €300€ and will be pre-authorized on your credit card at pickup. This amount is fully refunded upon return of the Vespa in its original condition. This is standard practice for premium scooter rentals in Lithuania.",
     a7: "No prior experience is necessary to rent a Vespa in Nida, but we offer a brief orientation and handling tips before you explore the Curonian Spit. If you've never operated a scooter before, we recommend taking a few minutes to practice in our designated area before heading out to discover Nida's attractions.",
     a8: "Any damage to your Vespa rental in Nida beyond normal wear and tear will be assessed and may be covered by the security deposit. We recommend taking photos of the scooter before departure. For your peace of mind, we offer optional damage insurance for €15/day that reduces your liability while exploring the scenic routes around Nida and the Curonian Spit."
   },
@@ -615,6 +666,36 @@ const translations = {
       showContent: "Apie mus",
       hideContent: "Slėpti detales"
     },
+
+    rights: {
+  title: "Jūsų teisės (ES įstatymai)",
+  subtitle: "Vartotojų apsaugos",
+  description: "Kaip Europos Sąjungos vartotojas, jūs esate apsaugotas visapusiškų įstatymų, kurie užtikrina sąžiningas ir skaidrias nuomos paslaugas.",
+  cancellation: {
+    title: "14 dienų atšaukimo teisė",
+    description: "Galite atšaukti rezervaciją per 14 dienų be papildomų mokesčių",
+    badge: "ES apsauga"
+  },
+  refund: {
+    title: "Greito grąžinimo garantija",
+    description: "Atšaukimo atveju, grąžinsime visą sumą per 7 darbo dienas",
+    badge: "Maks. 7 d."
+  },
+  weather: {
+    title: "Oro sąlygų apsauga",
+    description: "Siūlome datos keitimą arba pilną pinigų grąžinimą dėl oro sąlygų",
+    badge: "Lankstumas"
+  },
+  privacy: {
+    title: "BDAR duomenų apsauga",
+    description: "Jūsų asmeniniai duomenys apsaugoti pagal BDAR reglamentą",
+    badge: "Saugumas"
+  },
+  footer: {
+    title: "Klausimai apie jūsų teises?",
+    description: "Mūsų klientų aptarnavimo komanda padės jums suprasti ir įgyvendinti vartotojų teises."
+  }
+},
 
      fleet: {
   title: "Mūsų Vespa parkas",
@@ -903,10 +984,10 @@ const translations = {
       totalPayment: "Bendras mokėjimas",
       paymentDetails: "Mokėjimo detalės",
       fullPaymentRequired: "• Reikalingas pilnas mokėjimas iš anksto",
-      depositIncluded: "• 500€ užstatas įtrauktas",
+      depositIncluded: "• 300€ užstatas įtrauktas",
       depositReturned: "• Užstatas grąžinamas po skūterio patikros",
       paymentMethods: "• Mokėjimo būdai: Kortelė, Grynieji, Banko pavedimas",
-      depositNote: "Pilnas mokėjimas ({price}€) + 500€ užstatas reikalingas. Užstatas grąžinamas po skūterio patikros."
+      depositNote: "Pilnas mokėjimas ({price}€) + 300€ užstatas reikalingas. Užstatas grąžinamas po skūterio patikros."
     },
     personal: {
       title: "Asmeninė informacija",
@@ -939,7 +1020,7 @@ const translations = {
       importantNotes: "Svarbūs pastebėjimai",
       helmetNote: "1 šalmas įskaičiuotas, 2-as šalmas +10€",
       paymentNote: "Reikalingas pilnas mokėjimas iš anksto",
-      depositNote: "500€ užstatas grąžinamas po patikros",
+      depositNote: "300€ užstatas grąžinamas po patikros",
       maxDayNote: "Maksimaliai 1 dienos nuomos politika",
       termsAgreement: "Sutinku su",
       termsLink: "Paslaugų teikimo sąlygomis",
@@ -966,7 +1047,7 @@ const translations = {
     },
     payment: {
       title: "Mokėjimo politika",
-      text: "Pilnas mokėjimas iš anksto + 500€ užstatas (grąžinamas po patikros)."
+      text: "Pilnas mokėjimas iš anksto + 300€ užstatas (grąžinamas po patikros)."
     },
     license: {
       title: "Pažymėjimo reikalavimai",
@@ -1006,6 +1087,27 @@ const translations = {
     village: "Žvejų kaimo turas (8 km)",
     custom: "Individualus maršrutas (aprašykite žinutėje)"
   }
+},
+documents: {
+  title: "Dokumentų peržiūra",
+  description: "Prašome perskaityti ir patvirtinti šiuos dokumentus",
+  readDocument: "Skaityti dokumentą",
+  accept: "Sutinku",
+  rental: {
+    title: "Nuomos sutartis"
+  },
+  handover: {
+    title: "Perdavimo sutartis"
+  },
+  safety: {
+    title: "Saugumo ir atsakomybių taisyklės"
+  }
+},
+signature: {
+  title: "Skaitmeninis parašas",
+  instruction: "Prašome pasirašyti žemiau esančiame laukelyje",
+  clear: "Išvalyti",
+  completed: "Parašas pridėtas"
 },
 
     footer: {
@@ -1066,7 +1168,7 @@ const translations = {
     safety: "Saugumas"
   },
   questions: {
-    q1: "Kaip užsisakyti Vespa motorolerį Nidoje?",
+    q1: "Kaip užsirezervuoti Vespa motorolerį Nidoje?",
     q2: "Kas nutiks, jei man reikės atšaukti Vespa nuomos rezervaciją?",
     q3: "Kokie dokumentai reikalingi Vespa nuomai Lietuvoje?",
     q4: "Ar yra amžiaus reikalavimas Vespa nuomai Nidoje?",
@@ -1076,12 +1178,12 @@ const translations = {
     q8: "Kas nutiks, jei Vespa bus pažeista nuomos metu Nidoje?"
   },
   answers: {
-    a1: "Vespa motorolerio nuomą Nidoje, Lietuvoje galite lengvai užsisakyti per mūsų internetinę rezervacijos sistemą šioje svetainėje, telefonu +3706 795 6380 arba el. paštu info@vespanida.lt. Esame Kuršių nerijos širdyje ir aptarnaujame visą Nidos rajoną. Rekomenduojame rezervuoti iš anksto, ypač Baltijos vasaros sezono metu (birželis-rugpjūtis).",
+    a1: "Vespa motorolerio nuomą Nidoje, Lietuvoje galite lengvai užsirezervuoti per mūsų internetinę rezervacijos sistemą šioje svetainėje, telefonu +3706 795 6380 arba el. paštu info@vespanida.lt. Esame Kuršių nerijos širdyje, Nidoje, iš kur ir galima nuomotis motorolerius. Rekomenduojame rezervuoti iš anksto, ypač Baltijos vasaros sezono metu (birželis-rugpjūtis).",
     a2: "Vespa nuomos atšaukimams Nidoje, atliekamiem likus mažiausiai 48 valandoms iki numatyto paėmimo laiko, gausite visą grąžinamą sumą. Atšaukimams per 48 valandas taikomas 25% atšaukimo mokestis. Neatvykusiems arba atšaukusiems nuomos dieną pinigai negrąžinami. Ši tvarka užtikrina sąžiningą prieinamumą visiems Nidos lankytojams.",
     a3: "Vespa nuomai Nidoje, Lietuvoje jums reikės: galiojančio vairuotojo pažymėjimo (AM, A1, A2, A arba B kategorijos), galiojančio asmens tapatybės dokumento ar paso ir kredito kortelės užstatui. Tarptautiniams Lietuvos lankytojams reikalingas tarptautinis vairuotojo pažymėjimas kartu su originaliu pažymėjimu, jei jis nėra lotyniškais rašmenimis.",
     a4: "Taip, minimali amžiaus riba mūsų Vespa nuomai Nidoje yra 21 metai, ir turite turėti galiojantį vairuotojo pažymėjimą bent 1 metus. Šis amžiaus reikalavimas užtikrina saugų Kuršių nerijos vaizdingų maršrutų tyrinėjimą.",
     a5: "Taip, visoms Vespa nuomoms Nidoje nemokamai suteikiame DOT sertifikuotus šalmus vairuotojui ir keleiviui. Taip pat siūlome papildomai išsinuomoti atšvaitines liemenes ir pirštines, užtikrindami jūsų saugumą tyrinėjant gražų Lietuvos pajūrį.",
-    a6: "Vespa nuomos užstatas Nidoje yra 500 € ir bus iš anksto patvirtintas jūsų kreditinėje kortelėje paėmimo metu. Ši suma visiškai grąžinama grąžinus Vespa pradinės būklės. Tai įprasta praktika aukščiausios klasės motorolerių nuomai Lietuvoje.",
+    a6: "Vespa nuomos užstatas Nidoje yra 300€ ir bus iš anksto patvirtintas jūsų kreditinėje kortelėje paėmimo metu. Ši suma visiškai grąžinama grąžinus Vespa pradinės būklės. Tai įprasta praktika aukščiausios klasės motorolerių nuomai Lietuvoje.",
     a7: "Ankstesnė patirtis Vespa nuomai Nidoje nebūtina, bet mes siūlome trumpą orientaciją ir valdymo patarimus prieš tyrinėjant Kuršių neriją. Jei anksčiau niekada nevairavote motorolerio, rekomenduojame keletą minučių pasitreniruoti mūsų numatytoje vietoje prieš išvykstant atrasti Nidos patrauklumą.",
     a8: "Bet kokie jūsų Vespa nuomos Nidoje pažeidimai, viršijantys įprastą nusidėvėjimą, bus įvertinti ir gali būti padengti užstatu. Rekomenduojame prieš išvykstant nufotografuoti motorolerį. Jūsų ramybei siūlome papildomą pažeidimų draudimą už 15 €/dieną, kuris sumažina jūsų atsakomybę tyrinėjant vaizdingas trasas aplink Nidą ir Kuršių neriją."
   },
@@ -1144,6 +1246,36 @@ const translations = {
       showContent: "Über uns",
       hideContent: "Details ausblenden"
     },
+
+    rights: {
+  title: "Ihre Rechte (EU-Gesetze)",
+  subtitle: "Verbraucherschutz",
+  description: "Als Verbraucher der Europäischen Union sind Sie durch umfassende Gesetze geschützt, die faire und transparente Mietdienstleistungen gewährleisten.",
+  cancellation: {
+    title: "14-Tage-Widerrufsrecht",
+    description: "Sie können Ihre Buchung innerhalb von 14 Tagen ohne zusätzliche Gebühren stornieren",
+    badge: "EU-Schutz"
+  },
+  refund: {
+    title: "Schnelle Rückerstattungsgarantie",
+    description: "Im Falle einer Stornierung erstatten wir den vollen Betrag innerhalb von 7 Werktagen",
+    badge: "Max. 7 Tage"
+  },
+  weather: {
+    title: "Wetterschutz",
+    description: "Wir bieten Terminänderungen oder vollständige Rückerstattungen bei Wetterbedingungen",
+    badge: "Flexibel"
+  },
+  privacy: {
+    title: "DSGVO-Datenschutz",
+    description: "Ihre persönlichen Daten sind unter DSGVO-Vorschriften geschützt",
+    badge: "Sicher"
+  },
+  footer: {
+    title: "Fragen zu Ihren Rechten?",
+    description: "Unser Kundenservice-Team hilft Ihnen dabei, Ihre Verbraucherrechte zu verstehen und auszuüben."
+  }
+},
 
     fleet: {
   title: "Unsere Vespa Flotte",
@@ -1433,10 +1565,10 @@ const translations = {
       totalPayment: "Gesamtzahlung",
       paymentDetails: "Zahlungsdetails",
       fullPaymentRequired: "• Vollzahlung im Voraus erforderlich",
-      depositIncluded: "• 500€ Kaution inbegriffen",
+      depositIncluded: "• 300€ Kaution inbegriffen",
       depositReturned: "• Kaution nach Rollerinspektion zurückerstattet",
       paymentMethods: "• Zahlungsmethoden: Karte, Bar, Banküberweisung",
-      depositNote: "Vollzahlung ({price}€) + 500€ Kaution erforderlich. Kaution nach Rollerinspektion zurückerstattet."
+      depositNote: "Vollzahlung ({price}€) + 300€ Kaution erforderlich. Kaution nach Rollerinspektion zurückerstattet."
     },
     personal: {
       title: "Persönliche Informationen",
@@ -1469,7 +1601,7 @@ const translations = {
       importantNotes: "Wichtige Hinweise",
       helmetNote: "1 Helm inklusive, 2. Helm +10€",
       paymentNote: "Vollzahlung im Voraus erforderlich",
-      depositNote: "500€ Kaution nach Inspektion zurückerstattet",
+      depositNote: "300€ Kaution nach Inspektion zurückerstattet",
       maxDayNote: "Maximal 1 Tag Mietrichtlinie",
       termsAgreement: "Ich stimme den",
       termsLink: "Nutzungsbedingungen",
@@ -1496,7 +1628,7 @@ const translations = {
     },
     payment: {
       title: "Zahlungsrichtlinie",
-      text: "Vollzahlung im Voraus + 500€ Kaution (nach Inspektion zurückerstattet)."
+      text: "Vollzahlung im Voraus + 300€ Kaution (nach Inspektion zurückerstattet)."
     },
     license: {
       title: "Führerscheinanforderungen",
@@ -1536,6 +1668,27 @@ const translations = {
     village: "Fischerdorf-Tour (8 km)",
     custom: "Individuelle Route (in der Nachricht beschreiben)"
   }
+},
+documents: {
+  title: "Dokumentenprüfung",
+  description: "Bitte lesen und bestätigen Sie diese Dokumente",
+  readDocument: "Dokument lesen",
+  accept: "Ich stimme zu",
+  rental: {
+    title: "Mietvertrag"
+  },
+  handover: {
+    title: "Übergabevertrag"
+  },
+  safety: {
+    title: "Sicherheits- und Verantwortungsregeln"
+  }
+},
+signature: {
+  title: "Digitale Signatur",
+  instruction: "Bitte unterschreiben Sie im Feld unten",
+  clear: "Löschen",
+  completed: "Signatur hinzugefügt"
 },
 
     footer: {
@@ -1610,7 +1763,7 @@ const translations = {
     a3: "Für die Vespa-Miete in Nida, Litauen benötigen Sie: einen gültigen Führerschein (Klasse AM, A1, A2, A oder B), einen gültigen Ausweis oder Reisepass und eine Kreditkarte für die Kaution. Internationale Besucher Litauens benötigen einen internationalen Führerschein zusammen mit ihrem Originalführerschein, wenn dieser nicht in lateinischen Buchstaben geschrieben ist.",
     a4: "Ja, das Mindestalter für die Vespa-Miete in Nida beträgt 21 Jahre, und Sie müssen seit mindestens 1 Jahr im Besitz eines gültigen Führerscheins sein. Diese Altersanforderung gewährleistet eine sichere Erkundung der malerischen Routen der Kurischen Nehrung.",
     a5: "Ja, wir stellen für alle Vespa-Mieten in Nida DOT-zertifizierte Helme für Fahrer und Beifahrer kostenlos zur Verfügung. Wir bieten auch optionale Warnwesten und Handschuhe zur Miete an, um Ihre Sicherheit bei der Erkundung der schönen litauischen Küste zu gewährleisten.",
-    a6: "Die Kaution für die Vespa-Miete in Nida beträgt 500 € und wird bei der Abholung auf Ihrer Kreditkarte vorautorisiert. Dieser Betrag wird bei Rückgabe der Vespa in ihrem ursprünglichen Zustand vollständig zurückerstattet. Dies ist übliche Praxis für Premium-Roller-Vermietungen in Litauen.",
+    a6: "Die Kaution für die Vespa-Miete in Nida beträgt 300€ und wird bei der Abholung auf Ihrer Kreditkarte vorautorisiert. Dieser Betrag wird bei Rückgabe der Vespa in ihrem ursprünglichen Zustand vollständig zurückerstattet. Dies ist übliche Praxis für Premium-Roller-Vermietungen in Litauen.",
     a7: "Keine Vorkenntnisse sind für die Vespa-Miete in Nida erforderlich, aber wir bieten eine kurze Einweisung und Fahrhinweise an, bevor Sie die Kurische Nehrung erkunden. Wenn Sie noch nie einen Roller gefahren sind, empfehlen wir Ihnen, einige Minuten in unserem dafür vorgesehenen Bereich zu üben, bevor Sie losfahren, um Nidas Attraktionen zu entdecken.",
     a8: "Jeder Schaden an Ihrer Vespa-Miete in Nida, der über normale Abnutzung hinausgeht, wird bewertet und kann durch die Kaution abgedeckt werden. Wir empfehlen, vor der Abfahrt Fotos des Rollers zu machen. Für Ihre Sicherheit bieten wir eine optionale Schadensversicherung für 15 €/Tag an, die Ihre Haftung bei der Erkundung der malerischen Routen rund um Nida und die Kurische Nehrung reduziert."
   },
@@ -1674,6 +1827,36 @@ pl: {
       showContent: "O nas",
       hideContent: "Ukryj szczegóły"
     },
+
+    rights: {
+  title: "Twoje prawa (Prawo UE)",
+  subtitle: "Ochrona konsumentów",
+  description: "Jako konsument Unii Europejskiej jesteś chroniony kompleksowymi prawami, które zapewniają uczciwe i przejrzyste usługi wynajmu.",
+  cancellation: {
+    title: "14-dniowe prawo odstąpienia",
+    description: "Możesz anulować rezerwację w ciągu 14 dni bez dodatkowych opłat",
+    badge: "Ochrona UE"
+  },
+  refund: {
+    title: "Gwarancja szybkiego zwrotu",
+    description: "W przypadku anulowania, zwrócimy pełną kwotę w ciągu 7 dni roboczych",
+    badge: "Maks. 7 dni"
+  },
+  weather: {
+    title: "Ochrona pogodowa",
+    description: "Oferujemy zmianę daty lub pełny zwrot z powodu warunków pogodowych",
+    badge: "Elastyczny"
+  },
+  privacy: {
+    title: "Ochrona danych RODO",
+    description: "Twoje dane osobowe są chronione zgodnie z przepisami RODO",
+    badge: "Bezpieczny"
+  },
+  footer: {
+    title: "Pytania o Twoje prawa?",
+    description: "Nasz zespół obsługi klienta pomoże Ci zrozumieć i skorzystać z praw konsumenckich."
+  }
+},
 
     fleet: {
       title: "Nasza flota Vespa",
@@ -1968,10 +2151,10 @@ pl: {
           totalPayment: "Całkowita płatność",
           paymentDetails: "Szczegóły płatności",
           fullPaymentRequired: "• Wymagana pełna płatność z góry",
-          depositIncluded: "• Kaucja zabezpieczająca €500 włączona",
+          depositIncluded: "• Kaucja zabezpieczająca €300€ włączona",
           depositReturned: "• Kaucja zwrócona po kontroli skutera",
           paymentMethods: "• Metody płatności: Karta, Gotówka, Przelew bankowy",
-          depositNote: "Wymagana pełna płatność (€{price}) + kaucja €500. Kaucja zwrócona po kontroli skutera."
+          depositNote: "Wymagana pełna płatność (€{price}) + kaucja €300€. Kaucja zwrócona po kontroli skutera."
         },
         personal: {
           title: "Informacje osobiste",
@@ -2004,7 +2187,7 @@ pl: {
           importantNotes: "Ważne uwagi",
           helmetNote: "1 kask w zestawie, 2. kask +€10",
           paymentNote: "Wymagana pełna płatność z góry",
-          depositNote: "Kaucja €500 zwrócona po kontroli",
+          depositNote: "Kaucja €300€ zwrócona po kontroli",
           maxDayNote: "Polityka maksymalnie 1 dzień wypożyczenia",
           termsAgreement: "Zgadzam się z",
           termsLink: "Warunkami świadczenia usług",
@@ -2031,7 +2214,7 @@ pl: {
         },
         payment: {
           title: "Polityka płatności",
-          text: "Pełna płatność z góry + kaucja €500 (zwrócona po kontroli)."
+          text: "Pełna płatność z góry + kaucja €300€ (zwrócona po kontroli)."
         },
         license: {
           title: "Wymagania dotyczące prawa jazdy",
@@ -2071,6 +2254,27 @@ pl: {
         village: "Wycieczka po wiosce rybackiej (8 km)",
         custom: "Trasa niestandardowa (opisz w wiadomości)"
       }
+    },
+    documents: {
+  title: "Przegląd dokumentów",
+  description: "Proszę przeczytać i potwierdzić te dokumenty",
+  readDocument: "Przeczytaj dokument",
+  accept: "Zgadzam się",
+  rental: {
+    title: "Umowa najmu"
+  },
+  handover: {
+    title: "Umowa przekazania"
+  },
+  safety: {
+    title: "Zasady bezpieczeństwa i odpowiedzialności"
+  }
+},
+signature: {
+  title: "Podpis cyfrowy",
+  instruction: "Proszę podpisać w polu poniżej",
+  clear: "Wyczyść",
+  completed: "Podpis dodany"
     },
 
     footer: {
@@ -2141,7 +2345,7 @@ pl: {
     a3: "Do wypożyczenia Vespa w Nidzie, Litwa będziesz potrzebować: ważnego prawa jazdy (kategoria AM, A1, A2, A lub B), ważnego dowodu osobistego lub paszportu oraz karty kredytowej na kaucję zabezpieczającą. Goście międzynarodowi odwiedzający Litwę potrzebują Międzynarodowego Prawa Jazdy wraz z oryginalnym prawem jazdy, jeśli nie jest w alfabecie łacińskim.",
     a4: "Tak, minimalny wiek do wypożyczenia naszych Vesp w Nidzie to 21 lat, a musisz mieć ważne prawo jazdy przez co najmniej 1 rok. Ten wymóg wiekowy zapewnia bezpieczne odkrywanie malowniczych tras Mierzei Kurońskiej.",
     a5: "Tak, dla wszystkich wypożyczeń Vespa w Nidzie zapewniamy kaski certyfikowane DOT dla kierowcy i pasażera bez dodatkowej opłaty. Oferujemy również opcjonalne kamizelki odblaskowe i rękawiczki do wypożyczenia, zapewniając bezpieczeństwo podczas odkrywania pięknego litewskiego wybrzeża.",
-    a6: "Kaucja za wypożyczenie Vespa w Nidzie wynosi €500 i zostanie pre-autoryzowana na Twojej karcie kredytowej przy odbiorze. Ta kwota jest w pełni zwracana po zwrocie Vespa w oryginalnym stanie. To standardowa praktyka dla wypożyczalni premium skuterów na Litwie.",
+    a6: "Kaucja za wypożyczenie Vespa w Nidzie wynosi €300€ i zostanie pre-autoryzowana na Twojej karcie kredytowej przy odbiorze. Ta kwota jest w pełni zwracana po zwrocie Vespa w oryginalnym stanie. To standardowa praktyka dla wypożyczalni premium skuterów na Litwie.",
     a7: "Wcześniejsze doświadczenie nie jest potrzebne do wypożyczenia Vespa w Nidzie, ale oferujemy krótkie wprowadzenie i wskazówki dotyczące prowadzenia przed odkrywaniem Mierzei Kurońskiej. Jeśli nigdy nie prowadziłeś skutera, zalecamy poświęcenie kilku minut na ćwiczenia w naszym wyznaczonym obszarze przed wyruszeniem na odkrywanie atrakcji Nidy.",
     a8: "Wszelkie uszkodzenia Twojej wypożyczonej Vespa w Nidzie poza normalnym zużyciem zostaną ocenione i mogą być pokryte z kaucji zabezpieczającej. Zalecamy robienie zdjęć skutera przed wyjazdem. Dla Twojego spokoju oferujemy opcjonalne ubezpieczenie od szkód za €15/dzień, które zmniejsza Twoją odpowiedzialność podczas odkrywania malowniczych tras wokół Nidy i Mierzei Kurońskiej."
   },
