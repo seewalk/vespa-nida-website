@@ -44,6 +44,8 @@ export default function CookieConsent() {
     initializeNecessaryCookies();
   };
 
+  
+
   const handleAcceptAll = () => {
     const consent = {
       necessary: true,
@@ -75,6 +77,7 @@ export default function CookieConsent() {
     applyConsent(consent);
     setIsVisible(false);
   };
+  
 
   const handleCustomize = () => {
     setShowDetails(!showDetails);
@@ -109,20 +112,61 @@ export default function CookieConsent() {
   };
 
   const sendConsentToBackend = async (consent) => {
-    try {
-      await fetch('/api/consent-record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...consent,
-          url: typeof window !== 'undefined' ? window.location.href : '',
-          referrer: typeof window !== 'undefined' ? document.referrer : ''
-        })
-      });
-    } catch (error) {
-      console.error('Failed to record consent:', error);
+  console.log('🚀 Sending consent to backend:', consent);
+  console.log('🌍 Current URL:', window.location.href);
+  
+  try {
+    const response = await fetch('/api/consent-record', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        ...consent,
+        url: typeof window !== 'undefined' ? window.location.href : '',
+        referrer: typeof window !== 'undefined' ? document.referrer : ''
+      })
+    });
+    
+    console.log('📊 Response status:', response.status);
+    console.log('📊 Response ok:', response.ok);
+    console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Get response text (works for both success and error)
+    const responseText = await response.text();
+    console.log('📄 Raw response:', responseText);
+    
+    if (!response.ok) {
+      console.error('❌ API Error Details:');
+      console.error('  Status:', response.status);
+      console.error('  Status Text:', response.statusText);
+      console.error('  Response:', responseText);
+      
+      // Try to parse as JSON if possible
+      try {
+        const errorData = JSON.parse(responseText);
+        console.error('  Parsed error:', errorData);
+      } catch (e) {
+        console.error('  Raw error text:', responseText);
+      }
+      
+      return; // Don't throw, just return so popup still closes
     }
-  };
+    
+    // Parse successful response
+    const result = JSON.parse(responseText);
+    console.log('✅ Success response:', result);
+    
+  } catch (error) {
+    console.error('❌ Network/Request Error:');
+    console.error('  Error name:', error.name);
+    console.error('  Error message:', error.message);
+    console.error('  Error stack:', error.stack);
+    
+    // Don't throw - let the popup close normally
+  }
+};
 
   const initializeGoogleAnalytics = () => {
     if (typeof window !== 'undefined' && !window.gtag && process.env.NEXT_PUBLIC_GA_ID) {
@@ -221,7 +265,7 @@ export default function CookieConsent() {
                   onClick={handleCustomize}
                   className="px-4 py-2 border border-graphite-black/20 text-graphite-black rounded-lg hover:bg-graphite-black/5 transition-colors text-sm font-medium"
                 >
-                  {t('cookies.customize', 'Tinkinti')}
+                  {t('cookies.customize', 'Tikrinti')}
                 </button>
                 <button
                   onClick={handleAcceptAll}
