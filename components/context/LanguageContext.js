@@ -59,6 +59,63 @@ const translations = {
       scrollToExplore: "Scroll to explore",
       imageAlt: "Vespa scooter on a scenic coastal road in Nida"
     },
+
+    calendar: {
+  months: {
+    january: 'January',
+    february: 'February',
+    march: 'March',
+    april: 'April',
+    may: 'May',
+    june: 'June',
+    july: 'July',
+    august: 'August',
+    september: 'September',
+    october: 'October',
+    november: 'November',
+    december: 'December'
+  },
+  days: {
+    sunday: 'Sun',
+    monday: 'Mon',
+    tuesday: 'Tue',
+    wednesday: 'Wed',
+    thursday: 'Thu',
+    friday: 'Fri',
+    saturday: 'Sat'
+  },
+  availableScooters: 'Available scooters',
+  units: 'pcs.',
+  legend: {
+    bothAvailable: 'Both scooters available',
+    oneAvailable: '1 scooter available',
+    allBooked: 'All scooters booked'
+  },
+  status: {
+    label: 'Status',
+    pending: 'Pending confirmation',
+    confirmed: 'Confirmed',
+    completed: 'Completed',
+    cancelled: 'Cancelled'
+  },
+  bookingDetails: 'Booking Details',
+  bookingNumber: 'Booking No.',
+  customer: 'Customer',
+  email: 'Email',
+  phone: 'Phone',
+  vespa: 'Vespa',
+  amount: 'Amount',
+  confirm: 'Confirm',
+  cancel: 'Cancel',
+  markCompleted: 'Mark as completed',
+  deleteBooking: 'Delete booking',
+  close: 'Close',
+  bookingUpdated: 'Booking updated successfully!',
+  bookingDeleted: 'Booking deleted successfully!',
+  confirmDelete: 'Are you sure you want to delete this booking?',
+  updateError: 'Error updating booking: ',
+  deleteError: 'Error deleting booking: '
+},
     about: {
       title: "About Vespa Nida",
       subtitle: "Our Story",
@@ -84,6 +141,8 @@ const translations = {
       showContent: "About Us",
       hideContent: "Hide Details"
     },
+
+    
 
     rights: {
   title: "Your Rights (EU Laws)",
@@ -410,7 +469,7 @@ const translations = {
       fullPaymentRequired: "• Full payment required upfront",
       depositIncluded: "• €300 security deposit included",
       depositReturned: "• Deposit returned after scooter inspection",
-      paymentMethods: "• Payment methods: Card, Cash, Bank Transfer",
+      paymentMethods: "• Payment methods: Card",
       depositNote: "Full payment (€{price}) + €300 deposit required. Deposit returned after scooter inspection."
     },
     personal: {
@@ -543,6 +602,7 @@ signature: {
       success: "Thank you for subscribing!"
     },
     description: "Luxury Vespa scooter rentals in Nida, Lithuania. Experience the natural beauty of the Curonian Spit in style and freedom.",
+    descriptionTrademark: "Vespa Nida is an independent rental service, not affiliated with or endorsed by Piaggio & Co S.p.A. or Vespa brand.",
     quickLinks: "Quick Links",
     information: "Information",
     contactUs: "Contact Us",
@@ -574,6 +634,35 @@ signature: {
     },
     viewOnMap: "View on Google Maps"
   },
+
+  cookies: {
+  title: "Cookies",
+  description: "We use cookies to improve your browsing experience, analyze traffic, and provide personalized content.",
+  readPolicy: "Read cookie policy",
+  readPrivacy: "Privacy policy",
+  acceptNecessary: "Necessary only",
+  customize: "Customize",
+  acceptAll: "Accept all",
+  cancel: "Cancel",
+  savePreferences: "Save preferences",
+  necessary: {
+    title: "Necessary cookies",
+    description: "These cookies are essential for the website to function and cannot be disabled."
+  },
+  analytics: {
+    title: "Analytics cookies",
+    description: "Help us understand how visitors use the website."
+  },
+  marketing: {
+    title: "Marketing cookies",
+    description: "Used to display personalized advertising."
+  },
+  preferences: {
+    title: "Preference cookies",
+    description: "Save your choices, such as language."
+  }
+},
+
   faq: {
   title: "Frequently Asked Questions",
   subtitle: "FAQ",
@@ -603,7 +692,7 @@ signature: {
     a5: "Yes, we provide DOT-certified helmets for the driver and passenger at no extra charge for all Vespa rentals in Nida. We also offer optional reflective vests and gloves for rent, ensuring your safety while exploring Lithuania's beautiful coastline.",
     a6: "The security deposit for Vespa rental in Nida is €300€ and will be pre-authorized on your credit card at pickup. This amount is fully refunded upon return of the Vespa in its original condition. This is standard practice for premium scooter rentals in Lithuania.",
     a7: "No prior experience is necessary to rent a Vespa in Nida, but we offer a brief orientation and handling tips before you explore the Curonian Spit. If you've never operated a scooter before, we recommend taking a few minutes to practice in our designated area before heading out to discover Nida's attractions.",
-    a8: "Any damage to your Vespa rental in Nida beyond normal wear and tear will be assessed and may be covered by the security deposit. We recommend taking photos of the scooter before departure. For your peace of mind, we offer optional damage insurance for €15/day that reduces your liability while exploring the scenic routes around Nida and the Curonian Spit."
+    a8: "Any damage to your Vespa rental in Nida beyond normal wear and tear will be assessed and may be covered by the security deposit. We recommend taking photos of the scooter before departure."
   },
   stillHaveQuestions: "Still Have Questions?",
   contactPrompt: "If you didn't find the answer you were looking for, please don't hesitate to contact our team directly."
@@ -641,6 +730,63 @@ signature: {
       scrollToExplore: "Slinkite žemyn",
       imageAlt: "Vespa motoroleris vaizdingiame Nidos kelyje"
     },
+
+    calendar: {
+  months: {
+    january: 'Sausis',
+    february: 'Vasaris',
+    march: 'Kovas',
+    april: 'Balandis',
+    may: 'Gegužė',
+    june: 'Birželis',
+    july: 'Liepa',
+    august: 'Rugpjūtis',
+    september: 'Rugsėjis',
+    october: 'Spalis',
+    november: 'Lapkritis',
+    december: 'Gruodis'
+  },
+  days: {
+    sunday: 'Sek',
+    monday: 'Pir',
+    tuesday: 'Ant',
+    wednesday: 'Tre',
+    thursday: 'Ket',
+    friday: 'Pen',
+    saturday: 'Šeš'
+  },
+  availableScooters: 'Prieinami skuteriai',
+  units: 'vnt.',
+  legend: {
+    bothAvailable: 'Laisvi abu skuteriai',
+    oneAvailable: 'Laisvas 1 skuteris',
+    allBooked: 'Visi skuteriai užimti'
+  },
+  status: {
+    label: 'Būsena',
+    pending: 'Laukia patvirtinimo',
+    confirmed: 'Patvirtinta',
+    completed: 'Baigta',
+    cancelled: 'Atšaukta'
+  },
+  bookingDetails: 'Užsakymo detalės',
+  bookingNumber: 'Užsakymo nr.',
+  customer: 'Klientas',
+  email: 'El. paštas',
+  phone: 'Telefonas',
+  vespa: 'Vespa',
+  amount: 'Suma',
+  confirm: 'Patvirtinti',
+  cancel: 'Atšaukti',
+  markCompleted: 'Pažymėti kaip baigtą',
+  deleteBooking: 'Ištrinti užsakymą',
+  close: 'Uždaryti',
+  bookingUpdated: 'Užsakymas sėkmingai atnaujintas!',
+  bookingDeleted: 'Užsakymas sėkmingai ištrintas!',
+  confirmDelete: 'Ar tikrai norite ištrinti šį užsakymą?',
+  updateError: 'Klaida atnaujinant užsakymą: ',
+  deleteError: 'Klaida trinant užsakymą: '
+},
     about: {
       title: "Apie Vespa Nida",
       subtitle: "Mūsų istorija",
@@ -986,7 +1132,7 @@ signature: {
       fullPaymentRequired: "• Reikalingas pilnas mokėjimas iš anksto",
       depositIncluded: "• 300€ užstatas įtrauktas",
       depositReturned: "• Užstatas grąžinamas po skūterio patikros",
-      paymentMethods: "• Mokėjimo būdai: Kortelė, Grynieji, Banko pavedimas",
+      paymentMethods: "• Mokėjimo būdai: internetu",
       depositNote: "Pilnas mokėjimas ({price}€) + 300€ užstatas reikalingas. Užstatas grąžinamas po skūterio patikros."
     },
     personal: {
@@ -1119,6 +1265,7 @@ signature: {
       success: "Dėkojame už prenumeratą!"
     },
     description: "Prabangių Vespa motorolerių nuoma Nidoje, Lietuvoje. Patirkite Kuršių nerijos gamtos grožį stilingai ir laisvai.",
+    descriptionTrademark: "Vespa Nida yra nepriklausoma nuomos paslauga, nesusijusi su Piaggio & Co S.p.A. ar Vespa prekės ženklu ir jų nereklamuojama.",
     quickLinks: "Greitos nuorodos",
     information: "Informacija",
     contactUs: "Susisiekite su mumis",
@@ -1150,6 +1297,34 @@ signature: {
     },
     viewOnMap: "Žiūrėti Google žemėlapiuose"
   },
+
+  cookies: {
+  title: "Slapukai (Cookies)",
+  description: "Mes naudojame slapukus, kad pagerintume jūsų naršymo patirtį, analizuotume srautą ir suteiktume personalizuotą turinį.",
+  readPolicy: "Skaityti slapukų politiką",
+  readPrivacy: "Privatumo politika",
+  acceptNecessary: "Tik būtini",
+  customize: "Tinkrinti",
+  acceptAll: "Priimti visus",
+  cancel: "Atšaukti",
+  savePreferences: "Išsaugoti nustatymus",
+  necessary: {
+    title: "Būtini slapukai",
+    description: "Šie slapukai yra būtini svetainės veikimui ir negali būti išjungti."
+  },
+  analytics: {
+    title: "Analitikos slapukai",
+    description: "Padeda mums suprasti, kaip lankytojai naudoja svetainę."
+  },
+  marketing: {
+    title: "Rinkodaros slapukai",
+    description: "Naudojami personalizuotos reklamos rodymui."
+  },
+  preferences: {
+    title: "Nustatymų slapukai",
+    description: "Išsaugo jūsų pasirinkimus, pvz., kalbą."
+  }
+},
 
   languageSelector: {
     title: "Pasirinkite kalbą",
@@ -1185,7 +1360,7 @@ signature: {
     a5: "Taip, visoms Vespa nuomoms Nidoje nemokamai suteikiame DOT sertifikuotus šalmus vairuotojui ir keleiviui. Taip pat siūlome papildomai išsinuomoti atšvaitines liemenes ir pirštines, užtikrindami jūsų saugumą tyrinėjant gražų Lietuvos pajūrį.",
     a6: "Vespa nuomos užstatas Nidoje yra 300€ ir bus iš anksto patvirtintas jūsų kreditinėje kortelėje paėmimo metu. Ši suma visiškai grąžinama grąžinus Vespa pradinės būklės. Tai įprasta praktika aukščiausios klasės motorolerių nuomai Lietuvoje.",
     a7: "Ankstesnė patirtis Vespa nuomai Nidoje nebūtina, bet mes siūlome trumpą orientaciją ir valdymo patarimus prieš tyrinėjant Kuršių neriją. Jei anksčiau niekada nevairavote motorolerio, rekomenduojame keletą minučių pasitreniruoti mūsų numatytoje vietoje prieš išvykstant atrasti Nidos patrauklumą.",
-    a8: "Bet kokie jūsų Vespa nuomos Nidoje pažeidimai, viršijantys įprastą nusidėvėjimą, bus įvertinti ir gali būti padengti užstatu. Rekomenduojame prieš išvykstant nufotografuoti motorolerį. Jūsų ramybei siūlome papildomą pažeidimų draudimą už 15 €/dieną, kuris sumažina jūsų atsakomybę tyrinėjant vaizdingas trasas aplink Nidą ir Kuršių neriją."
+    a8: "Bet kokie jūsų Vespa nuomos Nidoje pažeidimai, viršijantys įprastą nusidėvėjimą, bus įvertinti ir gali būti padengti užstatu. Rekomenduojame prieš išvykstant nufotografuoti motorolerį. "
   },
   stillHaveQuestions: "Dar turite klausimų?",
   contactPrompt: "Jei neradote ieškomo atsakymo, nedvejodami kreipkitės tiesiogiai į mūsų komandą."
@@ -1221,6 +1396,62 @@ signature: {
       scrollToExplore: "Scrollen Sie zum Erkunden",
       imageAlt: "Vespa-Roller auf einer malerischen Küstenstraße in Nida"
     },
+calendar: {
+  months: {
+    january: 'Januar',
+    february: 'Februar',
+    march: 'März',
+    april: 'April',
+    may: 'Mai',
+    june: 'Juni',
+    july: 'Juli',
+    august: 'August',
+    september: 'September',
+    october: 'Oktober',
+    november: 'November',
+    december: 'Dezember'
+  },
+  days: {
+    sunday: 'So',
+    monday: 'Mo',
+    tuesday: 'Di',
+    wednesday: 'Mi',
+    thursday: 'Do',
+    friday: 'Fr',
+    saturday: 'Sa'
+  },
+  availableScooters: 'Verfügbare Roller',
+  units: 'Stk.',
+  legend: {
+    bothAvailable: 'Beide Roller verfügbar',
+    oneAvailable: '1 Roller verfügbar',
+    allBooked: 'Alle Roller gebucht'
+  },
+  status: {
+    label: 'Status',
+    pending: 'Bestätigung ausstehend',
+    confirmed: 'Bestätigt',
+    completed: 'Abgeschlossen',
+    cancelled: 'Storniert'
+  },
+  bookingDetails: 'Buchungsdetails',
+  bookingNumber: 'Buchungs-Nr.',
+  customer: 'Kunde',
+  email: 'E-Mail',
+  phone: 'Telefon',
+  vespa: 'Vespa',
+  amount: 'Betrag',
+  confirm: 'Bestätigen',
+  cancel: 'Stornieren',
+  markCompleted: 'Als abgeschlossen markieren',
+  deleteBooking: 'Buchung löschen',
+  close: 'Schließen',
+  bookingUpdated: 'Buchung erfolgreich aktualisiert!',
+  bookingDeleted: 'Buchung erfolgreich gelöscht!',
+  confirmDelete: 'Sind Sie sicher, dass Sie diese Buchung löschen möchten?',
+  updateError: 'Fehler beim Aktualisieren der Buchung: ',
+  deleteError: 'Fehler beim Löschen der Buchung: '
+},
     about: {
       title: "Über Vespa Nida",
       subtitle: "Unsere Geschichte",
@@ -1567,7 +1798,7 @@ signature: {
       fullPaymentRequired: "• Vollzahlung im Voraus erforderlich",
       depositIncluded: "• 300€ Kaution inbegriffen",
       depositReturned: "• Kaution nach Rollerinspektion zurückerstattet",
-      paymentMethods: "• Zahlungsmethoden: Karte, Bar, Banküberweisung",
+      paymentMethods: "• Zahlungsmethoden: Karte",
       depositNote: "Vollzahlung ({price}€) + 300€ Kaution erforderlich. Kaution nach Rollerinspektion zurückerstattet."
     },
     personal: {
@@ -1700,6 +1931,7 @@ signature: {
       success: "Vielen Dank für Ihr Abonnement!"
     },
     description: "Luxuriöse Vespa-Rollermiete in Nida, Litauen. Erleben Sie die natürliche Schönheit der Kurischen Nehrung mit Stil und Freiheit.",
+    descriptionTrademark: "Vespa Nida ist ein unabhängiger Verleihservice, der weder mit Piaggio & Co S.p.A. noch mit der Marke Vespa verbunden oder von diesen unterstützt wird.",
     quickLinks: "Schnellzugriff",
     information: "Information",
     contactUs: "Kontakt",
@@ -1736,6 +1968,34 @@ signature: {
     subtitle: "Wählen Sie Ihre bevorzugte Sprache, um fortzufahren"
   },
 
+  cookies: {
+  title: "Cookies",
+  description: "Wir verwenden Cookies, um Ihr Browsing-Erlebnis zu verbessern, den Verkehr zu analysieren und personalisierte Inhalte bereitzustellen.",
+  readPolicy: "Cookie-Richtlinie lesen",
+  readPrivacy: "Datenschutzrichtlinie",
+  acceptNecessary: "Nur notwendige",
+  customize: "Anpassen",
+  acceptAll: "Alle akzeptieren",
+  cancel: "Abbrechen",
+  savePreferences: "Einstellungen speichern",
+  necessary: {
+    title: "Notwendige Cookies",
+    description: "Diese Cookies sind für das Funktionieren der Website unerlässlich und können nicht deaktiviert werden."
+  },
+  analytics: {
+    title: "Analyse-Cookies",
+    description: "Helfen uns zu verstehen, wie Besucher die Website nutzen."
+  },
+  marketing: {
+    title: "Marketing-Cookies",
+    description: "Werden verwendet, um personalisierte Werbung anzuzeigen."
+  },
+  preferences: {
+    title: "Präferenz-Cookies",
+    description: "Speichern Ihre Auswahl, wie z.B. die Sprache."
+  }
+},
+
   faq: {
   title: "Häufig gestellte Fragen",
   subtitle: "FAQ",
@@ -1765,7 +2025,7 @@ signature: {
     a5: "Ja, wir stellen für alle Vespa-Mieten in Nida DOT-zertifizierte Helme für Fahrer und Beifahrer kostenlos zur Verfügung. Wir bieten auch optionale Warnwesten und Handschuhe zur Miete an, um Ihre Sicherheit bei der Erkundung der schönen litauischen Küste zu gewährleisten.",
     a6: "Die Kaution für die Vespa-Miete in Nida beträgt 300€ und wird bei der Abholung auf Ihrer Kreditkarte vorautorisiert. Dieser Betrag wird bei Rückgabe der Vespa in ihrem ursprünglichen Zustand vollständig zurückerstattet. Dies ist übliche Praxis für Premium-Roller-Vermietungen in Litauen.",
     a7: "Keine Vorkenntnisse sind für die Vespa-Miete in Nida erforderlich, aber wir bieten eine kurze Einweisung und Fahrhinweise an, bevor Sie die Kurische Nehrung erkunden. Wenn Sie noch nie einen Roller gefahren sind, empfehlen wir Ihnen, einige Minuten in unserem dafür vorgesehenen Bereich zu üben, bevor Sie losfahren, um Nidas Attraktionen zu entdecken.",
-    a8: "Jeder Schaden an Ihrer Vespa-Miete in Nida, der über normale Abnutzung hinausgeht, wird bewertet und kann durch die Kaution abgedeckt werden. Wir empfehlen, vor der Abfahrt Fotos des Rollers zu machen. Für Ihre Sicherheit bieten wir eine optionale Schadensversicherung für 15 €/Tag an, die Ihre Haftung bei der Erkundung der malerischen Routen rund um Nida und die Kurische Nehrung reduziert."
+    a8: "Jeder Schaden an Ihrer Vespa-Miete in Nida, der über normale Abnutzung hinausgeht, wird bewertet und kann durch die Kaution abgedeckt werden."
   },
   stillHaveQuestions: "Noch Fragen?",
   contactPrompt: "Wenn Sie die gesuchte Antwort nicht gefunden haben, zögern Sie bitte nicht, unser Team direkt zu kontaktieren."
@@ -1802,6 +2062,63 @@ pl: {
       scrollToExplore: "Przewiń, aby odkryć",
       imageAlt: "Skuter Vespa na malowniczej nadmorskiej drodze w Nidzie"
     },
+
+    calendar: {
+  months: {
+    january: 'Styczeń',
+    february: 'Luty',
+    march: 'Marzec',
+    april: 'Kwiecień',
+    may: 'Maj',
+    june: 'Czerwiec',
+    july: 'Lipiec',
+    august: 'Sierpień',
+    september: 'Wrzesień',
+    october: 'Październik',
+    november: 'Listopad',
+    december: 'Grudzień'
+  },
+  days: {
+    sunday: 'Nd',
+    monday: 'Pn',
+    tuesday: 'Wt',
+    wednesday: 'Śr',
+    thursday: 'Cz',
+    friday: 'Pt',
+    saturday: 'Sb'
+  },
+  availableScooters: 'Dostępne skutery',
+  units: 'szt.',
+  legend: {
+    bothAvailable: 'Oba skutery dostępne',
+    oneAvailable: '1 skuter dostępny',
+    allBooked: 'Wszystkie skutery zajęte'
+  },
+  status: {
+    label: 'Status',
+    pending: 'Oczekuje na potwierdzenie',
+    confirmed: 'Potwierdzone',
+    completed: 'Zakończone',
+    cancelled: 'Anulowane'
+  },
+  bookingDetails: 'Szczegóły rezerwacji',
+  bookingNumber: 'Nr rezerwacji',
+  customer: 'Klient',
+  email: 'E-mail',
+  phone: 'Telefon',
+  vespa: 'Vespa',
+  amount: 'Kwota',
+  confirm: 'Potwierdź',
+  cancel: 'Anuluj',
+  markCompleted: 'Oznacz jako zakończone',
+  deleteBooking: 'Usuń rezerwację',
+  close: 'Zamknij',
+  bookingUpdated: 'Rezerwacja została pomyślnie zaktualizowana!',
+  bookingDeleted: 'Rezerwacja została pomyślnie usunięta!',
+  confirmDelete: 'Czy na pewno chcesz usunąć tę rezerwację?',
+  updateError: 'Błąd podczas aktualizacji rezerwacji: ',
+  deleteError: 'Błąd podczas usuwania rezerwacji: '
+},
     about: {
       title: "O Vespa Nida",
       subtitle: "Nasza historia",
@@ -2153,7 +2470,7 @@ pl: {
           fullPaymentRequired: "• Wymagana pełna płatność z góry",
           depositIncluded: "• Kaucja zabezpieczająca €300€ włączona",
           depositReturned: "• Kaucja zwrócona po kontroli skutera",
-          paymentMethods: "• Metody płatności: Karta, Gotówka, Przelew bankowy",
+          paymentMethods: "• Metody płatności: Karta",
           depositNote: "Wymagana pełna płatność (€{price}) + kaucja €300€. Kaucja zwrócona po kontroli skutera."
         },
         personal: {
@@ -2286,6 +2603,7 @@ signature: {
         success: "Dziękujemy za subskrypcję!"
       },
       description: "Luksusowe wypożyczenie skuterów Vespa w Nidzie, Litwa. Doświadcz naturalnego piękna Mierzei Kurońskiej w stylu i wolności.",
+      descriptionTrademark: "Vespa Nida to niezależna usługa wynajmu, niezwiązana z Piaggio & Co S.p.A. ani marką Vespa i niepopapiena przez te podmioty.",
       quickLinks: "Szybkie linki",
       information: "Informacje",
       contactUs: "Skontaktuj się z nami",
@@ -2318,6 +2636,34 @@ signature: {
       viewOnMap: "Zobacz na Google Maps"
     },
 
+    cookies: {
+  title: "Pliki cookie",
+  description: "Używamy plików cookie, aby poprawić Twoje doświadczenie przeglądania, analizować ruch i dostarczać spersonalizowane treści.",
+  readPolicy: "Przeczytaj politykę cookie",
+  readPrivacy: "Polityka prywatności",
+  acceptNecessary: "Tylko niezbędne",
+  customize: "Dostosuj",
+  acceptAll: "Zaakceptuj wszystkie",
+  cancel: "Anuluj",
+  savePreferences: "Zapisz preferencje",
+  necessary: {
+    title: "Niezbędne pliki cookie",
+    description: "Te pliki cookie są niezbędne do funkcjonowania strony internetowej i nie można ich wyłączyć."
+  },
+  analytics: {
+    title: "Pliki cookie analityczne",
+    description: "Pomagają nam zrozumieć, jak odwiedzający korzystają ze strony internetowej."
+  },
+  marketing: {
+    title: "Pliki cookie marketingowe",
+    description: "Używane do wyświetlania spersonalizowanych reklam."
+  },
+  preferences: {
+    title: "Pliki cookie preferencji",
+    description: "Zapisują Twoje wybory, takie jak język."
+  }
+},
+
     faq: {
   title: "Najczęściej zadawane pytania",
   subtitle: "FAQ",
@@ -2347,7 +2693,7 @@ signature: {
     a5: "Tak, dla wszystkich wypożyczeń Vespa w Nidzie zapewniamy kaski certyfikowane DOT dla kierowcy i pasażera bez dodatkowej opłaty. Oferujemy również opcjonalne kamizelki odblaskowe i rękawiczki do wypożyczenia, zapewniając bezpieczeństwo podczas odkrywania pięknego litewskiego wybrzeża.",
     a6: "Kaucja za wypożyczenie Vespa w Nidzie wynosi €300€ i zostanie pre-autoryzowana na Twojej karcie kredytowej przy odbiorze. Ta kwota jest w pełni zwracana po zwrocie Vespa w oryginalnym stanie. To standardowa praktyka dla wypożyczalni premium skuterów na Litwie.",
     a7: "Wcześniejsze doświadczenie nie jest potrzebne do wypożyczenia Vespa w Nidzie, ale oferujemy krótkie wprowadzenie i wskazówki dotyczące prowadzenia przed odkrywaniem Mierzei Kurońskiej. Jeśli nigdy nie prowadziłeś skutera, zalecamy poświęcenie kilku minut na ćwiczenia w naszym wyznaczonym obszarze przed wyruszeniem na odkrywanie atrakcji Nidy.",
-    a8: "Wszelkie uszkodzenia Twojej wypożyczonej Vespa w Nidzie poza normalnym zużyciem zostaną ocenione i mogą być pokryte z kaucji zabezpieczającej. Zalecamy robienie zdjęć skutera przed wyjazdem. Dla Twojego spokoju oferujemy opcjonalne ubezpieczenie od szkód za €15/dzień, które zmniejsza Twoją odpowiedzialność podczas odkrywania malowniczych tras wokół Nidy i Mierzei Kurońskiej."
+    a8: "Wszelkie uszkodzenia Twojej wypożyczonej Vespa w Nidzie poza normalnym zużyciem zostaną ocenione i mogą być pokryte z kaucji zabezpieczającej. Zalecamy robienie zdjęć skutera przed wyjazdem."
   },
   stillHaveQuestions: "Nadal masz pytania?",
   contactPrompt: "Jeśli nie znalazłeś odpowiedzi, której szukałeś, nie wahaj się skontaktować bezpośrednio z naszym zespołem."

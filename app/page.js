@@ -5,11 +5,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../components/context/LanguageContext';
 import HeroSection from '../components/HeroSection';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import AboutSection from '../components/AboutSection';
 import FleetSection from '../components/FleetSection';
 import ExploreSection from '../components/ExploreSection';
-import ShopSection from '../components/ShopSection';
-import TestimonialsSection from '../components/TestimonialsSection';
 import BookingForm from '../components/BookingForm';
 import FAQSection from '../components/FAQSection';
 import RightsInfoSection from '../components/RightsInfoSection';
@@ -104,6 +104,7 @@ function InlineFAQPreview() {
 export default function Home() {
   return (
     <main>
+      <Header />
       <HeroSection />
       <BookingForm />
       <AboutSection />
@@ -111,10 +112,9 @@ export default function Home() {
       <FleetSection />
       <ExploreSection />
       <InlineFAQPreview /> {/* Add inline FAQ preview */}
-      <ShopSection />
-      <TestimonialsSection />
       <FAQSection />
       <BookingForm />
+      <Footer />
     </main>
   );
 }

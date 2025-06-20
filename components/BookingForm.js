@@ -51,10 +51,13 @@ export default function BookingForm() {
   documentsReadAt: null
   });
   
-  // Calculate min date for the datepicker (tomorrow)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
+  // Calculate min date for the datepicker (tomorrow) - FIXED
+  const getMinDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+  const minDate = getMinDate();
   
   // Calculate rental duration and price
   const [rentalDays, setRentalDays] = useState(0);
@@ -289,15 +292,37 @@ export default function BookingForm() {
     );
   };
 
-  // Calendar date selection handler
-  const handleCalendarDateSelect = (date) => {
-    setFormData(prev => ({
-      ...prev,
-      startDate: date,
-      endDate: date
-    }));
-    setShowDateWarning(false);
+ // Calendar date selection handler - Uses imported validation
+const handleCalendarDateSelect = (date) => {
+  // Create a temporary data object to validate the date
+  const tempData = {
+    ...formData,
+    startDate: date,
+    endDate: date
   };
+  
+  // Use the imported validation function
+  const validation = validateBookingData(tempData);
+  
+  // Check if there are date-specific validation errors
+  const dateErrors = validation.errors.filter(error => 
+    error.includes('Nuomos data') || error.includes('anksčiau nei rytoj')
+  );
+  
+  if (dateErrors.length > 0) {
+    setError(dateErrors[0]); // Show the first date-related error
+    return;
+  }
+  
+  // If validation passes, update the form data
+  setError('');
+  setFormData(prev => ({
+    ...prev,
+    startDate: date,
+    endDate: date
+  }));
+  setShowDateWarning(false);
+};
 
   // Update rental days and price when dates change
   useEffect(() => {
@@ -345,42 +370,43 @@ export default function BookingForm() {
   };
   
   // Enhanced form submission handler with security
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    
-    try {
-      // Sanitize all inputs
-      const sanitizedData = {
-        name: sanitizeString(formData.name),
-        email: sanitizeEmail(formData.email),
-        phone: sanitizePhone(formData.phone),
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        model: sanitizeString(formData.model),
-        route: sanitizeString(formData.route),
-        rentalType: formData.rentalType,
-        additionalHelmet: Boolean(formData.additionalHelmet),
-        age: parseInt(formData.age),
-        drivingLicense: sanitizeString(formData.drivingLicense),
-        message: sanitizeString(formData.message)
-      };
+  // Enhanced form submission handler with security
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+  
+  try {
+    // Sanitize all inputs
+    const sanitizedData = {
+      name: sanitizeString(formData.name),
+      email: sanitizeEmail(formData.email),
+      phone: sanitizePhone(formData.phone),
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      model: sanitizeString(formData.model),
+      route: sanitizeString(formData.route),
+      rentalType: formData.rentalType,
+      additionalHelmet: Boolean(formData.additionalHelmet),
+      age: parseInt(formData.age),
+      drivingLicense: sanitizeString(formData.drivingLicense),
+      message: sanitizeString(formData.message)
+    };
 
-      // Validate data
-      const validation = validateBookingData(sanitizedData);
-      if (!validation.isValid) {
-        setError('Formos tikrinimas nepavyko: ' + validation.errors.join(', '));
-        return;
-      }
+    // Validate data using imported validation
+    const validation = validateBookingData(sanitizedData);
+    if (!validation.isValid) {
+      setError('Formos tikrinimas nepavyko: ' + validation.errors.join(', '));
+      return;
+    }
 
-      // Rate limiting
-      const clientId = sanitizedData.email || 'anonymous';
-      const rateLimitCheck = checkRateLimit(clientId);
-      if (!rateLimitCheck.allowed) {
-        setError('Per daug užsakymo bandymų. Pabandykite vėliau.');
-        return;
-      }
+    // Rate limiting using imported function
+    const clientId = sanitizedData.email || 'anonymous';
+    const rateLimitCheck = checkRateLimit(clientId);
+    if (!rateLimitCheck.allowed) {
+      setError('Per daug užsakymo bandymų. Pabandykite vėliau.');
+      return;
+    }
 
       // Generate secure booking reference
       const timestamp = Date.now();
@@ -411,8 +437,8 @@ export default function BookingForm() {
           basePrice: sanitizedData.rentalType === 'full' ? 59 : 49,
           helmetPrice: sanitizedData.additionalHelmet ? 10 : 0,
           subtotal: rentalPrice,
-          securityDeposit: 500,
-          totalAmount: rentalPrice + 500,
+          securityDeposit: 300,
+          totalAmount: rentalPrice + 300,
         },
         metadata: {
           createdAt: serverTimestamp(),
@@ -492,7 +518,7 @@ export default function BookingForm() {
   // Navigation between form steps
   const nextStep = (e) => {
   e.preventDefault();
-  setCurrentStep(prev => Math.min(prev + 1, 4)); // Changed from 3 to 4
+  setCurrentStep(prev => Math.min(prev + 1, 4));
   document.getElementById('booking-form-steps')?.scrollIntoView({ behavior: 'smooth' });
 };
   
@@ -630,31 +656,8 @@ export default function BookingForm() {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="flex justify-between pt-6">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
-        >
-          {t('back', 'Atgal')}
-        </button>
-        
-        <button
-          type="button"
-          onClick={onContinue}
-          disabled={!allDocumentsAccepted}
-          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            allDocumentsAccepted
-              ? 'bg-sage-green text-white hover:bg-sage-green/90'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          {t('continue', 'Tęsti')}
-        </button>
-      </div>
-    </div>
+      </div>       
+            </div>
   );
 };
 
@@ -676,7 +679,7 @@ const DocumentContent = ({ docId }) => {
       <p><strong>3. PAYMENT AND DEPOSIT</strong></p>
       <ul>
         <li>Full payment required at time of rental</li>
-        <li>Security deposit: €500 (refundable upon return in good condition)</li>
+        <li>Security deposit: €300 (refundable upon return in good condition)</li>
         <li>Payment methods: Cash, credit/debit cards</li>
       </ul>
       
@@ -749,7 +752,7 @@ const DocumentContent = ({ docId }) => {
       <p><strong>4. EMERGENCY PROCEDURES</strong></p>
       <ul>
         <li>Emergency contact: +370 679 56380</li>
-        <li>In case of accident: Contact emergency services (112)</li>
+          <li>In case of accident: Contact emergency services (112)</li>
         <li>Report all incidents to rental company immediately</li>
         <li>Do not attempt repairs yourself</li>
       </ul>
@@ -899,7 +902,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                     <p className="opacity-80 text-sm">{vespaModels[0].color}</p>
                     <div className="text-sm font-bold bg-white/20 px-2 py-0.5 rounded">
                       <span className="line-through opacity-60">€{vespaModels[0].originalPrice}</span>
-                      <span className="ml-1">€{vespaModels[0].price}/diena</span>
+                      <span className="ml-1">€{vespaModels[0].price}/{t('booking.steps.vespa.day', 'diena')}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-white/80">
@@ -947,14 +950,14 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                           </svg>
                         </div>
                         
-                        <h3 className="text-xl font-bold font-syne mb-3">Užsakymas pateiktas!</h3>
+                        <h3 className="text-xl font-bold font-syne mb-3">{t('booking.success.title', 'Užsakymas pateiktas!')}</h3>
                         <p className="text-graphite-black/70 mb-6 text-sm">
-                          Dėkojame už užsakymą. Netrukus susisieksime su jumis.
+                          {t('booking.success.message', 'Dėkojame už užsakymą. Netrukus susisieksime su jumis.')}
                         </p>
                         
                         <div className="p-4 bg-sage-green/5 rounded-lg mb-6 text-xs">
                           <p className="text-graphite-black/70">
-                            Patvirtinimo laiškas išsiųstas į jūsų el. pašto adresą.
+                            {t('booking.success.emailSent', 'Patvirtinimo laiškas išsiųstas į jūsų el. pašto adresą.')}
                           </p>
                         </div>
                         
@@ -962,7 +965,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                           onClick={() => setSuccess(false)} 
                           className="btn-primary text-sm py-3 px-6 w-full mb-3"
                         >
-                          Naujas užsakymas
+                          {t('booking.success.newBooking', 'Naujas užsakymas')}
                         </button>
                       </motion.div>
                     ) : (
@@ -1005,99 +1008,128 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                         <AnimatePresence mode="wait">
                           {/* Step 1: Choose Vespa */}
                           {currentStep === 1 && (
-                            <motion.div
-                              key="step1"
-                              variants={formVariants}
-                              initial="hidden"
-                              animate="visible"
-                              exit="exit"
-                            >
-                              <h3 className="text-lg font-bold mb-4 font-syne">Pasirinkite Vespa</h3>
-                              
-                              <div className="grid grid-cols-1 gap-4 mb-6">
-                                {vespaModels.map((model) => (
-                                  <div 
-                                    key={model.id}
-                                    className={`border rounded-lg p-2 cursor-pointer transition-all duration-300 relative ${
-                                      formData.model === model.name && !model.comingSoon
-                                        ? 'border-sage-green ring-1 ring-sage-green bg-sage-green/5' 
-                                        : model.comingSoon
-                                        ? 'border-sand-beige bg-sand-beige/5 opacity-80'
-                                        : 'border-sand-beige hover:border-sage-green'
-                                    }`}
-                                    onClick={() => !model.comingSoon && setFormData(prev => ({ ...prev, model: model.name }))}
-                                  >
-                                    {/* Coming Soon Badge */}
-                                    {model.comingSoon && (
-                                      <div className="absolute top-2 right-2 z-10 bg-graphite-black/80 text-white px-2 py-0.5 rounded-full text-xs font-bold">
-                                        Netrukus
-                                      </div>
-                                    )}
-                                    
-                                    <div className="flex items-center">
-                                      <div className="relative w-16 h-16 rounded overflow-hidden">
-                                        <Image
-                                          src={model.image}
-                                          alt={model.name}
-                                          fill
-                                          className={`object-cover ${model.comingSoon ? 'opacity-90' : ''}`}
-                                          sizes="64px"
-                                        />
-                                      </div>
-                                      <div className="ml-3 flex-1">
-                                        <div className="flex justify-between items-start">
-                                          <h4 className="font-syne font-bold text-sm">{model.name}</h4>
-                                          <div 
-                                            className="w-3 h-3 rounded-full mt-1" 
-                                            style={{ 
-                                              backgroundColor: model.color === 'Baltas' ? '#F9F7F1' : 
-                                                            model.color === 'Žalias' ? '#9AA89C' : '#E9DCC9' 
-                                            }}
-                                          ></div>
-                                        </div>
-                                        <p className="text-xs text-sage-green">{model.color}</p>
-                                        <div className="flex justify-between items-center mt-1">
-                                          <span className="text-xs text-graphite-black/70">{model.power}</span>
-                                          <div className="text-xs font-bold">
-                                            <span className="line-through text-graphite-black/50">€{model.originalPrice}</span>
-                                            <span className="ml-1 text-sage-green">€{model.price}/diena</span>
-                                          </div>
-                                        </div>
-                                        
-                                        {/* Notify button for Coming Soon models (mobile) */}
-                                        {model.comingSoon && (
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleNotifyClick(model.id);
-                                            }}
-                                            className="mt-2 text-xs text-sage-green flex items-center w-full justify-center py-1 border border-sage-green rounded"
-                                          >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                            </svg>
-                                            Pranešti man
-                                          </button>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              
-                              <button 
-                                type="button" 
-                                onClick={nextStep}
-                                className="btn-primary w-full py-3 text-sm flex items-center justify-center"
-                              >
-                                <span>Tęsti</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                              </button>
-                            </motion.div>
-                          )}
+  <motion.div
+    key="step1"
+    variants={formVariants}
+    initial="hidden"
+    animate="visible"
+    exit="exit"
+  >
+    <h3 className="text-lg font-bold mb-4 font-syne">{t('booking.steps.vespa.title', 'Pasirinkite Vespa')}</h3>
+    
+    <div className="grid grid-cols-1 gap-4 mb-6">
+      {vespaModels.map((model) => (
+        <div 
+          key={model.id}
+          className={`border rounded-lg p-2 cursor-pointer transition-all duration-300 relative ${
+            formData.model === model.name && !model.comingSoon
+              ? 'border-sage-green ring-2 ring-sage-green bg-sage-green/10 shadow-lg' 
+              : model.comingSoon
+              ? 'border-sand-beige bg-sand-beige/5 opacity-80'
+              : modelHovered === model.id
+              ? 'border-sage-green bg-sage-green/8 shadow-lg transform scale-[1.02] ring-1 ring-sage-green/30'
+              : 'border-sand-beige hover:border-sage-green/70 hover:bg-sage-green/5 hover:shadow-md'
+          }`}
+          onClick={() => !model.comingSoon && setFormData(prev => ({ ...prev, model: model.name }))}
+          onMouseEnter={() => setModelHovered(model.id)}
+          onMouseLeave={() => setModelHovered(null)}
+        >
+          {/* Coming Soon Badge */}
+          {model.comingSoon && (
+            <div className="absolute top-2 right-2 z-10 bg-graphite-black/80 text-white px-2 py-0.5 rounded-full text-xs font-bold">
+              {t('booking.comingSoon', 'Netrukus')}
+            </div>
+          )}
+          
+          <div className="flex items-center">
+            <div className={`relative w-16 h-16 rounded overflow-hidden transition-all duration-300 ${
+              modelHovered === model.id ? 'ring-2 ring-sage-green/50' : ''
+            }`}>
+              <Image
+                src={model.image}
+                alt={model.name}
+                fill
+                className={`object-cover transition-all duration-300 ${
+                  model.comingSoon ? 'opacity-90' : 
+                  modelHovered === model.id ? 'scale-110' : 'scale-100'
+                }`}
+                sizes="64px"
+              />
+            </div>
+            <div className="ml-3 flex-1">
+              <div className="flex justify-between items-start">
+                <h4 className={`font-syne font-bold text-sm transition-colors duration-300 ${
+                  modelHovered === model.id ? 'text-sage-green' : ''
+                }`}>
+                  {model.name}
+                </h4>
+                <div 
+                  className={`w-3 h-3 rounded-full mt-1 transition-all duration-300 ${
+                    modelHovered === model.id ? 'scale-125 ring-1 ring-sage-green/30' : ''
+                  }`}
+                  style={{ 
+                    backgroundColor: model.color === 'Baltas' ? '#F9F7F1' : 
+                                  model.color === 'Žalias' ? '#9AA89C' : '#E9DCC9' 
+                  }}
+                ></div>
+              </div>
+              <p className={`text-xs transition-colors duration-300 ${
+                modelHovered === model.id ? 'text-sage-green font-medium' : 'text-sage-green'
+              }`}>
+                {model.color}
+              </p>
+              <div className="flex justify-between items-center mt-1">
+                <span className={`text-xs transition-colors duration-300 ${
+                  modelHovered === model.id ? 'text-graphite-black font-medium' : 'text-graphite-black/70'
+                }`}>
+                  {model.power}
+                </span>
+                <div className={`text-xs font-bold transition-all duration-300 ${
+                  modelHovered === model.id ? 'scale-105' : ''
+                }`}>
+                  <span className="line-through text-graphite-black/50">€{model.originalPrice}</span>
+                  <span className={`ml-1 transition-colors duration-300 ${
+                    modelHovered === model.id ? 'text-sage-green font-extrabold' : 'text-sage-green'
+                  }`}>
+                    €{model.price}/{t('booking.steps.vespa.day', 'diena')}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Notify button for Coming Soon models (mobile) */}
+              {model.comingSoon && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNotifyClick(model.id);
+                  }}
+                  className="mt-2 text-xs text-sage-green flex items-center w-full justify-center py-1 border border-sage-green rounded hover:bg-sage-green/10 transition-colors duration-200"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {t('booking.notify.notifyMe', 'Pranešti man')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+    
+    <button 
+      type="button" 
+      onClick={nextStep}
+      className="btn-primary w-full py-3 text-sm flex items-center justify-center"
+    >
+      <span>{t('booking.steps.continue', 'Tęsti')}</span>
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  </motion.div>
+)}
                           
                           {/* Step 2: Date Selection with Calendar */}
                           {currentStep === 2 && (
@@ -1108,19 +1140,19 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                               animate="visible"
                               exit="exit"
                             >
-                              <h3 className="text-lg font-bold mb-4 font-syne">Pasirinkite datą</h3>
+                              <h3 className="text-lg font-bold mb-4 font-syne">{t('booking.steps.details.title', 'Pasirinkite datą')}</h3>
                               
                               <div className="space-y-4 mb-6">
                                 {/* Calendar Component */}
                                 <div>
-                                  <label className="block mb-2 text-sm font-medium">Nuomos data</label>
+                                  <label className="block mb-2 text-sm font-medium">{t('booking.steps.details.rentalDate', 'Nuomos data')}</label>
                                   <BookingCalendar
                                     selectedDate={formData.startDate}
                                     onDateSelect={handleCalendarDateSelect}
                                     adminMode={false}
                                   />
                                   <p className="mt-2 text-xs text-graphite-black/50">
-                                    Nuomojame tik vienai dienai
+                                    {t('booking.steps.details.maxOneDayNote', 'Nuomojame tik vienai dienai')}
                                   </p>
                                 </div>
 
@@ -1136,9 +1168,9 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                       </svg>
                                       <div>
-                                        <p className="text-sm text-amber-800 font-medium">Pastaba apie datas</p>
+                                        <p className="text-sm text-amber-800 font-medium">{t('booking.steps.details.dateWarningTitle', 'Pastaba apie datas')}</p>
                                         <p className="text-xs text-amber-700 mt-1">
-                                          Šiuo metu nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.
+                                          {t('booking.steps.details.dateWarningText', 'Šiuo metu nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.')}
                                         </p>
                                       </div>
                                     </div>
@@ -1148,7 +1180,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                 {/* Rental Type Selection */}
                                 {formData.startDate && !showDateWarning && (
                                   <div>
-                                    <label className="block mb-2 text-sm font-medium">Nuomos trukmė</label>
+                                    <label className="block mb-2 text-sm font-medium">{t('booking.steps.details.rentalDuration', 'Nuomos trukmė')}</label>
                                     <div className="space-y-2">
                                       <div className="flex items-center p-3 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
                                         <input
@@ -1163,8 +1195,8 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                         <label htmlFor="full-day" className="ml-3 flex-1 cursor-pointer">
                                           <div className="flex justify-between items-center">
                                             <div>
-                                              <p className="text-sm font-medium">Visa diena</p>
-                                              <p className="text-xs text-graphite-black/60">9:00 - 18:00</p>
+                                              <p className="text-sm font-medium">{t('booking.steps.details.fullDay', 'Visa diena')}</p>
+                                              <p className="text-xs text-graphite-black/60">{t('booking.steps.details.fullDayTime', '9:00 - 18:00')}</p>
                                             </div>
                                             <div className="text-sm font-bold">
                                               <span className="line-through text-graphite-black/50">€69</span>
@@ -1187,8 +1219,8 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                         <label htmlFor="morning" className="ml-3 flex-1 cursor-pointer">
                                           <div className="flex justify-between items-center">
                                             <div>
-                                              <p className="text-sm font-medium">Pirmoji dienos pusė</p>
-                                              <p className="text-xs text-graphite-black/60">9:00 - 13:00</p>
+                                              <p className="text-sm font-medium">{t('booking.steps.details.morningHalf', 'Pirmoji dienos pusė')}</p>
+                                              <p className="text-xs text-graphite-black/60">{t('booking.steps.details.morningTime', '9:00 - 13:00')}</p>
                                             </div>
                                             <div className="text-sm font-bold">
                                               <span className="line-through text-graphite-black/50">€59</span>
@@ -1211,8 +1243,8 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                         <label htmlFor="evening" className="ml-3 flex-1 cursor-pointer">
                                           <div className="flex justify-between items-center">
                                             <div>
-                                              <p className="text-sm font-medium">Antroji dienos pusė</p>
-                                              <p className="text-xs text-graphite-black/60">13:00 - 18:00</p>
+                                              <p className="text-sm font-medium">{t('booking.steps.details.eveningHalf', 'Antroji dienos pusė')}</p>
+                                              <p className="text-xs text-graphite-black/60">{t('booking.steps.details.eveningTime', '13:00 - 18:00')}</p>
                                             </div>
                                             <div className="text-sm font-bold">
                                               <span className="line-through text-graphite-black/50">€59</span>
@@ -1228,11 +1260,11 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                 {/* Helmet Selection */}
                                 {formData.startDate && !showDateWarning && (
                                   <div>
-                                    <label className="block mb-2 text-sm font-medium">Šalmų pasirinkimas</label>
+                                    <label className="block mb-2 text-sm font-medium">{t('booking.steps.details.helmetOptions', 'Šalmų pasirinkimas')}</label>
                                     <div className="p-3 bg-sage-green/5 rounded-lg">
                                       <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm">Šalmas įskaičiuotas</span>
-                                        <span className="text-sm font-medium text-sage-green">Nemokamai</span>
+                                        <span className="text-sm">{t('booking.steps.details.helmetIncluded', 'Šalmas įskaičiuotas')}</span>
+                                        <span className="text-sm font-medium text-sage-green">{t('booking.steps.details.helmetFree', 'Nemokamai')}</span>
                                       </div>
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center">
@@ -1245,17 +1277,17 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                             className="text-sage-green border-sand-beige focus:ring-sage-green rounded"
                                           />
                                           <label htmlFor="additionalHelmet" className="ml-2 text-sm">
-                                            Papildomas šalmas
+                                            {t('booking.steps.details.secondHelmet', 'Papildomas šalmas')}
                                           </label>
                                         </div>
-                                        <span className="text-sm font-medium">€10</span>
+                                        <span className="text-sm font-medium">{t('booking.steps.details.helmetPrice', '€10')}</span>
                                       </div>
                                     </div>
                                   </div>
                                 )}
                                 
                                 <div>
-                                  <label htmlFor="route" className="block mb-1 text-sm font-medium">Maršrutas</label>
+                                  <label htmlFor="route" className="block mb-1 text-sm font-medium">{t('booking.steps.details.route', 'Maršrutas')}</label>
                                   <select
                                     id="route"
                                     name="route"
@@ -1263,12 +1295,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     onChange={handleChange}
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                                   >
-                                    <option value="" disabled>Pasirinkite maršrutą</option>
+                                    <option value="" disabled>{t('booking.steps.details.selectRoute', 'Pasirinkite maršrutą')}</option>
                                     {routeOptions.map(route => (
                                       <option key={route.id} value={route.id}>{route.name}</option>
                                     ))}
                                   </select>
-                                  <p className="mt-1 text-xs text-graphite-black/50">GPS navigacija įskaičiuota</p>
+                                  <p className="mt-1 text-xs text-graphite-black/50">{t('booking.steps.details.gpsGuides', 'GPS navigacija įskaičiuota')}</p>
                                 </div>
                               </div>
                               
@@ -1280,30 +1312,30 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                   animate={{ opacity: 1 }}
                                   transition={{ duration: 0.5 }}
                                 >
-                                  <h4 className="font-syne font-bold text-sm mb-2">Nuomos suvestinė</h4>
+                                  <h4 className="font-syne font-bold text-sm mb-2">{t('booking.steps.details.rentalSummary', 'Nuomos suvestinė')}</h4>
                                   <div className="space-y-1 text-xs">
                                     <div className="flex justify-between">
                                       <span>
-                                        {formData.rentalType === 'full' ? 'Visa diena' : 
-                                         formData.rentalType === 'morning' ? 'Pirmoji dienos pusė' : 'Antroji dienos pusė'}
+                                        {formData.rentalType === 'full' ? t('booking.steps.details.fullDay', 'Visa diena') : 
+                                         formData.rentalType === 'morning' ? t('booking.steps.details.morningHalf', 'Pirmoji dienos pusė') : t('booking.steps.details.eveningHalf', 'Antroji dienos pusė')}
                                       </span>
                                       <span>€{formData.rentalType === 'full' ? '59' : '49'}</span>
                                     </div>
                                     
                                     {formData.additionalHelmet && (
                                       <div className="flex justify-between">
-                                        <span>Papildomas šalmas</span>
+                                        <span>{t('booking.steps.details.additionalHelmet', 'Papildomas šalmas')}</span>
                                         <span>€10</span>
                                       </div>
                                     )}
                                     
                                     <div className="flex justify-between font-bold pt-1 border-t border-sage-green/20 mt-1">
-                                      <span>Iš viso</span>
-                                      <span>€{rentalPrice}</span>
+                                      <span>{t('booking.steps.details.total', 'Iš viso')}</span>
+                                      <span>€{rentalPrice} + €300</span>
                                     </div>
                                   </div>
                                   <p className="mt-2 text-2xs text-graphite-black/60">
-                                    *Užstatas €500 bus grąžintas po nuomos
+                                    {t('booking.steps.details.depositNote', '*Užstatas €300 bus grąžintas po nuomos')}
                                   </p>
                                 </motion.div>
                               )}
@@ -1314,7 +1346,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                   onClick={prevStep}
                                   className="px-4 py-2.5 flex-1 border border-sage-green text-sage-green rounded text-sm font-medium"
                                 >
-                                  Atgal
+                                  {t('booking.steps.back', 'Atgal')}
                                 </button>
                                 
                                 <button 
@@ -1325,7 +1357,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                   }`}
                                   disabled={!formData.startDate || showDateWarning}
                                 >
-                                  Tęsti
+                                  {t('booking.steps.continue', 'Tęsti')}
                                 </button>
                               </div>
                             </motion.div>
@@ -1340,11 +1372,11 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                               animate="visible"
                               exit="exit"
                             >
-                              <h3 className="text-lg font-bold mb-4 font-syne">Asmeninė informacija</h3>
+                              <h3 className="text-lg font-bold mb-4 font-syne">{t('booking.steps.personal.title', 'Asmeninė informacija')}</h3>
                               
                               <div className="space-y-4 mb-6">
                                 <div>
-                                  <label htmlFor="name" className="block mb-1 text-sm font-medium">Vardas ir pavardė</label>
+                                  <label htmlFor="name" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.name', 'Vardas ir pavardė')}</label>
                                   <input
                                     type="text"
                                     id="name"
@@ -1353,12 +1385,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     onChange={handleChange}
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                                    placeholder="Vardas Pavardė"
+                                    placeholder={t('booking.steps.personal.namePlaceholder', 'Vardas Pavardė')}
                                   />
                                 </div>
                                 
                                 <div>
-                                  <label htmlFor="email" className="block mb-1 text-sm font-medium">El. paštas</label>
+                                  <label htmlFor="email" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.email', 'El. paštas')}</label>
                                   <input
                                     type="email"
                                     id="email"
@@ -1367,12 +1399,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     onChange={handleChange}
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                                    placeholder="vardas@pavyzdys.lt"
+                                    placeholder={t('booking.steps.personal.emailPlaceholder', 'vardas@pavyzdys.lt')}
                                   />
                                 </div>
                                 
                                 <div>
-                                  <label htmlFor="phone" className="block mb-1 text-sm font-medium">Telefonas</label>
+                                  <label htmlFor="phone" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.phone', 'Telefonas')}</label>
                                   <input
                                     type="tel"
                                     id="phone"
@@ -1381,13 +1413,13 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     onChange={handleChange}
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                                    placeholder="+370 6XX XXXXX"
+                                    placeholder={t('booking.steps.personal.phonePlaceholder', '+370 6XX XXXXX')}
                                   />
-                                  <p className="mt-1 text-xs text-graphite-black/50">SMS patvirtinimui</p>
+                                  <p className="mt-1 text-xs text-graphite-black/50">{t('booking.steps.personal.phoneNote', 'SMS patvirtinimui')}</p>
                                 </div>
 
                                 <div>
-                                  <label htmlFor="age" className="block mb-1 text-sm font-medium">Amžius</label>
+                                  <label htmlFor="age" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.age', 'Amžius')}</label>
                                   <select
                                     id="age"
                                     name="age"
@@ -1396,7 +1428,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                                   >
-                                    <option value="">Pasirinkite amžių</option>
+                                    <option value="">{t('booking.steps.personal.selectAge', 'Pasirinkite amžių')}</option>
                                     {ageOptions.map(age => (
                                       <option key={age} value={age}>{age}</option>
                                     ))}
@@ -1404,7 +1436,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                 </div>
 
                                 <div>
-                                  <label htmlFor="drivingLicense" className="block mb-1 text-sm font-medium">Vairuotojo pažymėjimas</label>
+                                  <label htmlFor="drivingLicense" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.drivingLicense', 'Vairuotojo pažymėjimas')}</label>
                                   <select
                                     id="drivingLicense"
                                     name="drivingLicense"
@@ -1413,7 +1445,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     required
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                                   >
-                                    <option value="">Pasirinkite kategoriją</option>
+                                    <option value="">{t('booking.steps.personal.selectLicense', 'Pasirinkite kategoriją')}</option>
                                     {drivingLicenseOptions.map(license => (
                                       <option key={license.value} value={license.value}>{license.label}</option>
                                     ))}
@@ -1430,12 +1462,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <div className="text-sm">
-                                          <p className="font-medium text-blue-800 mb-1">Vairuotojo pažymėjimo reikalavimai</p>
+                                          <p className="font-medium text-blue-800 mb-1">{t('booking.steps.personal.licenseRequirements', 'Vairuotojo pažymėjimo reikalavimai')}</p>
                                           <p className="text-blue-700 text-xs">
-                                            Lietuvos vairuotojo pažymėjimas arba tarptautinis pažymėjimas.
+                                            {t('booking.steps.personal.licenseNote', 'Lietuvos vairuotojo pažymėjimas arba tarptautinis pažymėjimas.')}
                                           </p>
                                           <p className="text-blue-700 text-xs mt-1">
-                                            Alternatyviai: ES šalių pažymėjimai.
+                                            {t('booking.steps.personal.licenseAlternatives', 'Alternatyviai: ES šalių pažymėjimai.')}
                                           </p>
                                         </div>
                                       </div>
@@ -1444,7 +1476,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                 </div>
                                 
                                 <div>
-                                  <label htmlFor="message" className="block mb-1 text-sm font-medium">Papildoma informacija</label>
+                                  <label htmlFor="message" className="block mb-1 text-sm font-medium">{t('booking.steps.personal.message', 'Papildoma informacija')}</label>
                                   <textarea
                                     id="message"
                                     name="message"
@@ -1452,58 +1484,45 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     onChange={handleChange}
                                     rows="3"
                                     className="w-full px-3 py-2 text-sm border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                                    placeholder="Ypatingi pageidavimai ar klausimai..."
+                                    placeholder={t('booking.steps.personal.messagePlaceholder', 'Ypatingi pageidavimai ar klausimai...')}
                                   ></textarea>
                                 </div>
                               </div>
                               
                               {/* Booking summary */}
                               <div className="mb-6 p-4 bg-sage-green/5 rounded-lg">
-                                <h4 className="font-syne font-bold text-sm mb-3">Užsakymo suvestinė</h4>
+                                <h4 className="font-syne font-bold text-sm mb-3">{t('booking.steps.personal.summary', 'Užsakymo suvestinė')}</h4>
                                 <div className="space-y-2 text-xs">
                                   <div className="flex justify-between">
-                                    <span className="text-graphite-black/60">Modelis:</span>
+                                    <span className="text-graphite-black/60">{t('booking.steps.personal.model', 'Modelis')}:</span>
                                     <span className="font-medium">{formData.model}</span>
                                   </div>
                                   
                                   <div className="flex justify-between">
-                                    <span className="text-graphite-black/60">Trukmė:</span>
+                                    <span className="text-graphite-black/60">{t('booking.steps.personal.duration', 'Trukmė')}:</span>
                                     <span className="font-medium">
-                                      {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
-                                       formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 
-                                       formData.rentalType === 'evening' ? 'Antroji pusė (13:00-18:00)' : 'Nepasirinkta'}
+                                      {formData.rentalType === 'full' ? t('booking.steps.details.fullDay', 'Visa diena') + ' (9:00-18:00)' : 
+                                       formData.rentalType === 'morning' ? t('booking.steps.details.morningHalf', 'Pirmoji pusė') + ' (9:00-13:00)' : 
+                                       formData.rentalType === 'evening' ? t('booking.steps.details.eveningHalf', 'Antroji pusė') + ' (13:00-18:00)' : t('booking.steps.personal.notSelected', 'Nepasirinkta')}
                                     </span>
                                   </div>
                                   
                                   <div className="flex justify-between">
-                                    <span className="text-graphite-black/60">Data:</span>
+                                    <span className="text-graphite-black/60">{t('booking.steps.personal.date', 'Data')}:</span>
                                     <span className="font-medium">
-                                      {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : 'Nepasirinkta'}
+                                      {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : t('booking.steps.personal.notSelected', 'Nepasirinkta')}
                                     </span>
                                   </div>
                                   
                                   <div className="flex justify-between pt-2 border-t border-sage-green/20 mt-1">
-                                    <span className="text-graphite-black/60">Iš viso mokėti:</span>
-                                    <span className="font-bold">€{rentalPrice} + €500</span>
+                                    <span className="text-graphite-black/60">{t('booking.steps.personal.totalPayment', 'Iš viso mokėti')}:</span>
+                                    <span className="font-bold">€{rentalPrice} + €300</span>
                                   </div>
                                   
                                   <p className="text-2xs text-graphite-black/60 mt-2">
-                                    *€500 užstatas grąžinamas po nuomos
+                                    {t('booking.steps.details.depositNote', '*€300 užstatas grąžinamas po nuomos')}
                                   </p>
                                 </div>
-                              </div>
-                              
-                              <div className="mb-6 flex items-start">
-                                <input 
-                                  type="checkbox" 
-                                  id="terms" 
-                                  className="mt-1 border-sand-beige text-sage-green focus:ring-sage-green rounded" 
-                                  required 
-                                />
-                                <label htmlFor="terms" className="ml-3 text-xs text-graphite-black/70">
-                                  Sutinku su <a href="#" className="text-sage-green hover:underline">nuomos sąlygomis</a> ir{' '}
-                                  <a href="#" className="text-sage-green hover:underline">privatumo politika</a>.
-                                </label>
                               </div>
                               
                               <div className="flex space-x-3">
@@ -1512,89 +1531,88 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                   onClick={prevStep}
                                   className="px-4 py-2.5 flex-1 border border-sage-green text-sage-green rounded text-sm font-medium"
                                 >
-                                  Atgal
+                                  {t('booking.steps.back', 'Atgal')}
                                 </button>
                                 
                                 <button 
-  type="button"  // Changed from "submit" to "button"
-  onClick={nextStep}  // Changed from handleSubmit to nextStep
-  className="btn-primary py-2.5 flex-1 text-sm"
-  disabled={loading}
->
-  <span>Tęsti</span>
-</button>
+                                  type="button"
+                                  onClick={nextStep}
+                                  className="btn-primary py-2.5 flex-1 text-sm"
+                                  disabled={loading}
+                                >
+                                  <span>{t('booking.steps.continue', 'Tęsti')}</span>
+                                </button>
                               </div>
                             </motion.div>
                           )}
                           {currentStep === 4 && (
-  <motion.div
-    key="step4"
-    variants={formVariants}
-    initial="hidden"
-    animate="visible"
-    exit="exit"
-  >
-    <DocumentReview
-      documentsAccepted={formData.documentsAccepted}
-      onDocumentAccept={(docId, accepted) => {
-        setFormData(prev => ({
-          ...prev,
-          documentsAccepted: {
-            ...prev.documentsAccepted,
-            [docId]: accepted
-          },
-          documentsReadAt: accepted ? new Date().toISOString() : prev.documentsReadAt
-        }));
-      }}
-      onContinue={() => {
-        // Move to next step or submit form
-        setCurrentStep(prev => prev + 1);
-      }}
-      onBack={prevStep}
-    />
-    
-    <div className="mt-8">
-      <DigitalSignature
-        signature={formData.digitalSignature}
-        onSignatureComplete={(signature) => {
-          setFormData(prev => ({
-            ...prev,
-            digitalSignature: signature
-          }));
-        }}
-      />
-    </div>
+                            <motion.div
+                              key="step4"
+                              variants={formVariants}
+                              initial="hidden"
+                              animate="visible"
+                              exit="exit"
+                            >
+                              <DocumentReview
+                                documentsAccepted={formData.documentsAccepted}
+                                onDocumentAccept={(docId, accepted) => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    documentsAccepted: {
+                                      ...prev.documentsAccepted,
+                                      [docId]: accepted
+                                    },
+                                    documentsReadAt: accepted ? new Date().toISOString() : prev.documentsReadAt
+                                  }));
+                                }}
+                                onContinue={() => {
+                                  setCurrentStep(prev => prev + 1);
+                                }}
+                                onBack={prevStep}
+                              />
+                              
+                              <div className="mt-8">
+                                <DigitalSignature
+                                  signature={formData.digitalSignature}
+                                  onSignatureComplete={(signature) => {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      digitalSignature: signature
+                                    }));
+                                  }}
+                                />
+                              </div>
 
-    {/* Submit button for Step 4 */}
-    <div className="flex space-x-3 mt-8">
-      <button 
-        type="button" 
-        onClick={prevStep}
-        className="px-4 py-2.5 flex-1 border border-sage-green text-sage-green rounded text-sm font-medium"
-      >
-        Atgal
-      </button>
-      
-      <button 
-        type="submit" 
-        className="btn-primary py-2.5 flex-1 text-sm"
-        disabled={loading || !Object.values(formData.documentsAccepted).every(Boolean)}
-      >
-        {loading ? (
-          <>
-            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>Pateikiama...</span>
-          </>
-        ) : (
-          <span>Pateikti užsakymą</span>
-        )}
-      </button>
-    </div>
-  </motion.div>
-)}
+                              {/* Submit button for Step 4 */}
+                              <div className="flex space-x-3 mt-8">
+                                <button 
+                                  type="button" 
+                                  onClick={prevStep}
+                                  className="px-4 py-2.5 flex-1 border border-sage-green text-sage-green rounded text-sm font-medium"
+                                >
+                                  {t('booking.steps.back', 'Atgal')}
+                                </button>
+                                
+                                <button 
+                                  type="submit" 
+                                  className="btn-primary py-2.5 flex-1 text-sm"
+                                  disabled={loading || !Object.values(formData.documentsAccepted).every(Boolean)}
+                                >
+                                  {loading ? (
+                                    <>
+                                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                      </svg>
+                                      <span>{t('booking.steps.processing', 'Pateikiama...')}</span>
+                                    </>
+                                  ) : (
+                                    <span>{t('booking.steps.complete', 'Pateikti užsakymą')}</span>
+                                  )}
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
                         </AnimatePresence>
                       </motion.form>
                     )}
@@ -1614,40 +1632,40 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <div className="flex justify-center items-center">
-  {[1, 2, 3, 4].map((step) => (
-    <div key={step} className="flex items-center">
-      <div 
-        className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
-          currentStep === step 
-            ? 'bg-sage-green text-white' 
-            : currentStep > step ? 'bg-sage-green/20 text-sage-green' 
-            : 'bg-graphite-black/10 text-graphite-black/40'
-        } transition-colors duration-300`}
-      >
-        {currentStep > step ? (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        ) : (
-          step
-        )}
-      </div>
-      
-      <div className={`text-sm mx-3 font-medium ${currentStep === step ? 'text-graphite-black' : 'text-graphite-black/50'}`}>
-        {step === 1 ? 'Vespa pasirinkimas' : 
-         step === 2 ? 'Datos ir detalės' : 
-         step === 3 ? 'Asmeninė informacija' :
-         'Dokumentai ir parašas'}
-      </div>
-      
-     {step < 4 && (
-        <div className={`flex-1 h-0.5 w-12 ${
-          currentStep > step ? 'bg-sage-green' : 'bg-graphite-black/10'
-        }`}></div>
-      )}
-    </div>
-  ))}
-</div>
+                {[1, 2, 3, 4].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div 
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
+                        currentStep === step 
+                          ? 'bg-sage-green text-white' 
+                          : currentStep > step ? 'bg-sage-green/20 text-sage-green' 
+                          : 'bg-graphite-black/10 text-graphite-black/40'
+                      } transition-colors duration-300`}
+                    >
+                      {currentStep > step ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        step
+                      )}
+                    </div>
+                    
+                    <div className={`text-sm mx-3 font-medium ${currentStep === step ? 'text-graphite-black' : 'text-graphite-black/50'}`}>
+                      {step === 1 ? t('booking.steps.vespa.title', 'Vespa pasirinkimas') : 
+                       step === 2 ? t('booking.steps.details.title', 'Datos ir detalės') : 
+                       step === 3 ? t('booking.steps.personal.title', 'Asmeninė informacija') :
+                       'Dokumentai ir parašas'}
+                    </div>
+                    
+                   {step < 4 && (
+                      <div className={`flex-1 h-0.5 w-12 ${
+                        currentStep > step ? 'bg-sage-green' : 'bg-graphite-black/10'
+                      }`}></div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </motion.div>
           
             {/* Success message */}
@@ -1666,14 +1684,14 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                     </svg>
                   </div>
                   
-                  <h3 className="text-3xl font-bold font-syne mb-4">Užsakymas pateiktas sėkmingai!</h3>
+                  <h3 className="text-3xl font-bold font-syne mb-4">{t('booking.success.title', 'Užsakymas pateiktas sėkmingai!')}</h3>
                   <p className="text-lg text-graphite-black/70 mb-8 max-w-md mx-auto">
-                    Dėkojame už užsakymą. Netrukus susisieksime su jumis patvirtinti detales.
+                    {t('booking.success.message', 'Dėkojame už užsakymą. Netrukus susisieksime su jumis patvirtinti detales.')}
                   </p>
                   
                   <div className="p-6 bg-sage-green/5 rounded-lg mb-8">
                     <p className="text-sm text-graphite-black/70">
-                      Patvirtinimo laiškas išsiųstas į jūsų el. pašto adresą.
+                      {t('booking.success.emailSent', 'Patvirtinimo laiškas išsiųstas į jūsų el. pašto adresą.')}
                     </p>
                   </div>
                   
@@ -1682,11 +1700,11 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                       onClick={() => setSuccess(false)} 
                       className="btn-primary"
                     >
-                      Naujas užsakymas
+                      {t('booking.success.newBooking', 'Naujas užsakymas')}
                     </button>
                     
                     <a href="#explore" className="px-6 py-3 border border-sage-green text-sage-green rounded font-medium hover:bg-sage-green/5 transition-colors">
-                      Tyrinėti maršrutus
+                      {t('booking.success.exploreRoutes', 'Tyrinėti maršrutus')}
                     </a>
                   </div>
                 </motion.div>
@@ -1714,128 +1732,173 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                   <AnimatePresence mode="wait">
                     {/* Step 1: Choose Vespa */}
                     {currentStep === 1 && (
-                      <motion.div
-                        key="step1"
-                        variants={formVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                      >
-                        <h3 className="text-xl font-bold mb-6 font-syne">Pasirinkite Vespa modelį</h3>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                          {vespaModels.map((model) => (
-                            <div 
-                              key={model.id}
-                              className={`border rounded-xl p-2 cursor-pointer transition-all duration-300 relative ${
-                                formData.model === model.name && !model.comingSoon
-                                  ? 'border-sage-green ring-1 ring-sage-green bg-sage-green/5' 
-                                  : model.comingSoon
-                                  ? 'border-sand-beige bg-sand-beige/5 opacity-80'
-                                  : 'border-sand-beige hover:border-sage-green'
-                              }`}
-                              onClick={() => !model.comingSoon && setFormData(prev => ({ ...prev, model: model.name }))}
-                              onMouseEnter={() => setModelHovered(model.id)}
-                              onMouseLeave={() => setModelHovered(null)}
-                            >
-                              {/* Coming Soon Badge */}
-                              {model.comingSoon && (
-                                <div className="absolute top-2 right-2 z-10 bg-graphite-black/80 text-white px-3 py-1 rounded-full text-xs font-bold">
-                                  Netrukus
-                                </div>
-                              )}
-                              
-                              <div className="relative h-40 mb-3 rounded-lg overflow-hidden">
-                                <Image
-                                  src={model.image}
-                                  alt={model.name}
-                                  fill
-                                  className={`object-cover ${model.comingSoon ? 'opacity-90' : ''}`}
-                                  sizes="(max-width: 768px) 100vw, 33vw"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                                <div className="absolute bottom-2 right-2 bg-white/90 px-2 py-0.5 rounded text-xs font-bold">
-                                  <span className="line-through opacity-60">€{model.originalPrice}</span>
-                                  <span className="ml-1 text-sage-green">€{model.price}/diena</span>
-                                </div>
-                              </div>
-                              
-                              <div className="px-2">
-                                <div className="flex justify-between items-start">
-                                  <h4 className="font-syne font-bold">{model.name}</h4>
-                                  <div 
-                                    className="w-3 h-3 rounded-full mt-1" 
-                                    style={{ 
-                                      backgroundColor: model.color === 'Baltas' ? '#F9F7F1' : 
-                                                    model.color === 'Žalias' ? '#9AA89C' : '#E9DCC9' 
-                                    }}
-                                  ></div>
-                                </div>
-                                <p className="text-xs text-sage-green mb-2">{model.color}</p>
-                                
-                                <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-graphite-black/70">
-                                  <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                    <span>{model.power}</span>
-                                  </div>
-                                  <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 113 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                                    </svg>
-                                    <span>{model.range}</span>
-                                  </div>
-                                  <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                    </svg>
-                                    <span>{model.maxSpeed}</span>
-                                  </div>
-                                  <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 113 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                                    </svg>
-                                    <span>{model.idealFor}</span>
-                                  </div>
-                                </div>
-                                
-                                {/* Notify button for Coming Soon models (desktop) */}
-                                {model.comingSoon && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleNotifyClick(model.id);
-                                    }}
-                                    className="mt-3 text-sm text-sage-green flex items-center w-full justify-center py-2 border border-sage-green rounded hover:bg-sage-green/5"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                    </svg>
-                                    Pranešti man
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <div className="flex justify-between mt-8">
-                          <div></div> {/* Empty div for spacing */}
-                          <button 
-                            type="button" 
-                            onClick={nextStep}
-                            className="btn-primary flex items-center"
-                          >
-                            <span>Tęsti datos pasirinkimą</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
+  <motion.div
+    key="step1"
+    variants={formVariants}
+    initial="hidden"
+    animate="visible"
+    exit="exit"
+  >
+    <h3 className="text-xl font-bold mb-6 font-syne">{t('booking.steps.vespa.title', 'Pasirinkite Vespa modelį')}</h3>
+    
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {vespaModels.map((model) => (
+        <div 
+          key={model.id}
+          className={`border rounded-xl p-2 cursor-pointer transition-all duration-300 relative ${
+            formData.model === model.name && !model.comingSoon
+              ? 'border-sage-green ring-2 ring-sage-green bg-sage-green/10 shadow-xl' 
+              : model.comingSoon
+              ? 'border-sand-beige bg-sand-beige/5 opacity-80'
+              : modelHovered === model.id
+              ? 'border-sage-green bg-sage-green/8 shadow-xl transform scale-[1.03] ring-1 ring-sage-green/30'
+              : 'border-sand-beige hover:border-sage-green/70 hover:bg-sage-green/5 hover:shadow-lg'
+          }`}
+          onClick={() => !model.comingSoon && setFormData(prev => ({ ...prev, model: model.name }))}
+          onMouseEnter={() => setModelHovered(model.id)}
+          onMouseLeave={() => setModelHovered(null)}
+        >
+          {/* Coming Soon Badge */}
+          {model.comingSoon && (
+            <div className="absolute top-2 right-2 z-10 bg-graphite-black/80 text-white px-3 py-1 rounded-full text-xs font-bold">
+              {t('booking.comingSoon', 'Netrukus')}
+            </div>
+          )}
+          
+          <div className={`relative h-40 mb-3 rounded-lg overflow-hidden transition-all duration-300 ${
+            modelHovered === model.id ? 'ring-2 ring-sage-green/50' : ''
+          }`}>
+            <Image
+              src={model.image}
+              alt={model.name}
+              fill
+              className={`object-cover transition-all duration-500 ${
+                model.comingSoon ? 'opacity-90' : 
+                modelHovered === model.id ? 'scale-110' : 'scale-100'
+              }`}
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+            <div className={`absolute inset-0 bg-gradient-to-t transition-all duration-300 ${
+              modelHovered === model.id ? 'from-black/60 to-transparent' : 'from-black/50 to-transparent'
+            }`}></div>
+            <div className={`absolute bottom-2 right-2 bg-white/90 px-2 py-0.5 rounded text-xs font-bold transition-all duration-300 ${
+              modelHovered === model.id ? 'bg-sage-green text-white scale-105' : ''
+            }`}>
+              <span className={`line-through ${
+                modelHovered === model.id ? 'opacity-70' : 'opacity-60'
+              }`}>
+                €{model.originalPrice}
+              </span>
+              <span className={`ml-1 ${
+                modelHovered === model.id ? 'text-white font-extrabold' : 'text-sage-green'
+              }`}>
+                €{model.price}/{t('booking.steps.vespa.day', 'diena')}
+              </span>
+            </div>
+          </div>
+          
+          <div className="px-2">
+            <div className="flex justify-between items-start">
+              <h4 className={`font-syne font-bold transition-colors duration-300 ${
+                modelHovered === model.id ? 'text-sage-green' : ''
+              }`}>
+                {model.name}
+              </h4>
+              <div 
+                className={`w-3 h-3 rounded-full mt-1 transition-all duration-300 ${
+                  modelHovered === model.id ? 'scale-125 ring-2 ring-sage-green/40' : ''
+                }`}
+                style={{ 
+                  backgroundColor: model.color === 'Baltas' ? '#F9F7F1' : 
+                                model.color === 'Žalias' ? '#9AA89C' : '#E9DCC9' 
+                }}
+              ></div>
+            </div>
+            <p className={`text-xs mb-2 transition-colors duration-300 ${
+              modelHovered === model.id ? 'text-sage-green font-medium' : 'text-sage-green'
+            }`}>
+              {model.color}
+            </p>
+            
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-graphite-black/70">
+              <div className={`flex items-center transition-colors duration-300 ${
+                modelHovered === model.id ? 'text-graphite-black font-medium' : ''
+              }`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 mr-1 transition-colors duration-300 ${
+                  modelHovered === model.id ? 'text-sage-green' : ''
+                }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>{model.power}</span>
+              </div>
+              <div className={`flex items-center transition-colors duration-300 ${
+                modelHovered === model.id ? 'text-graphite-black font-medium' : ''
+              }`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 mr-1 transition-colors duration-300 ${
+                  modelHovered === model.id ? 'text-sage-green' : ''
+                }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 113 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <span>{model.range}</span>
+              </div>
+              <div className={`flex items-center transition-colors duration-300 ${
+                modelHovered === model.id ? 'text-graphite-black font-medium' : ''
+              }`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 mr-1 transition-colors duration-300 ${
+                  modelHovered === model.id ? 'text-sage-green' : ''
+                }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>{model.maxSpeed}</span>
+              </div>
+              <div className={`flex items-center transition-colors duration-300 ${
+                modelHovered === model.id ? 'text-graphite-black font-medium' : ''
+              }`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 mr-1 transition-colors duration-300 ${
+                  modelHovered === model.id ? 'text-sage-green' : ''
+                }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 113 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <span>{model.idealFor}</span>
+              </div>
+            </div>
+            
+            {/* Notify button for Coming Soon models (desktop) */}
+            {model.comingSoon && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNotifyClick(model.id);
+                }}
+                className="mt-3 text-sm text-sage-green flex items-center w-full justify-center py-2 border border-sage-green rounded hover:bg-sage-green/10 transition-colors duration-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {t('booking.notify.notifyMe', 'Pranešti man')}
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+    
+    <div className="flex justify-between mt-8">
+      <div></div> {/* Empty div for spacing */}
+      <button 
+        type="button" 
+        onClick={nextStep}
+        className="btn-primary flex items-center"
+      >
+        <span>{t('booking.steps.continueDates', 'Tęsti datos pasirinkimą')}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </motion.div>
+)}
                     
                     {/* Step 2: Date Selection with Calendar (Desktop) */}
                     {currentStep === 2 && (
@@ -1846,19 +1909,19 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                         animate="visible"
                         exit="exit"
                       >
-                        <h3 className="text-xl font-bold mb-6 font-syne">Pasirinkite datą ir detales</h3>
+                        <h3 className="text-xl font-bold mb-6 font-syne">{t('booking.steps.details.title', 'Pasirinkite datą ir detales')}</h3>
                         
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                           {/* Calendar Section */}
                           <div>
-                            <label className="block mb-3 text-sm font-medium">Nuomos data</label>
+                            <label className="block mb-3 text-sm font-medium">{t('booking.steps.details.rentalDate', 'Nuomos data')}</label>
                             <BookingCalendar
                               selectedDate={formData.startDate}
                               onDateSelect={handleCalendarDateSelect}
                               adminMode={false}
                             />
                             <p className="mt-3 text-sm text-graphite-black/50">
-                              Nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.
+                              {t('booking.steps.details.maxOneDayNote', 'Nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.')}
                             </p>
                           </div>
 
@@ -1876,9 +1939,9 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                   </svg>
                                   <div>
-                                    <p className="text-base text-amber-800 font-medium">Pastaba apie datas</p>
+                                    <p className="text-base text-amber-800 font-medium">{t('booking.steps.details.dateWarningTitle', 'Pastaba apie datas')}</p>
                                     <p className="text-sm text-amber-700 mt-1">
-                                      Šiuo metu nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.
+                                      {t('booking.steps.details.dateWarningText', 'Šiuo metu nuomojame tik vienai dienai. Ilgesnės nuomos klausimais susisiekite telefonu.')}
                                     </p>
                                   </div>
                                 </div>
@@ -1888,7 +1951,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                             {/* Rental Type Selection */}
                             {formData.startDate && !showDateWarning && (
                               <div>
-                                <label className="block mb-3 text-sm font-medium">Nuomos trukmė</label>
+                                <label className="block mb-3 text-sm font-medium">{t('booking.steps.details.rentalDuration', 'Nuomos trukmė')}</label>
                                 <div className="space-y-3">
                                   <div className="flex items-center p-4 border border-sand-beige rounded-lg hover:border-sage-green transition-colors">
                                     <input
@@ -1903,8 +1966,8 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     <label htmlFor="full-day-desktop" className="ml-3 flex-1 cursor-pointer">
                                       <div className="flex justify-between items-center">
                                         <div>
-                                          <p className="font-medium">Visa diena</p>
-                                          <p className="text-sm text-graphite-black/60">9:00 - 18:00</p>
+                                          <p className="font-medium">{t('booking.steps.details.fullDay', 'Visa diena')}</p>
+                                          <p className="text-sm text-graphite-black/60">{t('booking.steps.details.fullDayTime', '9:00 - 18:00')}</p>
                                         </div>
                                         <div className="text-right">
                                           <p className="line-through text-graphite-black/50 text-sm">€69</p>
@@ -1927,8 +1990,8 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     <label htmlFor="morning-desktop" className="ml-3 flex-1 cursor-pointer">
                                       <div className="flex justify-between items-center">
                                         <div>
-                                          <p className="font-medium">Pirmoji dienos pusė</p>
-                                          <p className="text-sm text-graphite-black/60">9:00 - 13:00</p>
+                                          <p className="font-medium">{t('booking.steps.details.morningHalf', 'Pirmoji dienos pusė')}</p>
+                                          <p className="text-sm text-graphite-black/60">{t('booking.steps.details.morningTime', '9:00 - 13:00')}</p>
                                         </div>
                                         <div className="text-right">
                                           <p className="line-through text-graphite-black/50 text-sm">€59</p>
@@ -1951,8 +2014,8 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     <label htmlFor="evening-desktop" className="ml-3 flex-1 cursor-pointer">
                                       <div className="flex justify-between items-center">
                                         <div>
-                                          <p className="font-medium">Antroji dienos pusė</p>
-                                          <p className="text-sm text-graphite-black/60">13:00 - 18:00</p>
+                                          <p className="font-medium">{t('booking.steps.details.eveningHalf', 'Antroji dienos pusė')}</p>
+                                          <p className="text-sm text-graphite-black/60">{t('booking.steps.details.eveningTime', '13:00 - 18:00')}</p>
                                         </div>
                                         <div className="text-right">
                                           <p className="line-through text-graphite-black/50 text-sm">€59</p>
@@ -1968,12 +2031,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                             {/* Helmet Selection */}
                             {formData.startDate && !showDateWarning && (
                               <div>
-                                <label className="block mb-3 text-sm font-medium">Šalmų pasirinkimas</label>
+                                <label className="block mb-3 text-sm font-medium">{t('booking.steps.details.helmetOptions', 'Šalmų pasirinkimas')}</label>
                                 <div className="p-4 bg-sage-green/5 rounded-lg">
                                   <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                      <span className="font-medium">Šalmas įskaičiuotas</span>
-                                      <span className="font-bold text-sage-green">Nemokamai</span>
+                                      <span className="font-medium">{t('booking.steps.details.helmetIncluded', 'Šalmas įskaičiuotas')}</span>
+                                      <span className="font-bold text-sage-green">{t('booking.steps.details.helmetFree', 'Nemokamai')}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center">
@@ -1986,7 +2049,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                           className="text-sage-green border-sand-beige focus:ring-sage-green rounded"
                                         />
                                         <label htmlFor="additionalHelmet-desktop" className="ml-2">
-                                          Papildomas šalmas
+                                          {t('booking.steps.details.secondHelmet', 'Papildomas šalmas')}
                                         </label>
                                       </div>
                                       <span className="font-bold">€10</span>
@@ -1998,7 +2061,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                             
                             {/* Route Selection */}
                             <div>
-                              <label htmlFor="route-desktop" className="block mb-2 text-sm font-medium">Maršrutas</label>
+                              <label htmlFor="route-desktop" className="block mb-2 text-sm font-medium">{t('booking.steps.details.route', 'Maršrutas')}</label>
                               <select
                                 id="route-desktop"
                                 name="route"
@@ -2006,12 +2069,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                 onChange={handleChange}
                                 className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                               >
-                                <option value="" disabled>Pasirinkite maršrutą</option>
+                                <option value="" disabled>{t('booking.steps.details.selectRoute', 'Pasirinkite maršrutą')}</option>
                                 {routeOptions.map(route => (
                                   <option key={route.id} value={route.id}>{route.name}</option>
                                 ))}
                               </select>
-                              <p className="mt-2 text-sm text-graphite-black/50">GPS navigacija įskaičiuota</p>
+                              <p className="mt-2 text-sm text-graphite-black/50">{t('booking.steps.details.gpsGuides', 'GPS navigacija įskaičiuota')}</p>
                             </div>
                           </div>
                         </div>
@@ -2024,47 +2087,47 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.5 }}
                           >
-                            <h4 className="font-syne font-bold text-lg mb-4">Nuomos suvestinė</h4>
+                            <h4 className="font-syne font-bold text-lg mb-4">{t('booking.steps.details.rentalSummary', 'Nuomos suvestinė')}</h4>
                             <div className="grid grid-cols-2 gap-8">
                               <div className="space-y-3">
                                 <div className="flex justify-between">
                                   <span>
-                                    {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
-                                     formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 'Antroji pusė (13:00-18:00)'}
+                                    {formData.rentalType === 'full' ? t('booking.steps.details.fullDay', 'Visa diena') + ' (9:00-18:00)' : 
+                                     formData.rentalType === 'morning' ? t('booking.steps.details.morningHalf', 'Pirmoji pusė') + ' (9:00-13:00)' : t('booking.steps.details.eveningHalf', 'Antroji pusė') + ' (13:00-18:00)'}
                                   </span>
                                   <span>€{formData.rentalType === 'full' ? '59' : '49'}</span>
                                 </div>
                                 
                                 {formData.additionalHelmet && (
                                   <div className="flex justify-between">
-                                    <span>Papildomas šalmas</span>
+                                    <span>{t('booking.steps.details.additionalHelmet', 'Papildomas šalmas')}</span>
                                     <span>€10</span>
                                   </div>
                                 )}
                                 
                                 <div className="flex justify-between font-bold pt-3 border-t border-sage-green/20 mt-2 text-lg">
-                                  <span>Tarpinė suma</span>
+                                  <span>{t('booking.steps.details.subtotal', 'Tarpinė suma')}</span>
                                   <span>€{rentalPrice}</span>
                                 </div>
                                 
                                 <div className="flex justify-between text-sm text-graphite-black/70">
-                                  <span>Užstatas</span>
-                                  <span>€500</span>
+                                  <span>{t('booking.steps.details.securityDeposit', 'Užstatas')}</span>
+                                  <span>€300</span>
                                 </div>
                                 
                                 <div className="flex justify-between font-bold text-xl pt-2 border-t border-sage-green/30">
-                                  <span>Iš viso mokėti</span>
-                                  <span>€{rentalPrice + 500}</span>
+                                  <span>{t('booking.steps.details.totalPayment', 'Iš viso mokėti')}</span>
+                                  <span>€{rentalPrice + 300}</span>
                                 </div>
                               </div>
                               
                               <div className="bg-white/60 p-4 rounded">
-                                <h5 className="font-medium mb-3">Mokėjimo informacija</h5>
+                                <h5 className="font-medium mb-3">{t('booking.steps.details.paymentDetails', 'Mokėjimo informacija')}</h5>
                                 <div className="space-y-2 text-sm text-graphite-black/70">
-                                  <p>Pilnas mokėjimas reikalingas iš anksto</p>
-                                  <p>Užstatas įskaičiuotas į bendrą sumą</p>
-                                  <p>Užstatas grąžinamas po nuomos</p>
-                                  <p>Priimame korteles ir grynuosius</p>
+                                  <p>{t('booking.steps.details.fullPaymentRequired', 'Pilnas mokėjimas reikalingas iš anksto')}</p>
+                                  <p>{t('booking.steps.details.depositIncluded', 'Užstatas įskaičiuotas į bendrą sumą')}</p>
+                                  <p>{t('booking.steps.details.depositReturned', 'Užstatas grąžinamas po nuomos')}</p>
+                                  <p>{t('booking.steps.details.paymentMethods', 'Priimame korteles ir grynuosius')}</p>
                                 </div>
                               </div>
                             </div>
@@ -2077,7 +2140,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                             onClick={prevStep}
                             className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
                           >
-                            Atgal
+                            {t('booking.steps.back', 'Atgal')}
                           </button>
                           
                           <button 
@@ -2088,7 +2151,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                             }`}
                             disabled={!formData.startDate || showDateWarning}
                           >
-                            Tęsti
+                            {t('booking.steps.continue', 'Tęsti')}
                           </button>
                         </div>
                       </motion.div>
@@ -2103,11 +2166,11 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                         animate="visible"
                         exit="exit"
                       >
-                        <h3 className="text-xl font-bold mb-6 font-syne">Asmeninė informacija</h3>
+                        <h3 className="text-xl font-bold mb-6 font-syne">{t('booking.steps.personal.title', 'Asmeninė informacija')}</h3>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
                           <div>
-                            <label htmlFor="name-desktop" className="block mb-2 text-sm font-medium">Vardas ir pavardė</label>
+                            <label htmlFor="name-desktop" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.name', 'Vardas ir pavardė')}</label>
                             <input
                               type="text"
                               id="name-desktop"
@@ -2116,12 +2179,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                               onChange={handleChange}
                               required
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                              placeholder="Vardas Pavardė"
+                              placeholder={t('booking.steps.personal.namePlaceholder', 'Vardas Pavardė')}
                             />
                           </div>
                           
                           <div>
-                            <label htmlFor="email-desktop" className="block mb-2 text-sm font-medium">El. paštas</label>
+                            <label htmlFor="email-desktop" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.email', 'El. paštas')}</label>
                             <input
                               type="email"
                               id="email-desktop"
@@ -2130,12 +2193,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                               onChange={handleChange}
                               required
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                              placeholder="vardas@pavyzdys.lt"
+                              placeholder={t('booking.steps.personal.emailPlaceholder', 'vardas@pavyzdys.lt')}
                             />
                           </div>
                           
                           <div>
-                            <label htmlFor="phone-desktop" className="block mb-2 text-sm font-medium">Telefonas</label>
+                            <label htmlFor="phone-desktop" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.phone', 'Telefonas')}</label>
                             <input
                               type="tel"
                               id="phone-desktop"
@@ -2144,13 +2207,13 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                               onChange={handleChange}
                               required
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                              placeholder="+370 6XX XXXXX"
+                              placeholder={t('booking.steps.personal.phonePlaceholder', '+370 6XX XXXXX')}
                             />
-                            <p className="mt-2 text-sm text-graphite-black/50">SMS patvirtinimui</p>
+                            <p className="mt-2 text-sm text-graphite-black/50">{t('booking.steps.personal.phoneNote', 'SMS patvirtinimui')}</p>
                           </div>
 
                           <div>
-                            <label htmlFor="age-desktop" className="block mb-2 text-sm font-medium">Amžius</label>
+                            <label htmlFor="age-desktop" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.age', 'Amžius')}</label>
                             <select
                               id="age-desktop"
                               name="age"
@@ -2159,7 +2222,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                               required
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                             >
-                              <option value="">Pasirinkite amžių</option>
+                              <option value="">{t('booking.steps.personal.selectAge', 'Pasirinkite amžių')}</option>
                               {ageOptions.map(age => (
                                 <option key={age} value={age}>{age}</option>
                               ))}
@@ -2167,15 +2230,16 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                           </div>
 
                           <div className="md:col-span-2">
-                            <label htmlFor="drivingLicense-desktop" className="block mb-2 text-sm font-medium">Vairuotojo pažymėjimas</label>
+                            <label htmlFor="drivingLicense-desktop" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.drivingLicense', 'Vairuotojo pažymėjimas')}</label>
                             <select
                               id="drivingLicense-desktop"
                               name="drivingLicense"
                               value={formData.drivingLicense}
                               onChange={handleChange}
-                              required                          className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
+                              required                          
+                              className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
                             >
-                              <option value="">Pasirinkite kategoriją</option>
+                              <option value="">{t('booking.steps.personal.selectLicense', 'Pasirinkite kategoriją')}</option>
                               {drivingLicenseOptions.map(license => (
                                 <option key={license.value} value={license.value}>{license.label}</option>
                               ))}
@@ -2192,12 +2256,12 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
                                   <div>
-                                    <p className="font-medium text-blue-800 mb-2">Vairuotojo pažymėjimo reikalavimai</p>
+                                    <p className="font-medium text-blue-800 mb-2">{t('booking.steps.personal.licenseRequirements', 'Vairuotojo pažymėjimo reikalavimai')}</p>
                                     <p className="text-blue-700 text-sm mb-2">
-                                      Lietuvos vairuotojo pažymėjimas arba tarptautinis pažymėjimas.
+                                      {t('booking.steps.personal.licenseNote', 'Lietuvos vairuotojo pažymėjimas arba tarptautinis pažymėjimas.')}
                                     </p>
                                     <p className="text-blue-700 text-sm">
-                                      Alternatyviai: ES šalių pažymėjimai.
+                                      {t('booking.steps.personal.licenseAlternatives', 'Alternatyviai: ES šalių pažymėjimai.')}
                                     </p>
                                   </div>
                                 </div>
@@ -2206,7 +2270,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                           </div>
                           
                           <div className="md:col-span-2">
-                            <label htmlFor="message-desktop" className="block mb-2 text-sm font-medium">Papildoma informacija</label>
+                            <label htmlFor="message-desktop" className="block mb-2 text-sm font-medium">{t('booking.steps.personal.message', 'Papildoma informacija')}</label>
                             <textarea
                               id="message-desktop"
                               name="message"
@@ -2214,106 +2278,93 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                               onChange={handleChange}
                               rows="4"
                               className="w-full px-4 py-3 text-base border border-sand-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-green/50 focus:border-sage-green"
-                              placeholder="Ypatingi pageidavimai ar klausimai..."
+                              placeholder={t('booking.steps.personal.messagePlaceholder', 'Ypatingi pageidavimai ar klausimai...')}
                             ></textarea>
                           </div>
                         </div>
                         
                         {/* Booking summary */}
                         <div className="mb-8 p-6 bg-sage-green/5 rounded-lg">
-                          <h4 className="font-syne font-bold text-lg mb-4">Užsakymo suvestinė</h4>
+                          <h4 className="font-syne font-bold text-lg mb-4">{t('booking.steps.personal.summary', 'Užsakymo suvestinė')}</h4>
                           <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-3">
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">Modelis:</span>
+                                <span className="text-graphite-black/60">{t('booking.steps.personal.model', 'Modelis')}:</span>
                                 <span className="font-medium">{formData.model}</span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">Trukmė:</span>
+                                <span className="text-graphite-black/60">{t('booking.steps.personal.duration', 'Trukmė')}:</span>
                                 <span className="font-medium">
-                                  {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
-                                   formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 
-                                   formData.rentalType === 'evening' ? 'Antroji pusė (13:00-18:00)' : 'Nepasirinkta'}
+                                  {formData.rentalType === 'full' ? t('booking.steps.details.fullDay', 'Visa diena') + ' (9:00-18:00)' : 
+                                   formData.rentalType === 'morning' ? t('booking.steps.details.morningHalf', 'Pirmoji pusė') + ' (9:00-13:00)' : 
+                                   formData.rentalType === 'evening' ? t('booking.steps.details.eveningHalf', 'Antroji pusė') + ' (13:00-18:00)' : t('booking.steps.personal.notSelected', 'Nepasirinkta')}
                                 </span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">Data:</span>
+                                <span className="text-graphite-black/60">{t('booking.steps.personal.date', 'Data')}:</span>
                                 <span className="font-medium">
-                                  {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : 'Nepasirinkta'}
+                                  {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : t('booking.steps.personal.notSelected', 'Nepasirinkta')}
                                 </span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">Amžius:</span>
-                                <span className="font-medium">{formData.age || 'Nepasirinkta'}</span>
+                                <span className="text-graphite-black/60">{t('booking.steps.personal.age', 'Amžius')}:</span>
+                                <span className="font-medium">{formData.age || t('booking.steps.personal.notSelected', 'Nepasirinkta')}</span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">Pažymėjimas:</span>
-                                <span className="font-medium">{formData.drivingLicense || 'Nepasirinkta'}</span>
+                                <span className="text-graphite-black/60">{t('booking.steps.personal.license', 'Pažymėjimas')}:</span>
+                                <span className="font-medium">{formData.drivingLicense || t('booking.steps.personal.notSelected', 'Nepasirinkta')}</span>
                               </div>
                               
                               <div className="flex justify-between pt-3 border-t border-sage-green/20 mt-2">
-                                <span className="text-graphite-black/60">Tarpinė suma:</span>
+                                <span className="text-graphite-black/60">{t('booking.steps.personal.subtotal', 'Tarpinė suma')}:</span>
                                 <span className="font-bold">€{rentalPrice}</span>
                               </div>
                               
                               <div className="flex justify-between">
-                                <span className="text-graphite-black/60">Užstatas:</span>
-                                <span className="font-bold">€500</span>
+                                <span className="text-graphite-black/60">{t('booking.steps.personal.securityDeposit', 'Užstatas')}:</span>
+                                <span className="font-bold">€300</span>
                               </div>
                               
                               <div className="flex justify-between pt-2 border-t border-sage-green/30 text-lg">
-                                <span className="text-graphite-black/60">Iš viso mokėti:</span>
-                                <span className="font-bold">€{rentalPrice + 500}</span>
+                                <span className="text-graphite-black/60">{t('booking.steps.personal.totalPayment', 'Iš viso mokėti')}:</span>
+                                <span className="font-bold">€{rentalPrice + 300}</span>
                               </div>
                             </div>
                             
                             <div className="bg-white/60 p-4 rounded">
-                              <h5 className="font-medium mb-3">Svarbūs priminjimai</h5>
+                              <h5 className="font-medium mb-3">{t('booking.steps.personal.importantNotes', 'Svarbūs priminimai')}</h5>
                               <div className="space-y-2 text-sm text-graphite-black/70">
                                 <div className="flex items-start">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  <span>Šalmas įskaičiuotas į kainą</span>
+                                  <span>{t('booking.steps.personal.helmetNote', 'Šalmas įskaičiuotas į kainą')}</span>
                                 </div>
                                 <div className="flex items-start">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  <span>Mokėjimas kartele arba grynaisiais</span>
+                                  <span>{t('booking.steps.personal.paymentNote', 'Mokėjimas kortele arba grynaisiais')}</span>
                                 </div>
                                 <div className="flex items-start">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  <span>Užstatas grąžinamas po nuomos</span>
+                                  <span>{t('booking.steps.personal.depositNote', 'Užstatas grąžinamas po motorolerio gražinimo, apžiūros ir įvertinimo')}</span>
                                 </div>
                                 <div className="flex items-start">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sage-green mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  <span>Maksimaliai vienai dienai</span>
+                                  <span>{t('booking.steps.personal.maxDayNote', 'Maksimaliai vienai dienai')}</span>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        
-                        <div className="mb-8 flex items-start">
-                          <input 
-                            type="checkbox" 
-                            id="terms-desktop" 
-                            className="mt-1 border-sand-beige text-sage-green focus:ring-sage-green rounded" 
-                            required 
-                          />
-                          <label htmlFor="terms-desktop" className="ml-3 text-sm text-graphite-black/70">
-                            Sutinku su <a href="#" className="text-sage-green hover:underline">nuomos sąlygomis</a> ir{' '}
-                            <a href="#" className="text-sage-green hover:underline">privatumo politika</a>.
-                          </label>
                         </div>
                         
                         <div className="flex justify-between mt-8">
@@ -2322,126 +2373,126 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                             onClick={prevStep}
                             className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
                           >
-                            Atgal
+                            {t('booking.steps.back', 'Atgal')}
                           </button>
                           
                           <button 
-  type="button"  // Changed from "submit" to "button"
-  onClick={nextStep}  // This should go to step 4
-  className="btn-primary px-6 py-3"
-  disabled={loading}
->
-  <span>Tęsti</span>
-</button>
+                            type="button"
+                            onClick={nextStep}
+                            className="btn-primary px-6 py-3"
+                            disabled={loading}
+                          >
+                            <span>{t('booking.steps.continue', 'Tęsti')}</span>
+                          </button>
                         </div>
                       </motion.div>
                     )}
 
                   {currentStep === 4 && (
-  <motion.div
-    key="step4"
-    variants={formVariants}
-    initial="hidden"
-    animate="visible"
-    exit="exit"
-  >
-    <h3 className="text-xl font-bold mb-6 font-syne">Dokumentų peržiūra ir parašas</h3>
-    
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-      {/* Document Review Section */}
-      <div>
-        <DocumentReview
-          documentsAccepted={formData.documentsAccepted}
-          onDocumentAccept={(docId, accepted) => {
-            setFormData(prev => ({
-              ...prev,
-              documentsAccepted: {
-                ...prev.documentsAccepted,
-                [docId]: accepted
-              },
-              documentsReadAt: accepted ? new Date().toISOString() : prev.documentsReadAt
-            }));
-          }}
-          onContinue={() => {}}
-          onBack={() => {}}
-        />
-      </div>
-      
-      {/* Digital Signature Section */}
-      <div>
-        <DigitalSignature
-          signature={formData.digitalSignature}
-          onSignatureComplete={(signature) => {
-            setFormData(prev => ({
-              ...prev,
-              digitalSignature: signature
-            }));
-          }}
-        />
-        
-        {/* Final booking summary for desktop */}
-        <div className="mt-8 p-6 bg-sage-green/5 rounded-lg">
-          <h4 className="font-syne font-bold text-lg mb-4">Galutinė užsakymo suvestinė</h4>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-graphite-black/60">Modelis:</span>
-              <span className="font-medium">{formData.model}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-graphite-black/60">Data:</span>
-              <span className="font-medium">
-                {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : 'Nepasirinkta'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-graphite-black/60">Trukmė:</span>
-              <span className="font-medium">
-                {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
-                 formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 
-                 'Antroji pusė (13:00-18:00)'}
-              </span>
-            </div>
-            <div className="flex justify-between pt-3 border-t border-sage-green/20 text-lg font-bold">
-              <span>Iš viso mokėti:</span>
-              <span className="text-sage-green">€{rentalPrice + 500}</span>
-            </div>
-            <p className="text-xs text-graphite-black/60 mt-2">
-              *Įskaitant €500 užstatą
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div className="flex justify-between mt-8">
-      <button 
-        type="button" 
-        onClick={prevStep}
-        className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
-      >
-        Atgal
-      </button>
-      
-      <button 
-        type="submit" 
-        className="btn-primary px-6 py-3"
-        disabled={loading || !Object.values(formData.documentsAccepted).every(Boolean)}
-      >
-        {loading ? (
-          <>
-            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>Pateikiama...</span>
-          </>
-        ) : (
-          <span>Pateikti užsakymą</span>
-        )}
-      </button>
-    </div>
-  </motion.div>
-)}
+                    <motion.div
+                      key="step4"
+                      variants={formVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                    >
+                      <h3 className="text-xl font-bold mb-6 font-syne">Dokumentų peržiūra ir parašas</h3>
+                      
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        {/* Document Review Section */}
+                        <div>
+                          <DocumentReview
+                            documentsAccepted={formData.documentsAccepted}
+                            onDocumentAccept={(docId, accepted) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                documentsAccepted: {
+                                  ...prev.documentsAccepted,
+                                  [docId]: accepted
+                                },
+                                documentsReadAt: accepted ? new Date().toISOString() : prev.documentsReadAt
+                              }));
+                            }}
+                            onContinue={() => {}}
+                            onBack={() => {}}
+                          />
+                        </div>
+                        
+                        {/* Digital Signature Section */}
+                        <div>
+                          <DigitalSignature
+                            signature={formData.digitalSignature}
+                            onSignatureComplete={(signature) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                digitalSignature: signature
+                              }));
+                            }}
+                          />
+                          
+                          {/* Final booking summary for desktop */}
+                          <div className="mt-8 p-6 bg-sage-green/5 rounded-lg">
+                            <h4 className="font-syne font-bold text-lg mb-4">Galutinė užsakymo suvestinė</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-graphite-black/60">Modelis:</span>
+                                <span className="font-medium">{formData.model}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-graphite-black/60">Data:</span>
+                                <span className="font-medium">
+                                  {formData.startDate ? new Date(formData.startDate).toLocaleDateString('lt-LT') : 'Nepasirinkta'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-graphite-black/60">Trukmė:</span>
+                                <span className="font-medium">
+                                  {formData.rentalType === 'full' ? 'Visa diena (9:00-18:00)' : 
+                                   formData.rentalType === 'morning' ? 'Pirmoji pusė (9:00-13:00)' : 
+                                   'Antroji pusė (13:00-18:00)'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between pt-3 border-t border-sage-green/20 text-lg font-bold">
+                                <span>Iš viso mokėti:</span>
+                                <span className="text-sage-green">€{rentalPrice + 300}</span>
+                              </div>
+                              <p className="text-xs text-graphite-black/60 mt-2">
+                                *Įskaitant €300 užstatą
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between mt-8">
+                        <button 
+                          type="button" 
+                          onClick={prevStep}
+                          className="px-6 py-3 border border-sage-green text-sage-green rounded-lg font-medium hover:bg-sage-green/5 transition-colors"
+                        >
+                          {t('booking.steps.back', 'Atgal')}
+                        </button>
+                        
+                        <button 
+                          type="submit" 
+                          className="btn-primary px-6 py-3"
+                          disabled={loading || !Object.values(formData.documentsAccepted).every(Boolean)}
+                        >
+                          {loading ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>{t('booking.steps.processing', 'Pateikiama...')}</span>
+                            </>
+                          ) : (
+                            <span>{t('booking.steps.complete', 'Pateikti užsakymą')}</span>
+                          )}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
                   </AnimatePresence>
                 </motion.form>
               )}
@@ -2460,9 +2511,9 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h4 className="font-syne font-bold mb-2">Darbo laikas</h4>
+                <h4 className="font-syne font-bold mb-2">{t('booking.info.hours.title', 'Darbo laikas')}</h4>
                 <p className="text-sm text-graphite-black/70">
-                  Kasdien 9:00 - 18:00. Vespa paėmimas ir grąžinimas pagal susitarimą.
+                  {t('booking.info.hours.text', 'Kasdien 9:00 - 18:00. Vespa paėmimas ir grąžinimas pagal susitarimą.')}
                 </p>
               </div>
               
@@ -2472,9 +2523,9 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h4 className="font-syne font-bold mb-2">Mokėjimas</h4>
+                <h4 className="font-syne font-bold mb-2">{t('booking.info.payment.title', 'Mokėjimas')}</h4>
                 <p className="text-sm text-graphite-black/70">
-                  Priimame korteles ir grynuosius pinigus. Užstatas grąžinamas po nuomos.
+                  {t('booking.info.payment.text', 'Priimame korteles ir grynuosius pinigus. Užstatas grąžinamas po nuomos.')}
                 </p>
               </div>
               
@@ -2484,9 +2535,9 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
-                <h4 className="font-syne font-bold mb-2">Reikalavimai</h4>
+                <h4 className="font-syne font-bold mb-2">{t('booking.info.license.title', 'Reikalavimai')}</h4>
                 <p className="text-sm text-graphite-black/70">
-                  Būtinas vairuotojo pažymėjimas ir 21+ metų amžius. Šalmas įskaičiuotas.
+                  {t('booking.info.license.text', 'Būtinas vairuotojo pažymėjimas ir 21+ metų amžius. Šalmas įskaičiuotas.')}
                 </p>
               </div>
             </motion.div>
@@ -2498,7 +2549,7 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               <p className="text-sm text-graphite-black/60">
-                Pagalba ar klausimai? <a href="tel:+37067956380" className="text-sage-green hover:underline">+370 679 56380</a>
+                {t('booking.assistance', 'Pagalba ar klausimai?')} <a href="tel:+37067956380" className="text-sage-green hover:underline">+370 679 56380</a>
               </p>
             </motion.div>
           </div>
@@ -2507,3 +2558,4 @@ const DigitalSignature = ({ onSignatureComplete, signature, disabled = false }) 
     </section>
   );
 }
+                              

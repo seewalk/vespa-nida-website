@@ -2,27 +2,24 @@
 import './globals.css';
 import { Inter, Syne, Playfair_Display } from 'next/font/google';
 import localFont from 'next/font/local';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import BackToTop from '../components/BackToTop';
 import { LanguageProvider } from '../components/context/LanguageContext';
-import MobileLanguageSelector from '../components/MobileLanguageSelector';
 import { headers } from 'next/headers';
+import CookieConsent from '../components/CookieConsent';
 
 const geist = localFont({
   src: [
     {
-      path: '../public/fonts/Geist-Regular.woff2',  // Updated path
+      path: '../public/fonts/Geist-Regular.woff2',
       weight: '400',
       style: 'normal',
     },
     {
-      path: '../public/fonts/Geist-Medium.woff2',  // Updated path
+      path: '../public/fonts/Geist-Medium.woff2',
       weight: '500',
       style: 'normal',
     },
     {
-      path: '../public/fonts/Geist-Bold.woff2',  // Updated path
+      path: '../public/fonts/Geist-Bold.woff2',
       weight: '700',
       style: 'normal',
     },
@@ -119,7 +116,12 @@ export async function generateMetadata() {
     authors: [{ name: 'Vespa Nida Team' }],
     creator: 'Vespa Nida',
     publisher: 'Vespa Nida',
-    // 🛵 FAVICON CONFIGURATION
+    viewport: {
+      width: 'device-width',
+      initialScale: 1,
+      maximumScale: 1,
+      userScalable: false,
+    },
     icons: {
       icon: [
         { url: '/images/badge.jpg', sizes: '32x32', type: 'image/jpeg' },
@@ -182,13 +184,10 @@ export async function generateMetadata() {
 export default function RootLayout({ children }) {
   return (
     <html lang="lt" className={`${inter.variable} ${syne.variable} ${playfair.variable} ${geist.variable}`}>
-      <body className="bg-[#F9F7F1] text-[#2B2B2B]">
+      <body className="bg-[#F9F7F1] text-[#2B2B2B] overflow-x-hidden">
         <LanguageProvider>
-          <MobileLanguageSelector />
-          <Header />
+          <CookieConsent />
           {children}
-          <Footer />
-          <BackToTop />
         </LanguageProvider>
       </body>
     </html>

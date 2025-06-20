@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { useLanguage } from '../context/LanguageContext'; // Add this import
 
 export default function BookingCalendar({ 
   onDateSelect, 
@@ -10,6 +11,9 @@ export default function BookingCalendar({
   adminMode = false, 
   onBookingUpdate 
 }) {
+  // Add language context
+  const { t } = useLanguage();
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,14 +36,37 @@ export default function BookingCalendar({
   const daysInMonth = lastDayOfMonth.getDate();
   const startingDayOfWeek = firstDayOfMonth.getDay();
 
-  // Month names
-  const monthNames = [
-    'Sausis', 'Vasaris', 'Kovas', 'Balandis', 'Gegužė', 'Birželis',
-    'Liepa', 'Rugpjūtis', 'Rugsėjis', 'Spalis', 'Lapkritis', 'Gruodis'
-  ];
+  // UPDATED: Use translations for month names
+  const getMonthName = (monthIndex) => {
+    const monthKeys = [
+      'calendar.months.january',
+      'calendar.months.february', 
+      'calendar.months.march',
+      'calendar.months.april',
+      'calendar.months.may',
+      'calendar.months.june',
+      'calendar.months.july',
+      'calendar.months.august',
+      'calendar.months.september',
+      'calendar.months.october',
+      'calendar.months.november',
+      'calendar.months.december'
+    ];
+    return t(monthKeys[monthIndex], ['Sausis', 'Vasaris', 'Kovas', 'Balandis', 'Gegužė', 'Birželis', 'Liepa', 'Rugpjūtis', 'Rugsėjis', 'Spalis', 'Lapkritis', 'Gruodis'][monthIndex]);
+  };
 
-  // Day names
-  const dayNames = ['Sek', 'Pir', 'Ant', 'Tre', 'Ket', 'Pen', 'Šeš'];
+  // UPDATED: Use translations for day names
+  const getDayNames = () => {
+    return [
+      t('calendar.days.sunday', 'Sek'),
+      t('calendar.days.monday', 'Pir'),
+      t('calendar.days.tuesday', 'Ant'),
+      t('calendar.days.wednesday', 'Tre'),
+      t('calendar.days.thursday', 'Ket'),
+      t('calendar.days.friday', 'Pen'),
+      t('calendar.days.saturday', 'Šeš')
+    ];
+  };
 
   useEffect(() => {
     if (isClient) {
@@ -137,7 +164,6 @@ export default function BookingCalendar({
       
       const bookingRef = doc(db, 'bookings', bookingId);
       
-      // Use a simpler update structure
       await updateDoc(bookingRef, {
         status: newStatus,
         updatedAt: new Date().toISOString()
@@ -145,7 +171,6 @@ export default function BookingCalendar({
       
       console.log('Booking updated successfully');
       
-      // Update local state
       setBookings(prev => prev.map(booking => 
         booking.id === bookingId 
           ? { ...booking, status: newStatus }
@@ -156,17 +181,16 @@ export default function BookingCalendar({
         onBookingUpdate();
       }
       
-      // Show success message
-      alert('Užsakymas sėkmingai atnaujintas!');
+      alert(t('calendar.bookingUpdated', 'Užsakymas sėkmingai atnaujintas!'));
       
     } catch (error) {
       console.error('Error updating booking status:', error);
-      alert('Klaida atnaujinant užsakymą: ' + error.message);
+      alert(t('calendar.updateError', 'Klaida atnaujinant užsakymą: ') + error.message);
     }
   };
 
   const deleteBooking = async (bookingId) => {
-    if (!confirm('Ar tikrai norite ištrinti šį užsakymą?')) return;
+    if (!confirm(t('calendar.confirmDelete', 'Ar tikrai norite ištrinti šį užsakymą?'))) return;
     
     try {
       console.log('Deleting booking:', bookingId);
@@ -175,7 +199,6 @@ export default function BookingCalendar({
       
       console.log('Booking deleted successfully');
       
-      // Update local state
       setBookings(prev => prev.filter(booking => booking.id !== bookingId));
       setShowBookingModal(false);
       
@@ -183,11 +206,11 @@ export default function BookingCalendar({
         onBookingUpdate();
       }
       
-      alert('Užsakymas sėkmingai ištrintas!');
+      alert(t('calendar.bookingDeleted', 'Užsakymas sėkmingai ištrintas!'));
       
     } catch (error) {
       console.error('Error deleting booking:', error);
-      alert('Klaida trinant užsakymą: ' + error.message);
+      alert(t('calendar.deleteError', 'Klaida trinant užsakymą: ') + error.message);
     }
   };
 
@@ -202,13 +225,13 @@ export default function BookingCalendar({
   };
 
   const getStatusText = (status) => {
-    const statusTexts = {
-      pending_confirmation: 'Laukia patvirtinimo',
-      confirmed: 'Patvirtinta',
-      completed: 'Baigta',
-      cancelled: 'Atšaukta'
+    const statusMap = {
+      pending_confirmation: t('calendar.status.pending', 'Laukia patvirtinimo'),
+      confirmed: t('calendar.status.confirmed', 'Patvirtinta'),
+      completed: t('calendar.status.completed', 'Baigta'),
+      cancelled: t('calendar.status.cancelled', 'Atšaukta')
     };
-    return statusTexts[status] || status;
+    return statusMap[status] || status;
   };
 
   const renderCalendarGrid = () => {
@@ -305,6 +328,8 @@ export default function BookingCalendar({
     );
   }
 
+  const dayNames = getDayNames();
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-sand-beige p-4 relative">
       {/* Calendar Header */}
@@ -319,7 +344,7 @@ export default function BookingCalendar({
         </button>
         
         <h2 className="text-lg md:text-xl font-bold text-graphite-black">
-          {monthNames[currentMonth]} {currentYear}
+          {getMonthName(currentMonth)} {currentYear}
         </h2>
         
         <button
@@ -335,7 +360,7 @@ export default function BookingCalendar({
       {/* Availability Info */}
       <div className="mb-4 p-3 bg-sage-green/5 rounded-lg border border-sage-green/20">
         <div className="text-sm text-graphite-black">
-          <span className="font-medium">Prieinami skuteriai:</span> 2 vnt.
+          <span className="font-medium">{t('calendar.availableScooters', 'Prieinami skuteriai')}:</span> 2 {t('calendar.units', 'vnt.')}.
         </div>
       </div>
 
@@ -361,15 +386,15 @@ export default function BookingCalendar({
             <>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
-                <span>Laisvi abu skuteriai</span>
+                <span>{t('calendar.legend.bothAvailable', 'Laisvi abu skuteriai')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded mr-2"></div>
-                <span>Laisvas 1 skuteris</span>
+                <span>{t('calendar.legend.oneAvailable', 'Laisvas 1 skuteris')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-red-100 border border-red-300 rounded mr-2"></div>
-                <span>Visi skuteriai užimti</span>
+                <span>{t('calendar.legend.allBooked', 'Visi skuteriai užimti')}</span>
               </div>
             </>
           ) : (
@@ -377,19 +402,19 @@ export default function BookingCalendar({
             <>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                <span>Patvirtinta</span>
+                <span>{t('calendar.status.confirmed', 'Patvirtinta')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
-                <span>Laukia patvirtinimo</span>
+                <span>{t('calendar.status.pending', 'Laukia patvirtinimo')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-blue-400 rounded-full mr-2"></div>
-                <span>Baigta</span>
+                <span>{t('calendar.status.completed', 'Baigta')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
-                <span>Atšaukta</span>
+                <span>{t('calendar.status.cancelled', 'Atšaukta')}</span>
               </div>
             </>
           )}
@@ -407,47 +432,47 @@ export default function BookingCalendar({
       <SimpleModal show={showBookingModal} onClose={() => setShowBookingModal(false)}>
         {selectedBooking && (
           <>
-            <h3 className="text-xl font-bold mb-4">Užsakymo detalės</h3>
+            <h3 className="text-xl font-bold mb-4">{t('calendar.bookingDetails', 'Užsakymo detalės')}</h3>
             
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">Užsakymo nr.:</span>
+                <span className="text-graphite-black/60">{t('calendar.bookingNumber', 'Užsakymo nr.')}:</span>
                 <span className="font-medium">{selectedBooking.bookingReference}</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">Klientas:</span>
+                <span className="text-graphite-black/60">{t('calendar.customer', 'Klientas')}:</span>
                 <span className="font-medium">{selectedBooking.customer?.name}</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">El. paštas:</span>
+                <span className="text-graphite-black/60">{t('calendar.email', 'El. paštas')}:</span>
                 <a href={`mailto:${selectedBooking.customer?.email}`} className="text-sage-green hover:underline">
                   {selectedBooking.customer?.email}
                 </a>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">Telefonas:</span>
+                <span className="text-graphite-black/60">{t('calendar.phone', 'Telefonas')}:</span>
                 <a href={`tel:${selectedBooking.customer?.phone}`} className="text-sage-green hover:underline">
                   {selectedBooking.customer?.phone}
                 </a>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">Būsena:</span>
+                <span className="text-graphite-black/60">{t('calendar.status.label', 'Būsena')}:</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(selectedBooking.status)}`}>
                   {getStatusText(selectedBooking.status)}
                 </span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">Vespa:</span>
+                <span className="text-graphite-black/60">{t('calendar.vespa', 'Vespa')}:</span>
                 <span className="font-medium">{selectedBooking.booking?.vespaModel}</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">Suma:</span>
+                <span className="text-graphite-black/60">{t('calendar.amount', 'Suma')}:</span>
                 <span className="font-medium">€{selectedBooking.pricing?.totalAmount}</span>
               </div>
             </div>
@@ -463,7 +488,7 @@ export default function BookingCalendar({
                     }}
                     className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
                   >
-                    Patvirtinti
+                    {t('calendar.confirm', 'Patvirtinti')}
                   </button>
                   <button
                     onClick={() => {
@@ -472,7 +497,7 @@ export default function BookingCalendar({
                     }}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
                   >
-                    Atšaukti
+                    {t('calendar.cancel', 'Atšaukti')}
                   </button>
                 </div>
               )}
@@ -485,7 +510,7 @@ export default function BookingCalendar({
                   }}
                   className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
                 >
-                  Pažymėti kaip baigtą
+                  {t('calendar.markCompleted', 'Pažymėti kaip baigtą')}
                 </button>
               )}
               
@@ -493,14 +518,14 @@ export default function BookingCalendar({
                 onClick={() => deleteBooking(selectedBooking.id)}
                 className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
               >
-                Ištrinti užsakymą
+                {t('calendar.deleteBooking', 'Ištrinti užsakymą')}
               </button>
               
               <button
                 onClick={() => setShowBookingModal(false)}
                 className="w-full px-4 py-2 border border-sage-green text-sage-green rounded-lg hover:bg-sage-green/5 text-sm"
               >
-                Uždaryti
+                {t('calendar.close', 'Uždaryti')}
               </button>
             </div>
           </>

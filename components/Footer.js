@@ -263,11 +263,35 @@ export default function Footer() {
                 </svg>
               </button>
             </div>
-            
-            {/* Copyright info */}
-            <div className="text-center text-xs text-chrome-silver">
-              <p>© {new Date().getFullYear()} Vespa Nida. {t('footer.rights')}</p>
-            </div>
+
+            {/* SocialCrack credit section - separate row */}
+    <div className="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-6">
+      <p className="text-xs text-chrome-silver/70">
+        Website designed & developed by
+      </p>
+      <a 
+        href="https://socialcrack.elektroluma.com" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="inline-flex items-center space-x-2 px-3 py-1.5 bg-white/5 rounded-lg hover:bg-white/10 transition-colors group"
+      >
+        <div className="text-sm font-mono font-bold text-[#00FF9D]">
+          SocialCrack
+        </div>
+        <span className="text-xs text-chrome-silver/70">by</span>
+        <div className="text-sm font-medium text-white">
+          ELEKTROLUMA
+        </div>
+        <svg 
+          className="w-3 h-3 text-chrome-silver/50 group-hover:text-[#00FF9D] transition-colors" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    </div>
           </div>
         </div>
       )}
@@ -293,10 +317,17 @@ export default function Footer() {
                     className="h-10 w-auto"
                   />
                 </Link>
-                
-                <p className="text-chrome-silver mb-8 max-w-xs">
+                <div>
+                  
+                  <p className="text-chrome-silver mb-8 max-w-xs">
                   {t('footer.description')}
                 </p>
+
+                <p className="text-sml font-syne font-bold mb-6 flex items-center">
+                  {t('footer.descriptionTrademark')}
+                </p>
+                </div>
+                
                 
                 <div className="flex space-x-4 mb-8">
                   <a 
@@ -423,6 +454,9 @@ export default function Footer() {
                   </div>
                 </div>
               </motion.div>
+
+
+              
               
               {/* Contact Column */}
               <motion.div variants={childVariants}>
@@ -431,17 +465,7 @@ export default function Footer() {
                   {t('footer.contactUs')}
                 </h3>
                 <ul className="space-y-5">
-                  <li className="flex">
-                    <div className="mr-3 mt-1">
-                      <div className="w-8 h-8 rounded-full bg-sage-green/20 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-sage-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                    </div>
-                  </li>
-                  <li className="flex">
+                                    <li className="flex">
                     <div className="mr-3 mt-1">
                       <div className="w-8 h-8 rounded-full bg-sage-green/20 flex items-center justify-center">
                         <svg className="w-4 h-4 text-sage-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -489,9 +513,11 @@ export default function Footer() {
             {/* Bottom area with copyright and payment methods */}
             <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center">
               <div className="text-center md:text-left text-sm text-chrome-silver mb-4 md:mb-0">
-                <p>© {new Date().getFullYear()} Vespa Nida. {t('footer.rights')}</p>
+        
                 <p className="mt-1 italic text-white/40">{t('footer.slogan')}</p>
               </div>
+
+              
               
               <div className="flex flex-col items-center md:items-end space-y-4">
                 {/* Payment methods */}
@@ -535,6 +561,35 @@ export default function Footer() {
                 </button>
               </div>
             </div>
+
+            {/* SocialCrack credit section - separate row */}
+    <div className="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-6">
+      <p className="text-xs text-chrome-silver/70">
+        Website designed & developed by
+      </p>
+      <a 
+        href="https://socialcrack.elektroluma.com" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="inline-flex items-center space-x-2 px-3 py-1.5 bg-white/5 rounded-lg hover:bg-white/10 transition-colors group"
+      >
+        <div className="text-sm font-mono font-bold text-[#00FF9D]">
+          SocialCrack
+        </div>
+        <span className="text-xs text-chrome-silver/70">by</span>
+        <div className="text-sm font-medium text-white">
+          ELEKTROLUMA
+        </div>
+        <svg 
+          className="w-3 h-3 text-chrome-silver/50 group-hover:text-[#00FF9D] transition-colors" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    </div>
           </div>
         </div>
       )}

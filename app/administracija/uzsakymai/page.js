@@ -7,6 +7,7 @@ import { collection, query, where, getDocs, orderBy, doc, updateDoc } from 'fire
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 
 export default function AdminBookings() {
   const [user, setUser] = useState(null);
@@ -24,6 +25,7 @@ export default function AdminBookings() {
   const [notifications, setNotifications] = useState([]);
   const router = useRouter();
   const [emailLogs, setEmailLogs] = useState({});
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -62,6 +64,20 @@ export default function AdminBookings() {
       console.error('Error fetching bookings:', error);
     }
   };
+
+  useEffect(() => {
+  // Set initial filters from URL parameters
+  const statusParam = searchParams.get('status');
+  const dateRangeParam = searchParams.get('dateRange');
+  
+  if (statusParam || dateRangeParam) {
+    setFilters(prev => ({
+      ...prev,
+      status: statusParam || 'all',
+      dateRange: dateRangeParam || 'all'
+    }));
+  }
+}, [searchParams]);
 
   // Add notification
   const addNotification = (message, type = 'success') => {
