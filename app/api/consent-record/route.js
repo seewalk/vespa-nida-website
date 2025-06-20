@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { adminDb } from '../../../lib/firebase-admin'; // ← Use Admin SDK instead
 
 // Rate limiting storage (in production, use Redis or database)
 const rateLimitMap = new Map();
@@ -15,9 +14,9 @@ export async function POST(request) {
       'https://en.vespanida.lt',
       'https://de.vespanida.lt', 
       'https://pl.vespanida.lt',
-      'https://www.en.vespanida.lt',     // ← ADD THIS if you have it
-  'https://www.de.vespanida.lt',     // ← ADD THIS if you have it
-  'https://www.pl.vespanida.lt',  
+      'https://www.en.vespanida.lt',
+      'https://www.de.vespanida.lt',
+      'https://www.pl.vespanida.lt',  
       process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
       'http://localhost:3000',
       'http://localhost:3001',
@@ -79,7 +78,7 @@ export async function POST(request) {
     const consentRecord = {
       ...sanitizedData,
       ipHash: hashedIP,
-      timestamp: serverTimestamp(),
+      timestamp: new Date(), // ← Use regular Date instead of serverTimestamp()
       source: 'website',
       version: '1.0'
     };
@@ -89,8 +88,8 @@ export async function POST(request) {
       console.log('💾 Saving consent record:', consentRecord);
     }
     
-    // 8. Store in Firebase
-    const docRef = await addDoc(collection(db, 'consent-records'), consentRecord);
+    // 8. Store in Firebase using Admin SDK
+    const docRef = await adminDb.collection('consent-records').add(consentRecord);
     
     // Success logging
     if (process.env.NODE_ENV === 'development') {
@@ -102,9 +101,13 @@ export async function POST(request) {
   } catch (error) {
     console.error('❌ Consent recording error:', error);
     
-    // Don't expose internal errors to client
+    // More specific error handling
     if (error.code === 'permission-denied') {
       return NextResponse.json({ error: 'Database access denied' }, { status: 403 });
+    }
+    
+    if (error.code === 'unavailable') {
+      return NextResponse.json({ error: 'Database temporarily unavailable' }, { status: 503 });
     }
     
     return NextResponse.json({ error: 'Failed to record consent' }, { status: 500 });
@@ -189,7 +192,11 @@ async function hashString(str) {
     .join('');
 }
 
-// Only allow POST requests
+// Test endpoint
 export async function GET() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+  return NextResponse.json({ 
+    message: 'Consent API is working with Firebase Admin!',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
+  });
 }
