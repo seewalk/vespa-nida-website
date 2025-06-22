@@ -5,6 +5,7 @@ import localFont from 'next/font/local';
 import { LanguageProvider } from '../components/context/LanguageContext';
 import { headers } from 'next/headers';
 import CookieConsent from '../components/CookieConsent';
+import { Analytics } from "@vercel/analytics/react"
 
 const geist = localFont({
   src: [
@@ -188,6 +189,7 @@ export default function RootLayout({ children }) {
         <LanguageProvider>
           <CookieConsent />
           {children}
+          <Analytics />
         </LanguageProvider>
       </body>
     </html>

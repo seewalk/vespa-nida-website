@@ -12,6 +12,7 @@ import FleetSection from '../components/FleetSection';
 import ExploreSection from '../components/ExploreSection';
 import BookingForm from '../components/BookingForm';
 import FAQSection from '../components/FAQSection';
+import SEO from '../components/SEO';
 
 // Inline FAQ Component
 function InlineFAQPreview() {
@@ -25,6 +26,7 @@ function InlineFAQPreview() {
   ];
 
   return (
+    
     <section className="py-12 bg-ivory-white/50" itemScope itemType="https://schema.org/FAQPage">
       <div className="container">
         <h2 className="text-2xl md:text-3xl font-bold font-syne text-center mb-8">
@@ -102,7 +104,15 @@ function InlineFAQPreview() {
 
 export default function Home() {
   return (
+    
     <main>
+      <SEO 
+                title="Vespa Nida | Prabangūs Vespa motoroleriai nuomai Nidoje, Lietuvoje"
+                description="Patirkite Nidos grožį su mūsų prabangių Vespa motorolerių nuomos paslaugomis. Tyrinėkite kuršių nerijos pakrantę stilingai su Vespa Nida."
+                keywords="motoroleriu nuoma, nuoma nida, masinos nuoma, dviracio nuoma nida, motoroleriu nuoma klaipeda, nida nuoma, vespa rental nida, explore nida, travel nida, travel to nida, nida scooter rental, nida vespa rental, nida electric scooter, nida vespa tours"
+                ogImage="/images/hero-vespa-nida.jpg"
+                section="home"
+              />
       <Header />
       <HeroSection />
       <BookingForm />
