@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useLanguage } from '../context/LanguageContext';
@@ -26,24 +26,62 @@ export default function BookingCalendar({
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [error, setError] = useState(null);
 
   // Handle client-side rendering
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Get current month and year
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
+  // Get current month and year - MEMOIZED
+  const { currentMonth, currentYear } = useMemo(() => ({
+    currentMonth: currentDate.getMonth(),
+    currentYear: currentDate.getFullYear()
+  }), [currentDate]);
 
-  // Get first day of the month and how many days in month
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-  const daysInMonth = lastDayOfMonth.getDate();
-  const startingDayOfWeek = firstDayOfMonth.getDay();
+  // MEMOIZED calendar calculations
+  const calendarData = useMemo(() => {
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDayOfMonth.getDate();
+    const startingDayOfWeek = firstDayOfMonth.getDay();
+
+    return {
+      firstDayOfMonth,
+      lastDayOfMonth,
+      daysInMonth,
+      startingDayOfWeek
+    };
+  }, [currentMonth, currentYear]);
+
+  // OPTIMIZED: Create a lookup map for bookings by date
+  const bookingsByDate = useMemo(() => {
+    const dateMap = new Map();
+    
+    bookings.forEach(booking => {
+      if (booking.booking?.startDate && booking.status !== 'cancelled') {
+        const date = booking.booking.startDate;
+        if (!dateMap.has(date)) {
+          dateMap.set(date, []);
+        }
+        dateMap.get(date).push(booking);
+      }
+    });
+    
+    // Only log summary info, not every date
+    if (bookings.length > 0) {
+      console.log(`📊 Processed ${bookings.length} bookings into date map`);
+      const datesWithBookings = Array.from(dateMap.keys()).filter(date => dateMap.get(date).length > 0);
+      if (datesWithBookings.length > 0) {
+        console.log(`📅 Dates with bookings:`, datesWithBookings);
+      }
+    }
+    
+    return dateMap;
+  }, [bookings]);
 
   // UNIFIED MONTH NAMES - consistent across all languages
-  const getMonthName = (monthIndex) => {
+  const getMonthName = useCallback((monthIndex) => {
     const monthKeys = [
       'calendar.months.january', 'calendar.months.february', 'calendar.months.march',
       'calendar.months.april', 'calendar.months.may', 'calendar.months.june',
@@ -67,10 +105,10 @@ export default function BookingCalendar({
     else if (hostname.includes('pl.')) lang = 'pl';
     
     return t(monthKeys[monthIndex], fallbackMonths[lang][monthIndex]);
-  };
+  }, [t]);
 
   // UNIFIED DAY NAMES - consistent across all languages
-  const getDayNames = () => {
+  const getDayNames = useCallback(() => {
     const dayKeys = [
       'calendar.days.sunday', 'calendar.days.monday', 'calendar.days.tuesday',
       'calendar.days.wednesday', 'calendar.days.thursday', 'calendar.days.friday', 'calendar.days.saturday'
@@ -92,18 +130,15 @@ export default function BookingCalendar({
     else if (hostname.includes('pl.')) lang = 'pl';
     
     return dayKeys.map((key, index) => t(key, fallbackDays[lang][index]));
-  };
+  }, [t]);
 
   // UNIFIED DATA FETCHING - same query for all domains
-  useEffect(() => {
-    if (isClient) {
-      fetchMonthBookings();
-    }
-  }, [currentMonth, currentYear, isClient]);
-
-  const fetchMonthBookings = async () => {
+  const fetchMonthBookings = useCallback(async () => {
+    if (!isClient) return;
+    
     try {
       setLoading(true);
+      setError(null);
       console.log(`🗓️ Fetching bookings for ${currentYear}-${currentMonth + 1} from Firebase`);
       
       // Get first and last day of current month
@@ -125,49 +160,57 @@ export default function BookingCalendar({
         ...doc.data()
       }));
       
-      console.log(`📊 Found ${bookingsData.length} bookings for this month:`, bookingsData);
+      console.log(`📊 Found ${bookingsData.length} bookings for ${currentYear}-${currentMonth + 1}`);
       setBookings(bookingsData);
     } catch (error) {
       console.error('❌ Error fetching bookings:', error);
+      setError(error.message);
       setBookings([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentMonth, currentYear, isClient]);
+
+  useEffect(() => {
+    fetchMonthBookings();
+  }, [fetchMonthBookings]);
+
+  // OPTIMIZED: Get bookings for date using the lookup map
+  const getBookingsForDate = useCallback((date) => {
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+    const dayBookings = bookingsByDate.get(dateStr) || [];
+    
+    // ONLY log dates that have bookings to reduce console spam
+    if (dayBookings.length > 0) {
+      console.log(`📅 ${dateStr}: ${dayBookings.length} booking(s)`);
+    }
+    
+    return dayBookings;
+  }, [currentMonth, currentYear, bookingsByDate]);
 
   // CONSISTENT BOOKING LOGIC - same across all domains
-  const getBookingsForDate = (date) => {
-    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-    const dayBookings = bookings.filter(booking => 
-      booking.booking?.startDate === dateStr && 
-      booking.status !== 'cancelled' // Don't count cancelled bookings
-    );
-    console.log(`📅 Bookings for ${dateStr}:`, dayBookings.length);
-    return dayBookings;
-  };
-
-  const isDateAvailable = (date) => {
+  const isDateAvailable = useCallback((date) => {
     const dateBookings = getBookingsForDate(date);
     // Check if all 2 scooters are booked
     return dateBookings.length < 2;
-  };
+  }, [getBookingsForDate]);
 
-  const getDateAvailabilityColor = (date) => {
+  const getDateAvailabilityColor = useCallback((date) => {
     const dateBookings = getBookingsForDate(date);
     const available = 2 - dateBookings.length;
     
     if (available === 2) return 'bg-green-100 border-green-300'; // Both available
     if (available === 1) return 'bg-yellow-100 border-yellow-300'; // One available
     return 'bg-red-100 border-red-300'; // None available
-  };
+  }, [getBookingsForDate]);
 
-  const isDateInPast = (date) => {
+  const isDateInPast = useCallback((date) => {
     const today = new Date();
     const checkDate = new Date(currentYear, currentMonth, date);
     return checkDate < today.setHours(0, 0, 0, 0);
-  };
+  }, [currentMonth, currentYear]);
 
-  const handleDateClick = (date) => {
+  const handleDateClick = useCallback((date) => {
     if (isDateInPast(date)) return;
     
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
@@ -185,13 +228,13 @@ export default function BookingCalendar({
         onDateSelect(dateStr);
       }
     }
-  };
+  }, [adminMode, currentMonth, currentYear, getBookingsForDate, isDateInPast, onDateSelect]);
 
-  const navigateMonth = (direction) => {
+  const navigateMonth = useCallback((direction) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentMonth + direction);
     setCurrentDate(newDate);
-  };
+  }, [currentDate, currentMonth]);
 
   const updateBookingStatus = async (bookingId, newStatus) => {
     try {
@@ -269,8 +312,9 @@ export default function BookingCalendar({
     return statusMap[status] || status;
   };
 
-  const renderCalendarGrid = () => {
+  const renderCalendarGrid = useCallback(() => {
     const days = [];
+    const { daysInMonth, startingDayOfWeek } = calendarData;
     
     // Empty cells for days before month starts
     for (let i = 0; i < startingDayOfWeek; i++) {
@@ -342,7 +386,7 @@ export default function BookingCalendar({
     }
     
     return days;
-  };
+  }, [calendarData, getBookingsForDate, isDateAvailable, isDateInPast, selectedDate, currentYear, currentMonth, adminMode, getDateAvailabilityColor, handleDateClick]);
 
   // Simple modal without framer-motion
   const SimpleModal = ({ children, show, onClose }) => {
@@ -374,19 +418,28 @@ export default function BookingCalendar({
     );
   }
 
+  // Show error state
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-red-200 p-4">
+        <div className="text-center text-red-600">
+          <p className="font-medium">Error loading calendar</p>
+          <p className="text-sm mt-1">{error}</p>
+          <button 
+            onClick={fetchMonthBookings}
+            className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const dayNames = getDayNames();
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-sand-beige p-4 relative">
-      {/* DEBUG INFO - Remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-          <strong>Debug:</strong> Domain: {typeof window !== 'undefined' ? window.location.hostname : 'SSR'} | 
-          Bookings: {bookings.length} | 
-          Month: {currentMonth + 1}/{currentYear}
-        </div>
-      )}
-
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-4">
         <button
