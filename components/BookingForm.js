@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import Image from 'next/image';
 import { useLanguage } from './context/LanguageContext';
@@ -471,8 +471,10 @@ const handleSubmit = async (e) => {
 
       // Save to Firebase Firestore
       console.log('🔥 Saving booking to Firebase...', bookingData);
-      const docRef = await addDoc(collection(db, "bookings"), bookingData);
-      console.log("✅ Booking saved with ID: ", docRef.id);
+const docRef = doc(db, "bookings", bookingReference); // Use bookingReference as ID
+await setDoc(docRef, bookingData);                    // Use setDoc instead of addDoc
+console.log("✅ Booking saved with ID: ", bookingReference);
+
 
       setSuccess(true);
       

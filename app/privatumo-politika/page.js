@@ -49,7 +49,7 @@ export default function PrivacyPolicy() {
               <div className="bg-white border border-sand-beige rounded-lg p-6 mb-6">
                 <p className="mb-4">
                   <strong>Vespa Nida</strong> yra premium Vespa skuterių nuomos paslauga, įsikūrusi Nidoje, Lietuvoje. 
-                  Mes teikiame aukštos kokybės skuterių nuomą Kuršių nerijos tyrimui.
+                  Mes teikiame aukštos kokybės skuterių nuomą Kuršių nerijos tyrimui. Vespa Nida yra nepriklausoma nuomos paslauga, nesusijusi su Piaggio & Co S.p.A. ar Vespa prekės ženklu ir jų nereklamuojama.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>

@@ -698,6 +698,51 @@ signature: {
   contactPrompt: "If you didn't find the answer you were looking for, please don't hesitate to contact our team directly."
 },
 
+rights: {
+  title: "Your Rights",
+  subtitle: "EU Consumer Protection", 
+  description: "Understand your consumer rights and protections when booking with Vespa Nida.",
+  needHelp: "Need Help with Your Rights?",
+  contactPrompt: "If you need assistance with exercising your consumer rights, our team is here to help you.",
+  
+  categories: {
+    all: "All Rights",
+    cancellation: "Cancellation",
+    refund: "Refunds", 
+    weather: "Weather",
+    privacy: "Privacy",
+    complaint: "Complaints",
+    insurance: "Insurance"
+  },
+  
+  questions: {
+    q1: "What are my cancellation rights when booking a Vespa rental?",
+    q2: "How does the refund process work for Vespa rentals?",
+    q3: "What are my rights if weather conditions prevent my Vespa rental?",
+    q4: "What are my data privacy rights when booking a Vespa rental?",
+    q5: "How can I file a complaint about my Vespa rental experience?",
+    q6: "What insurance coverage do I have when renting a Vespa?"
+  },
+  
+  answers: {
+    a1: "Under EU consumer protection laws, you have the right to cancel your Vespa rental booking up to 48 hours before the scheduled pickup time for a full refund. For cancellations made within 48 hours, a 25% service fee applies. This ensures fair availability for all customers while protecting your consumer rights.",
+    a2: "Under EU Payment Services Directive, you are entitled to a full refund for qualifying cancellations within 5-7 business days. Refunds are processed back to your original payment method. For weather-related cancellations on the rental day, we offer full refunds or free rescheduling as per EU consumer protection standards.",
+    a3: "Under EU consumer protection laws, if severe weather conditions (heavy rain, strong winds, or storms) make Vespa operation unsafe, you have the right to a full refund or free rescheduling. We monitor weather conditions and will proactively contact you if conditions are deemed unsafe for scooter operation in the Curonian Spit area.",
+    a4: "Under GDPR, you have complete control over your personal data. You can request access to your data, request corrections, or request deletion at any time. We only collect necessary information for your booking and safety, and we never share your data with third parties without your explicit consent. Your data is stored securely and deleted according to legal requirements.",
+    a5: "You have the right to file complaints through multiple channels: directly with us at info@vespanida.lt, through the Lithuanian State Consumer Rights Protection Authority, or through the European Consumer Centre network. We are committed to resolving any issues quickly and fairly. For EU residents, you also have access to the Online Dispute Resolution platform for e-commerce disputes.",
+    a6: "All our Vespa rentals include comprehensive insurance coverage as required by Lithuanian law. This includes third-party liability insurance and damage coverage. You have the right to see insurance documents before rental and receive a copy. Additional coverage options are available for extra protection. In case of an accident, we provide full support with insurance claims and authorities."
+  },
+  
+  badges: {
+    b1: "48H FREE",
+    b2: "FULL REFUND", 
+    b3: "WEATHER PROTECTED",
+    b4: "GDPR PROTECTED",
+    b5: "COMPLAINT RIGHTS",
+    b6: "INSURED"
+  }
+}
+
     // Add more translations as needed
   },
   lt: {
@@ -1364,6 +1409,50 @@ signature: {
   },
   stillHaveQuestions: "Dar turite klausimų?",
   contactPrompt: "Jei neradote ieškomo atsakymo, nedvejodami kreipkitės tiesiogiai į mūsų komandą."
+},
+rights: {
+  title: "Jūsų teisės",
+  subtitle: "ES vartotojų apsauga", 
+  description: "Sužinokite apie savo vartotojų teises ir apsaugą rezervuojant Vespa Nida paslaugas.",
+  needHelp: "Reikia pagalbos su jūsų teisėmis?",
+  contactPrompt: "Jei jums reikia pagalbos įgyvendinant vartotojų teises, mūsų komanda mielai jums padės.",
+  
+  categories: {
+    all: "Visos teisės",
+    cancellation: "Atšaukimas",
+    refund: "Pinigų grąžinimas", 
+    weather: "Oras",
+    privacy: "Privatumas",
+    complaint: "Skundai",
+    insurance: "Draudimas"
+  },
+  
+  questions: {
+    q1: "Kokios yra mano atšaukimo teisės rezervuojant Vespa nuomą?",
+    q2: "Kaip veikia pinigų grąžinimo procesas Vespa nuomai?",
+    q3: "Kokios yra mano teisės, jei oro sąlygos neleidžia nuomotis Vespa?",
+    q4: "Kokios yra mano duomenų privatumo teisės rezervuojant Vespa nuomą?",
+    q5: "Kaip galiu pateikti skundą dėl Vespa nuomos patirties?",
+    q6: "Kokį draudimo pokrytį turiu nuomodamas Vespa?"
+  },
+  
+  answers: {
+    a1: "Pagal ES vartotojų apsaugos įstatymus, turite teisę atšaukti Vespa nuomos rezervaciją iki 48 valandų iki suplanuoto paėmimo laiko ir gauti visišką pinigų grąžinimą. Atšaukimams, atliekamams per 48 valandas, taikomas 25% aptarnavimo mokestis. Tai užtikrina sąžiningą prieinamumą visiems klientams, kartu apsaugant jūsų vartotojų teises.",
+    a2: "Pagal ES mokėjimo paslaugų direktyvą, turite teisę gauti visišką pinigų grąžinimą už tinkamus atšaukimus per 5-7 darbo dienas. Pinigai grąžinami į originalų mokėjimo būdą. Oro sąlygų atšaukimams nuomos dieną siūlome visišką pinigų grąžinimą arba nemokamą perkėlimą pagal ES vartotojų apsaugos standartus.",
+    a3: "Pagal ES vartotojų apsaugos įstatymus, jei sunkios oro sąlygos (stiprus lietus, stiprūs vėjai ar audros) daro Vespa eksploatavimą nesaugų, turite teisę gauti visišką pinigų grąžinimą arba nemokamą perkėlimą. Mes stebime oro sąlygas ir aktyviai susisieksime su jumis, jei sąlygos bus laikomos nesaugiomis skuterio eksploatavimui Kuršių nerijos teritorijoje.",
+    a4: "Pagal BDAR turite visišką kontrolę über savo asmens duomenis. Galite bet kada prašyti prieigos prie savo duomenų, prašyti pataisymų arba ištrynimo. Renkame tik būtiną informaciją jūsų rezervacijai ir saugumui, ir niekada nesidalijame jūsų duomenimis su trečiosiomis šalimis be aiškaus jūsų sutikimo. Jūsų duomenys saugomi saugiai ir ištrinami pagal teisinius reikalavimus.",
+    a5: "Turite teisę pateikti skundus keliais kanalais: tiesiogiai mums info@vespanida.lt, per Lietuvos valstybinę vartotojų teisių apsaugos instituciją arba per Europos vartotojų centrų tinklą. Esame įsipareigojęę greitai ir sąžiningai spręsti bet kokius klausimus. ES gyventojams taip pat prieinama internetinė ginčų sprendimo platforma elektroninės prekybos ginčams.",
+    a6: "Visos mūsų Vespa nuomos apima išsamų draudimo pokrytį, kaip reikalauja Lietuvos įstatymai. Tai apima civilinės atsakomybės draudimą ir žalos pokrytį. Turite teisę pamatyti draudimo dokumentus prieš nuomą ir gauti kopiją. Papildomo apsaugos pokryčio parinktys prieinamos už papildomą mokestį. Įvykus avarijai, teikiame visišką paramą draudimo išmokų ir institucijų srityse."
+  },
+  
+  badges: {
+    b1: "48H NEMOKAMAI",
+    b2: "PILNAS GRĄŽINIMAS", 
+    b3: "ORO APSAUGA",
+    b4: "BDAR APSAUGA",
+    b5: "SKUNDŲ TEISĖS",
+    b6: "APDRAUSTAS"
+  }
 },
     // Add more translations
   },
@@ -2032,6 +2121,51 @@ signature: {
 }
   },
 
+  rights: {
+  title: "Ihre Rechte",
+  subtitle: "EU-Verbraucherschutz", 
+  description: "Verstehen Sie Ihre Verbraucherrechte und den Schutz bei der Buchung mit Vespa Nida.",
+  needHelp: "Benötigen Sie Hilfe bei Ihren Rechten?",
+  contactPrompt: "Falls Sie Unterstützung bei der Ausübung Ihrer Verbraucherrechte benötigen, hilft Ihnen unser Team gerne weiter.",
+  
+  categories: {
+    all: "Alle Rechte",
+    cancellation: "Stornierung",
+    refund: "Rückerstattung", 
+    weather: "Wetter",
+    privacy: "Datenschutz",
+    complaint: "Beschwerden",
+    insurance: "Versicherung"
+  },
+  
+  questions: {
+    q1: "Welche Stornierungsrechte habe ich bei der Buchung einer Vespa-Miete?",
+    q2: "Wie funktioniert der Rückerstattungsprozess für Vespa-Mieten?",
+    q3: "Welche Rechte habe ich, wenn Wetterbedingungen meine Vespa-Miete verhindern?",
+    q4: "Welche Datenschutzrechte habe ich bei der Buchung einer Vespa-Miete?",
+    q5: "Wie kann ich eine Beschwerde über meine Vespa-Miet-Erfahrung einreichen?",
+    q6: "Welchen Versicherungsschutz habe ich beim Mieten einer Vespa?"
+  },
+  
+  answers: {
+    a1: "Nach EU-Verbraucherschutzgesetzen haben Sie das Recht, Ihre Vespa-Mietbuchung bis zu 48 Stunden vor der geplanten Abholzeit gegen vollständige Rückerstattung zu stornieren. Bei Stornierungen innerhalb von 48 Stunden fällt eine Servicegebühr von 25% an. Dies gewährleistet faire Verfügbarkeit für alle Kunden und schützt gleichzeitig Ihre Verbraucherrechte.",
+    a2: "Nach der EU-Zahlungsdienstrichtlinie haben Sie Anspruch auf vollständige Rückerstattung für qualifizierte Stornierungen innerhalb von 5-7 Werktagen. Rückerstattungen werden auf Ihre ursprüngliche Zahlungsmethode zurückgebucht. Bei wetterbedingten Stornierungen am Miettag bieten wir vollständige Rückerstattung oder kostenlose Umbuchung gemäß EU-Verbraucherschutzstandards.",
+    a3: "Nach EU-Verbraucherschutzgesetzen haben Sie bei extremen Wetterbedingungen (starker Regen, starke Winde oder Stürme), die den Vespa-Betrieb unsicher machen, das Recht auf vollständige Rückerstattung oder kostenlose Umbuchung. Wir überwachen die Wetterbedingungen und kontaktieren Sie proaktiv, wenn die Bedingungen als unsicher für den Rollerbetrieb im Kurischen Nehrung-Gebiet eingestuft werden.",
+    a4: "Nach der DSGVO haben Sie vollständige Kontrolle über Ihre persönlichen Daten. Sie können jederzeit Zugang zu Ihren Daten beantragen, Korrekturen anfordern oder die Löschung verlangen. Wir sammeln nur notwendige Informationen für Ihre Buchung und Sicherheit und teilen Ihre Daten niemals ohne Ihre ausdrückliche Zustimmung mit Dritten. Ihre Daten werden sicher gespeichert und gemäß rechtlichen Anforderungen gelöscht.",
+    a5: "Sie haben das Recht, Beschwerden über mehrere Kanäle einzureichen: direkt bei uns unter info@vespanida.lt, über die litauische staatliche Verbraucherschutzbehörde oder über das Netzwerk der Europäischen Verbraucherzentren. Wir sind verpflichtet, alle Probleme schnell und fair zu lösen. Für EU-Bürger steht auch die Online-Streitbeilegungsplattform für E-Commerce-Streitigkeiten zur Verfügung.",
+    a6: "Alle unsere Vespa-Mieten beinhalten umfassenden Versicherungsschutz, wie es das litauische Recht verlangt. Dies umfasst Haftpflichtversicherung und Schadendeckung. Sie haben das Recht, Versicherungsdokumente vor der Miete einzusehen und eine Kopie zu erhalten. Zusätzliche Deckungsoptionen sind für zusätzlichen Schutz verfügbar. Im Falle eines Unfalls bieten wir vollständige Unterstützung bei Versicherungsansprüchen und Behörden."
+  },
+  
+  badges: {
+    b1: "48H KOSTENLOS",
+    b2: "VOLLRÜCKERSTATTUNG", 
+    b3: "WETTERSCHUTZ",
+    b4: "DSGVO-GESCHÜTZT",
+    b5: "BESCHWERDERECHTE",
+    b6: "VERSICHERT"
+  }
+},
+
 
 pl: {
     nav: {
@@ -2697,8 +2831,53 @@ signature: {
   },
   stillHaveQuestions: "Nadal masz pytania?",
   contactPrompt: "Jeśli nie znalazłeś odpowiedzi, której szukałeś, nie wahaj się skontaktować bezpośrednio z naszym zespołem."
-}
+},
+
+rights: {
+  title: "Twoje prawa",
+  subtitle: "Ochrona konsumenta UE", 
+  description: "Poznaj swoje prawa konsumenckie i ochronę podczas rezerwacji z Vespa Nida.",
+  needHelp: "Potrzebujesz pomocy z prawami?",
+  contactPrompt: "Jeśli potrzebujesz pomocy w korzystaniu z praw konsumenckich, nasz zespół chętnie Ci pomoże.",
+  
+  categories: {
+    all: "Wszystkie prawa",
+    cancellation: "Anulowanie",
+    refund: "Zwrot pieniędzy", 
+    weather: "Pogoda",
+    privacy: "Prywatność",
+    complaint: "Skargi",
+    insurance: "Ubezpieczenie"
+  },
+  
+  questions: {
+    q1: "Jakie mam prawa do anulowania przy rezerwacji wypożyczenia Vespy?",
+    q2: "Jak działa proces zwrotu pieniędzy za wypożyczenie Vespy?",
+    q3: "Jakie mam prawa, jeśli warunki pogodowe uniemożliwiają wypożyczenie Vespy?",
+    q4: "Jakie mam prawa do prywatności danych przy rezerwacji wypożyczenia Vespy?",
+    q5: "Jak mogę złożyć skargę dotyczącą mojego doświadczenia z wypożyczeniem Vespy?",
+    q6: "Jakie ubezpieczenie obejmuje wypożyczenie Vespy?"
+  },
+  
+  answers: {
+    a1: "Zgodnie z prawem ochrony konsumentów UE, masz prawo anulować rezerwację wypożyczenia Vespy do 48 godzin przed planowanym odbiorem za pełny zwrot pieniędzy. W przypadku anulowania w ciągu 48 godzin pobierana jest opłata serwisowa w wysokości 25%. Zapewnia to sprawiedliwą dostępność dla wszystkich klientów, chroniąc jednocześnie twoje prawa konsumenckie.",
+    a2: "Zgodnie z Dyrektywą UE o usługach płatniczych, przysługuje Ci pełny zwrot pieniędzy za kwalifikujące się anulowania w ciągu 5-7 dni roboczych. Zwroty są przetwarzane z powrotem na oryginalną metodę płatności. W przypadku anulowań pogodowych w dniu wypożyczenia oferujemy pełny zwrot pieniędzy lub bezpłatne przełożenie zgodnie ze standardami ochrony konsumentów UE.",
+    a3: "Zgodnie z prawem ochrony konsumentów UE, jeśli surowe warunki pogodowe (silny deszcz, silne wiatry lub burze) czynią eksploatację Vespy niebezpieczną, masz prawo do pełnego zwrotu pieniędzy lub bezpłatnego przełożenia. Monitorujemy warunki pogodowe i proaktywnie skontaktujemy się z Tobą, jeśli warunki będą uznane za niebezpieczne dla eksploatacji skutera na obszarze Mierzei Kurońskiej.",
+    a4: "Zgodnie z RODO masz pełną kontrolę nad swoimi danymi osobowymi. Możesz w każdej chwili poprosić o dostęp do swoich danych, poprosić o poprawki lub usunięcie. Zbieramy tylko niezbędne informacje do Twojej rezerwacji i bezpieczeństwa, i nigdy nie udostępniamy Twoich danych stronom trzecim bez Twojej wyraźnej zgody. Twoje dane są przechowywane bezpiecznie i usuwane zgodnie z wymogami prawnymi.",
+    a5: "Masz prawo składać skargi przez wiele kanałów: bezpośrednio do nas na info@vespanida.lt, przez litewski Państwowy Urząd Ochrony Praw Konsumentów lub przez sieć Europejskich Centrów Konsumenckich. Zobowiązujemy się do szybkiego i sprawiedliwego rozwiązywania wszelkich problemów. Mieszkańcy UE mają również dostęp do platformy internetowego rozstrzygania sporów dla sporów e-commerce.",
+    a6: "Wszystkie nasze wypożyczenia Vespy obejmują kompleksowe ubezpieczenie wymagane przez prawo litewskie. Obejmuje to ubezpieczenie odpowiedzialności cywilnej i pokrycie szkód. Masz prawo zobaczyć dokumenty ubezpieczeniowe przed wypożyczeniem i otrzymać kopię. Dodatkowe opcje pokrycia są dostępne dla dodatkowej ochrony. W przypadku wypadku zapewniamy pełne wsparcie w sprawach roszczeń ubezpieczeniowych i kontaktów z władzami."
+  },
+  
+  badges: {
+    b1: "48H GRATIS",
+    b2: "PEŁNY ZWROT", 
+    b3: "OCHRONA POGODOWA",
+    b4: "RODO CHRONIONE",
+    b5: "PRAWA DO SKARG",
+    b6: "UBEZPIECZONE"
   }
+}
+},  
   }
 
 // Create the context

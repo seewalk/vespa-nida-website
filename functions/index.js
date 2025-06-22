@@ -2,6 +2,8 @@ const {onDocumentCreated, onDocumentUpdated} = require('firebase-functions/v2/fi
 const {onRequest} = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
 const axios = require('axios');
+const functions = require('firebase-functions');  // Move this up with other imports
+const jwt = require('jsonwebtoken');  // Move this up with other imports
 
 admin.initializeApp();
 
@@ -192,9 +194,6 @@ exports.onBookingUpdated = onDocumentUpdated('bookings/{bookingId}', async (even
   return null;
 });
 
-const functions = require('firebase-functions');
-const jwt = require('jsonwebtoken');
-
 const privateKey = functions.config().jwt.private_key;
 const clientEmail = functions.config().jwt.client_email;
 
@@ -224,3 +223,105 @@ exports.generateFirebaseToken = onRequest(
     }
   }
 );
+
+// Function to store email logs (called by n8n) - UPDATED WITH SIMPLE CORS
+exports.logEmailStatus = onRequest({
+  cors: true
+}, async (request, response) => {
+  try {
+    console.log('📧 Logging email status:', JSON.stringify(request.body, null, 2));
+    
+    const { bookingId, emailType, status, error, timestamp } = request.body;
+    
+    if (!bookingId || !emailType || !status) {
+      return response.status(400).json({ 
+        error: 'Missing required fields: bookingId, emailType, status' 
+      });
+    }
+
+    const db = admin.firestore();
+    
+    // Store email log in Firestore
+    const emailLogData = {
+      bookingId,
+      emailType,
+      status, // 'success' or 'failed'
+      error: error || null,
+      timestamp: timestamp || new Date().toISOString(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    const docRef = await db.collection('email_logs').add(emailLogData);
+    
+    console.log('✅ Email log stored with ID:', docRef.id);
+    
+    response.json({
+      success: true,
+      logId: docRef.id,
+      message: 'Email status logged successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error logging email status:', error);
+    response.status(500).json({
+      error: 'Failed to log email status',
+      message: error.message
+    });
+  }
+});
+
+// Function to retrieve email logs (called by your frontend) - UPDATED WITH SIMPLE CORS
+exports.getEmailLogs = onRequest({
+  cors: true
+}, async (request, response) => {
+  try {
+    const bookingId = request.query.bookingId;
+    
+    if (!bookingId) {
+      return response.status(400).json({ 
+        error: 'Missing bookingId parameter' 
+      });
+    }
+
+    console.log('📧 Fetching email logs for booking:', bookingId);
+
+    const db = admin.firestore();
+    
+    // Get email logs for this booking
+    const emailLogsRef = db.collection('email_logs')
+      .where('bookingId', '==', bookingId)
+      .orderBy('createdAt', 'desc')
+      .limit(50);
+    
+    const snapshot = await emailLogsRef.get();
+    
+    const logs = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      logs.push({
+        id: doc.id,
+        bookingId: data.bookingId,
+        emailType: data.emailType,
+        status: data.status,
+        error: data.error,
+        timestamp: data.timestamp,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.timestamp
+      });
+    });
+
+    console.log(`✅ Found ${logs.length} email logs for booking ${bookingId}`);
+
+    response.json({
+      success: true,
+      bookingId: bookingId,
+      logs: logs
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching email logs:', error);
+    response.status(500).json({
+      error: 'Failed to fetch email logs',
+      message: error.message
+    });
+  }
+});
