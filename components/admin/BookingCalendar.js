@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { useLanguage } from '../context/LanguageContext'; // Add this import
+import { useLanguage } from '../context/LanguageContext';
 
 export default function BookingCalendar({ 
   onDateSelect, 
@@ -11,10 +11,16 @@ export default function BookingCalendar({
   adminMode = false, 
   onBookingUpdate 
 }) {
-  // Add language context
   const { t } = useLanguage();
   
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // UNIFIED STATE - Use consistent date initialization across all domains
+  const [currentDate, setCurrentDate] = useState(() => {
+    // Always start with the same date regardless of domain
+    const now = new Date();
+    // Reset to first of month to ensure consistency
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -36,38 +42,59 @@ export default function BookingCalendar({
   const daysInMonth = lastDayOfMonth.getDate();
   const startingDayOfWeek = firstDayOfMonth.getDay();
 
-  // UPDATED: Use translations for month names
+  // UNIFIED MONTH NAMES - consistent across all languages
   const getMonthName = (monthIndex) => {
     const monthKeys = [
-      'calendar.months.january',
-      'calendar.months.february', 
-      'calendar.months.march',
-      'calendar.months.april',
-      'calendar.months.may',
-      'calendar.months.june',
-      'calendar.months.july',
-      'calendar.months.august',
-      'calendar.months.september',
-      'calendar.months.october',
-      'calendar.months.november',
-      'calendar.months.december'
+      'calendar.months.january', 'calendar.months.february', 'calendar.months.march',
+      'calendar.months.april', 'calendar.months.may', 'calendar.months.june',
+      'calendar.months.july', 'calendar.months.august', 'calendar.months.september',
+      'calendar.months.october', 'calendar.months.november', 'calendar.months.december'
     ];
-    return t(monthKeys[monthIndex], ['Sausis', 'Vasaris', 'Kovas', 'Balandis', 'Gegužė', 'Birželis', 'Liepa', 'Rugpjūtis', 'Rugsėjis', 'Spalis', 'Lapkritis', 'Gruodis'][monthIndex]);
+    
+    // Fallback month names for all languages
+    const fallbackMonths = {
+      lt: ['Sausis', 'Vasaris', 'Kovas', 'Balandis', 'Gegužė', 'Birželis', 'Liepa', 'Rugpjūtis', 'Rugsėjis', 'Spalis', 'Lapkritis', 'Gruodis'],
+      en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+      de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+      pl: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień']
+    };
+    
+    // Get current language from hostname or default to 'lt'
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    let lang = 'lt';
+    if (hostname.includes('en.')) lang = 'en';
+    else if (hostname.includes('de.')) lang = 'de';
+    else if (hostname.includes('pl.')) lang = 'pl';
+    
+    return t(monthKeys[monthIndex], fallbackMonths[lang][monthIndex]);
   };
 
-  // UPDATED: Use translations for day names
+  // UNIFIED DAY NAMES - consistent across all languages
   const getDayNames = () => {
-    return [
-      t('calendar.days.sunday', 'Sek'),
-      t('calendar.days.monday', 'Pir'),
-      t('calendar.days.tuesday', 'Ant'),
-      t('calendar.days.wednesday', 'Tre'),
-      t('calendar.days.thursday', 'Ket'),
-      t('calendar.days.friday', 'Pen'),
-      t('calendar.days.saturday', 'Šeš')
+    const dayKeys = [
+      'calendar.days.sunday', 'calendar.days.monday', 'calendar.days.tuesday',
+      'calendar.days.wednesday', 'calendar.days.thursday', 'calendar.days.friday', 'calendar.days.saturday'
     ];
+    
+    // Fallback day names for all languages
+    const fallbackDays = {
+      lt: ['Sek', 'Pir', 'Ant', 'Tre', 'Ket', 'Pen', 'Šeš'],
+      en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      de: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+      pl: ['Nie', 'Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob']
+    };
+    
+    // Get current language from hostname or default to 'lt'
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    let lang = 'lt';
+    if (hostname.includes('en.')) lang = 'en';
+    else if (hostname.includes('de.')) lang = 'de';
+    else if (hostname.includes('pl.')) lang = 'pl';
+    
+    return dayKeys.map((key, index) => t(key, fallbackDays[lang][index]));
   };
 
+  // UNIFIED DATA FETCHING - same query for all domains
   useEffect(() => {
     if (isClient) {
       fetchMonthBookings();
@@ -77,10 +104,13 @@ export default function BookingCalendar({
   const fetchMonthBookings = async () => {
     try {
       setLoading(true);
+      console.log(`🗓️ Fetching bookings for ${currentYear}-${currentMonth + 1} from Firebase`);
       
       // Get first and last day of current month
       const firstDay = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
       const lastDay = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
+      
+      console.log(`📅 Date range: ${firstDay} to ${lastDay}`);
       
       const bookingsRef = collection(db, 'bookings');
       const q = query(
@@ -95,20 +125,25 @@ export default function BookingCalendar({
         ...doc.data()
       }));
       
+      console.log(`📊 Found ${bookingsData.length} bookings for this month:`, bookingsData);
       setBookings(bookingsData);
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('❌ Error fetching bookings:', error);
+      setBookings([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
   };
 
+  // CONSISTENT BOOKING LOGIC - same across all domains
   const getBookingsForDate = (date) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-    return bookings.filter(booking => 
+    const dayBookings = bookings.filter(booking => 
       booking.booking?.startDate === dateStr && 
       booking.status !== 'cancelled' // Don't count cancelled bookings
     );
+    console.log(`📅 Bookings for ${dateStr}:`, dayBookings.length);
+    return dayBookings;
   };
 
   const isDateAvailable = (date) => {
@@ -166,7 +201,7 @@ export default function BookingCalendar({
       
       await updateDoc(bookingRef, {
         status: newStatus,
-        updatedAt: new Date().toISOString()
+        'metadata.updatedAt': new Date()
       });
       
       console.log('Booking updated successfully');
@@ -181,16 +216,16 @@ export default function BookingCalendar({
         onBookingUpdate();
       }
       
-      alert(t('calendar.bookingUpdated', 'Užsakymas sėkmingai atnaujintas!'));
+      alert(t('calendar.bookingUpdated', 'Booking updated successfully!'));
       
     } catch (error) {
       console.error('Error updating booking status:', error);
-      alert(t('calendar.updateError', 'Klaida atnaujinant užsakymą: ') + error.message);
+      alert(t('calendar.updateError', 'Error updating booking: ') + error.message);
     }
   };
 
   const deleteBooking = async (bookingId) => {
-    if (!confirm(t('calendar.confirmDelete', 'Ar tikrai norite ištrinti šį užsakymą?'))) return;
+    if (!confirm(t('calendar.confirmDelete', 'Are you sure you want to delete this booking?'))) return;
     
     try {
       console.log('Deleting booking:', bookingId);
@@ -206,11 +241,11 @@ export default function BookingCalendar({
         onBookingUpdate();
       }
       
-      alert(t('calendar.bookingDeleted', 'Užsakymas sėkmingai ištrintas!'));
+      alert(t('calendar.bookingDeleted', 'Booking deleted successfully!'));
       
     } catch (error) {
       console.error('Error deleting booking:', error);
-      alert(t('calendar.deleteError', 'Klaida trinant užsakymą: ') + error.message);
+      alert(t('calendar.deleteError', 'Error deleting booking: ') + error.message);
     }
   };
 
@@ -226,10 +261,10 @@ export default function BookingCalendar({
 
   const getStatusText = (status) => {
     const statusMap = {
-      pending_confirmation: t('calendar.status.pending', 'Laukia patvirtinimo'),
-      confirmed: t('calendar.status.confirmed', 'Patvirtinta'),
-      completed: t('calendar.status.completed', 'Baigta'),
-      cancelled: t('calendar.status.cancelled', 'Atšaukta')
+      pending_confirmation: t('calendar.status.pending', 'Pending Confirmation'),
+      confirmed: t('calendar.status.confirmed', 'Confirmed'),
+      completed: t('calendar.status.completed', 'Completed'),
+      cancelled: t('calendar.status.cancelled', 'Cancelled')
     };
     return statusMap[status] || status;
   };
@@ -272,22 +307,33 @@ export default function BookingCalendar({
               {date}
             </div>
             
-            {/* Admin mode: Show booking status indicators */}
-            {adminMode && dayBookings.length > 0 && (
+            {/* Show booking count indicator */}
+            {dayBookings.length > 0 && (
               <div className="flex-1 flex flex-col justify-end">
-                <div className="space-y-0.5">
-                  {dayBookings.slice(0, 2).map((booking, index) => (
-                    <div
-                      key={booking.id}
-                      className={`w-full h-1.5 rounded-full ${
-                        booking.status === 'confirmed' ? 'bg-green-400' :
-                        booking.status === 'pending_confirmation' ? 'bg-yellow-400' :
-                        booking.status === 'completed' ? 'bg-blue-400' :
-                        'bg-red-400'
-                      }`}
-                    />
-                  ))}
+                <div className="text-xs text-center">
+                  <span className={`inline-block w-4 h-4 rounded-full text-white text-xs leading-4 ${
+                    dayBookings.length >= 2 ? 'bg-red-500' : 'bg-yellow-500'
+                  }`}>
+                    {dayBookings.length}
+                  </span>
                 </div>
+                
+                {/* Admin mode: Show booking status indicators */}
+                {adminMode && (
+                  <div className="space-y-0.5 mt-1">
+                    {dayBookings.slice(0, 2).map((booking, index) => (
+                      <div
+                        key={booking.id}
+                        className={`w-full h-1 rounded-full ${
+                          booking.status === 'confirmed' ? 'bg-green-400' :
+                          booking.status === 'pending_confirmation' ? 'bg-yellow-400' :
+                          booking.status === 'completed' ? 'bg-blue-400' :
+                          'bg-red-400'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -332,6 +378,15 @@ export default function BookingCalendar({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-sand-beige p-4 relative">
+      {/* DEBUG INFO - Remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+          <strong>Debug:</strong> Domain: {typeof window !== 'undefined' ? window.location.hostname : 'SSR'} | 
+          Bookings: {bookings.length} | 
+          Month: {currentMonth + 1}/{currentYear}
+        </div>
+      )}
+
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-4">
         <button
@@ -360,7 +415,7 @@ export default function BookingCalendar({
       {/* Availability Info */}
       <div className="mb-4 p-3 bg-sage-green/5 rounded-lg border border-sage-green/20">
         <div className="text-sm text-graphite-black">
-          <span className="font-medium">{t('calendar.availableScooters', 'Prieinami skuteriai')}:</span> 2 {t('calendar.units', 'vnt.')}.
+          <span className="font-medium">{t('calendar.availableScooters', 'Available Scooters')}:</span> 2 {t('calendar.units', 'units')}.
         </div>
       </div>
 
@@ -386,15 +441,15 @@ export default function BookingCalendar({
             <>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
-                <span>{t('calendar.legend.bothAvailable', 'Laisvi abu skuteriai')}</span>
+                <span>{t('calendar.legend.bothAvailable', 'Both scooters available')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded mr-2"></div>
-                <span>{t('calendar.legend.oneAvailable', 'Laisvas 1 skuteris')}</span>
+                <span>{t('calendar.legend.oneAvailable', '1 scooter available')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-red-100 border border-red-300 rounded mr-2"></div>
-                <span>{t('calendar.legend.allBooked', 'Visi skuteriai užimti')}</span>
+                <span>{t('calendar.legend.allBooked', 'All scooters booked')}</span>
               </div>
             </>
           ) : (
@@ -402,19 +457,19 @@ export default function BookingCalendar({
             <>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                <span>{t('calendar.status.confirmed', 'Patvirtinta')}</span>
+                <span>{t('calendar.status.confirmed', 'Confirmed')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
-                <span>{t('calendar.status.pending', 'Laukia patvirtinimo')}</span>
+                <span>{t('calendar.status.pending', 'Pending')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-blue-400 rounded-full mr-2"></div>
-                <span>{t('calendar.status.completed', 'Baigta')}</span>
+                <span>{t('calendar.status.completed', 'Completed')}</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
-                <span>{t('calendar.status.cancelled', 'Atšaukta')}</span>
+                <span>{t('calendar.status.cancelled', 'Cancelled')}</span>
               </div>
             </>
           )}
@@ -432,35 +487,35 @@ export default function BookingCalendar({
       <SimpleModal show={showBookingModal} onClose={() => setShowBookingModal(false)}>
         {selectedBooking && (
           <>
-            <h3 className="text-xl font-bold mb-4">{t('calendar.bookingDetails', 'Užsakymo detalės')}</h3>
+            <h3 className="text-xl font-bold mb-4">{t('calendar.bookingDetails', 'Booking Details')}</h3>
             
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">{t('calendar.bookingNumber', 'Užsakymo nr.')}:</span>
+                <span className="text-graphite-black/60">{t('calendar.bookingNumber', 'Booking #')}:</span>
                 <span className="font-medium">{selectedBooking.bookingReference}</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">{t('calendar.customer', 'Klientas')}:</span>
+                <span className="text-graphite-black/60">{t('calendar.customer', 'Customer')}:</span>
                 <span className="font-medium">{selectedBooking.customer?.name}</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">{t('calendar.email', 'El. paštas')}:</span>
+                <span className="text-graphite-black/60">{t('calendar.email', 'Email')}:</span>
                 <a href={`mailto:${selectedBooking.customer?.email}`} className="text-sage-green hover:underline">
                   {selectedBooking.customer?.email}
                 </a>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">{t('calendar.phone', 'Telefonas')}:</span>
+                <span className="text-graphite-black/60">{t('calendar.phone', 'Phone')}:</span>
                 <a href={`tel:${selectedBooking.customer?.phone}`} className="text-sage-green hover:underline">
                   {selectedBooking.customer?.phone}
                 </a>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">{t('calendar.status.label', 'Būsena')}:</span>
+                <span className="text-graphite-black/60">{t('calendar.status.label', 'Status')}:</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(selectedBooking.status)}`}>
                   {getStatusText(selectedBooking.status)}
                 </span>
@@ -472,7 +527,7 @@ export default function BookingCalendar({
               </div>
               
               <div className="flex justify-between">
-                <span className="text-graphite-black/60">{t('calendar.amount', 'Suma')}:</span>
+                <span className="text-graphite-black/60">{t('calendar.amount', 'Amount')}:</span>
                 <span className="font-medium">€{selectedBooking.pricing?.totalAmount}</span>
               </div>
             </div>
@@ -488,7 +543,7 @@ export default function BookingCalendar({
                     }}
                     className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
                   >
-                    {t('calendar.confirm', 'Patvirtinti')}
+                    {t('calendar.confirm', 'Confirm')}
                   </button>
                   <button
                     onClick={() => {
@@ -497,7 +552,7 @@ export default function BookingCalendar({
                     }}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
                   >
-                    {t('calendar.cancel', 'Atšaukti')}
+                    {t('calendar.cancel', 'Cancel')}
                   </button>
                 </div>
               )}
@@ -510,7 +565,7 @@ export default function BookingCalendar({
                   }}
                   className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
                 >
-                  {t('calendar.markCompleted', 'Pažymėti kaip baigtą')}
+                  {t('calendar.markCompleted', 'Mark as Completed')}
                 </button>
               )}
               
@@ -518,14 +573,14 @@ export default function BookingCalendar({
                 onClick={() => deleteBooking(selectedBooking.id)}
                 className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
               >
-                {t('calendar.deleteBooking', 'Ištrinti užsakymą')}
+                {t('calendar.deleteBooking', 'Delete Booking')}
               </button>
               
               <button
                 onClick={() => setShowBookingModal(false)}
                 className="w-full px-4 py-2 border border-sage-green text-sage-green rounded-lg hover:bg-sage-green/5 text-sm"
               >
-                {t('calendar.close', 'Uždaryti')}
+                {t('calendar.close', 'Close')}
               </button>
             </div>
           </>

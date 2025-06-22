@@ -7,6 +7,7 @@ import { collection, query, getDocs, orderBy, where } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import ProtectedRoute from '../../../components/admin/ProtectedRoute';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
@@ -124,6 +125,7 @@ export default function AdminDashboard() {
   if (!user) return null;
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-ivory-white">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
@@ -467,5 +469,6 @@ export default function AdminDashboard() {
         </motion.div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

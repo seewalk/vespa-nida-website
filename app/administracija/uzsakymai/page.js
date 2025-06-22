@@ -11,7 +11,7 @@ import { useSearchParams } from 'next/navigation';
 import EditBookingModal from '../../../components/admin/EditBookingModal';
 import ScooterImageUpload from '../../../components/admin/ScooterImageUpload';
 import ScooterImageComparison from '../../../components/admin/ScooterImageComparison';
-
+import ProtectedRoute from '../../../components/admin/ProtectedRoute';
 
 export default function AdminBookings() {
   const [user, setUser] = useState(null);
@@ -238,7 +238,7 @@ useEffect(() => {
 
         // Send to n8n webhook for all status changes
         try {
-          await fetch('https://seewalk.app.n8n.cloud/webhook-test/booking-automation', {
+          await fetch('https://seewalk.app.n8n.cloud/webhook/booking-automation', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(webhookPayload)
@@ -279,7 +279,7 @@ useEffect(() => {
         timestamp: new Date().toISOString()
       };
 
-      const response = await fetch('https://seewalk.app.n8n.cloud/webhook-test/booking-automation', {
+      const response = await fetch('https://seewalk.app.n8n.cloud/webhook/booking-automation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(webhookPayload)
@@ -396,6 +396,7 @@ useEffect(() => {
   if (!user) return null;
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-ivory-white">
       {/* Notifications */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
@@ -1091,5 +1092,6 @@ useEffect(() => {
   />
 )}
     </div>
+    </ProtectedRoute>
   );
 }
