@@ -123,6 +123,10 @@ export async function generateMetadata() {
       maximumScale: 1,
       userScalable: false,
     },
+    other: {
+    'verify-paysera': 'ec0c1d726c12c86632ad5264bd72bdf8'
+    },
+  
     icons: {
       icon: [
         { url: '/images/badge.jpg', sizes: '32x32', type: 'image/jpeg' },
